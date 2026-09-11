@@ -10,11 +10,13 @@
   overflow-wrap: anywhere;
 }
 
+.standby-evidence-status,
 .standby-evidence-line,
 .standby-evidence-note {
   margin: 0 0 4px;
 }
 
+.standby-evidence-status:empty,
 .standby-evidence-note:empty,
 .standby-evidence-line:empty {
   display: none;
@@ -39,4 +41,8 @@
 .standby-evidence-notice {
   margin: 8px 0;
   font-size: 13px;
+}
+
+.standby-evidence-notice p {
+  margin: 0 0 6px;
 }

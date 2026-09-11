@@ -2,7 +2,7 @@
 
 Personal-use Chrome extension for reservation evidence and advertised-price context while browsing Landing Standby.
 
-Status: the side-panel path is complete. [Issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page, [#4](https://github.com/ezadzzz/standby-insights/issues/4) states it against the selected check-in, [#6](https://github.com/ezadzzz/standby-insights/issues/6) adds minimum-stay and building facts, and [#7](https://github.com/ezadzzz/standby-insights/issues/7) adds the advertised-price comparison. Card annotations ([#5](https://github.com/ezadzzz/standby-insights/issues/5)) and integrated packaging ([#8](https://github.com/ezadzzz/standby-insights/issues/8)) are not yet built.
+Status: the browsing path is complete. [Issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page, [#4](https://github.com/ezadzzz/standby-insights/issues/4) states it against the selected check-in, [#6](https://github.com/ezadzzz/standby-insights/issues/6) adds minimum-stay and building facts, and [#7](https://github.com/ezadzzz/standby-insights/issues/7) adds the advertised-price comparison. [#5](https://github.com/ezadzzz/standby-insights/issues/5) annotates rendered Standby search cards as the member browses. Integrated verification and packaging ([#8](https://github.com/ezadzzz/standby-insights/issues/8)) is not yet done.
 
 - [Specification](standby-extension-spec.md)
 - [Glossary](CONTEXT.md) — the vocabulary used in issues, code, and panel text
@@ -48,7 +48,7 @@ unavailable, not that the code broke
 
 1. Visit `chrome://extensions`, enable Developer mode.
 2. Click **Load unpacked** and select this repository's root folder.
-3. Navigate to a Landing Standby detail page (`https://www.hellolanding.com/homes/{slug}/standby`).
+3. Navigate to a Landing Standby search page (`https://www.hellolanding.com/s/{location}/apartments/standby`) or a detail page (`https://www.hellolanding.com/homes/{slug}/standby`). Search cards are annotated as they scroll into view.
 4. Click the extension's toolbar icon to open the side panel. It stays disabled on every other page.
 5. Use **Refresh** to force a fresh check; the panel labels retained evidence as an older check while refreshing or after a failed refresh.
 
@@ -63,7 +63,7 @@ The automated suite (`npm test`) exercises the public-evidence-to-panel-output s
 - `fetch('https://www.hellolanding.com/api/public/homes/apartment-in-austin-tx-lantana-hills-2321', { credentials: 'omit', redirect: 'error' })` → `200`, `type: "basic"`, `redirected: false`, valid JSON with a non-empty `availability.ranges` array. No CSP block, no redirect.
 - No `<meta http-equiv="Content-Security-Policy">` tag on the page.
 
-**Observed 2026-09-11 via `npm run verify:browser`**, extension loaded unpacked in Chromium against the same live page (22/22 checks):
+**Observed 2026-09-11 via `npm run verify:browser`**, extension loaded unpacked in Chromium against the live detail and search pages (31/31 checks):
 
 - The content script parses and runs. It previously did **not**: `content_scripts` had `"type": "module"`, which is not a supported manifest key, so every static `import` threw `Cannot use import statement outside a module` and the script died before doing anything. Found only by loading it in a browser — the fixture suite cannot see this. `content-script.js` is now a classic one-line dynamic-import loader for `src/content/main.js`.
 - Imported extension modules resolve, confirming they must be listed in `web_accessible_resources`.
@@ -73,10 +73,17 @@ The automated suite (`npm test`) exercises the public-evidence-to-panel-output s
 - `GET /api/public/homes/{slug}` also carries the fields the comparison reads for the subject itself: `{"market_slug":"austin","bedrooms":2,"is_price_monthly":true,"currency":"USD","display_price_with_discount":2144,"display_price_label":" per month"}`. Prior research had recorded that shape only for the *search* response, so it is now asserted live on the *detail* response too.
 - Live DOM: `h1` → `"Lantana Hills 2321"`, property link → `"See all units at Lantana Hills"`, and `#unit-calendar-unified-start-date` → `"Check inOctober 1"`. Running the real adapter against that page returned `{ status: 'selected', date: '2026-10-01' }`, confirming the URL/control reconciliation against a live page rather than the design record. The picker `td` label is absent while the picker is closed, as expected of a fallback.
 
+On the Standby search route (`/s/austin-tx/apartments/standby`), signed out: 32 cards rendered and **4 units read** — the 4 actually on screen, which is the viewport discipline demonstrated rather than asserted. One annotation per card, inserted after Landing's own anchor, all 32 anchors still linked, each annotation carrying a real `View evidence` button and its reference date named: `"Next reservation Sep 21, 2026 / No standard move-in offered Sep 11, 2026 / No selected check-in was read. Stated against the check date, Sep 11, 2026."`
+
+The card's visible identity differs from the detail page's, which is why it has its own check: a card reads `"Cortland Southpark Terraces4.2Unit 1831|2|1Available…"` while the public response names that unit `"Cortland Southpark Terraces 1831"`. An exact heading comparison, reused from the detail page, would have rejected every real card.
+
 Still unverified — these need a human at a real Chrome with a signed-in account, because `chrome.sidePanel` has no automation surface and the search flow needs credentials:
 
 - The side panel actually opens on the toolbar-icon click and stays disabled on non-detail pages (`chrome.sidePanel.setOptions` gating in `src/background/background.js`).
 - The panel is keyboard-operable (Tab to Refresh, Enter/Space activates it) with a visible focus ring, and refresh completion is announced.
+- **A card's View evidence button actually opens the side panel.** Chrome requires `chrome.sidePanel.open()` to run inside the user-gesture task, and this routes a content-script click through the service worker. The button, the message, and the selection it makes are covered by fixtures; whether Chrome honours the gesture across that hop is not something Playwright can show, because `chrome.sidePanel` has no automation surface. If it does not, the panel must be opened another way — revise the design rather than reaching for a keepalive or a synthetic gesture.
+- The signed-in search-to-detail handoff, and that scanning cards never opens the panel or moves focus.
+- Rate-limit behaviour against a real 429: that offscreen card reads pause, the selected unit still loads, and the on-page Resume control releases the held reads.
 - The panel's open/close port actually disconnects when the side panel is dismissed. The comparison depends on it: a closed panel must stop collecting comparisons for units the member merely browses past. Fixtures cover the controller's response to the signal, but only a real Chrome proves the signal arrives.
 - Reloading the tab or closing it clears in-memory evidence — reopening the panel shows a fresh check, not stale data from before the reload.
 - The signed-in search-to-detail handoff, multiple independent tabs, and service-worker idle/restart behavior.
