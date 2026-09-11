@@ -86,7 +86,13 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
       isChecking: false,
       isStale: false,
     };
-    if (!state.scope) return view;
+    if (!state.scope) {
+      // A confirmed unit with no resolvable market or bedroom count has no
+      // scope to compare against, and that is a stated outcome rather than a
+      // hidden one. An unconfirmed unit has nothing to say either way.
+      if (state.identity === 'confirmed') view.status = 'unresolved-scope';
+      return view;
+    }
 
     const key = scopeKey(state.scope);
     const run = comparisonRun?.key === key ? comparisonRun : null;
@@ -131,7 +137,9 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
   function ensureComparison({ force = false } = {}) {
     if (!searchPeers || !state.scope) return;
     const key = scopeKey(state.scope);
-    if (comparisonRun?.key === key && comparisonRun.isChecking) return;
+    // An explicit Refresh supersedes whatever is running; anything else waits
+    // for the attempt already in flight rather than duplicating it.
+    if (!force && comparisonRun?.key === key && comparisonRun.isChecking) return;
     if (!force && comparisonCache.has(key)) return;
 
     comparisonGeneration += 1;
@@ -259,6 +267,13 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
     // not new evidence, so it never advances the successful-check time.
     selectCheckIn(checkIn) {
       setState({ ...state, checkIn, ...summaryFor(state.ranges, checkIn) });
+    },
+    // The panel reports its own lifetime over a port, so a closed panel stops
+    // pulling comparisons for units the member merely browses past. Closing it
+    // never refetches or discards anything already held.
+    setPanelOpen(open) {
+      panelOpen = open;
+      if (open) ensureComparison();
     },
     teardown() {
       generation += 1; // invalidate any still-pending response

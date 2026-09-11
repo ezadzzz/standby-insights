@@ -115,6 +115,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// The panel holds this port open for exactly as long as it is showing this
+// tab, which is the only honest signal that it is open — no message arrives
+// when a side panel is dismissed.
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== 'standby-panel') return;
+  controller.setPanelOpen(true);
+  port.onDisconnect.addListener(() => controller.setPanelOpen(false));
+});
+
 window.addEventListener('pagehide', () => {
   clearInterval(pollId);
   controller.teardown();

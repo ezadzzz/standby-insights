@@ -101,16 +101,91 @@ test('a studio subject searches its own zero-bedroom scope', async () => {
   assert.equal(h.controller.getState().comparison.status, 'ready');
 });
 
-test('an unresolvable market leaves the comparison unattempted rather than broadened', async () => {
+test('an unresolvable market is explained, never broadened and never hidden', async () => {
   const home = subjectHome({ overrides: { market_slug: null } });
   const h = harness();
 
   h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
   await settleUnit(h, home);
 
-  assert.equal(h.searchCalls.length, 0);
-  assert.equal(h.controller.getState().comparison.status, 'idle');
-  assert.equal(h.view().comparison.visible, false);
+  assert.equal(h.searchCalls.length, 0, 'no search is attempted without a resolved scope');
+  assert.equal(h.controller.getState().comparison.status, 'unresolved-scope');
+
+  const view = h.view();
+  assert.equal(view.comparison.visible, true);
+  assert.match(view.comparison.statusText, /market or bedroom count could not be resolved/);
+});
+
+test('an explicit Refresh supersedes an attempt already in flight instead of being dropped', async () => {
+  const home = subjectHome();
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  let calls = 0;
+  const h = harness({
+    searchResult: async () => {
+      calls += 1;
+      if (calls === 1) await gate;
+      return marketPage();
+    },
+  });
+
+  h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
+  await settleUnit(h, home);
+  assert.equal(h.controller.getState().comparison.status, 'loading');
+
+  h.controller.refresh({ slug: home.slug, visibleIdentity: identityFor(home) });
+  await settleUnit(h, home, 1);
+  assert.equal(h.searchCalls.length, 2, 'Refresh started its own attempt');
+  assert.equal(h.controller.getState().comparison.status, 'ready');
+
+  release();
+  await tick();
+  await tick();
+  assert.equal(h.controller.getState().comparison.status, 'ready', 'the superseded attempt does not land');
+});
+
+test('a closed panel stops comparisons for units merely browsed past', async () => {
+  const first = subjectHome();
+  const second = subjectHome({ slug: 'other-unit', overrides: { market_slug: 'dallas' } });
+  const h = harness({ searchResult: (args) => (args.market === 'dallas'
+    ? page({ homes: [peer('d', 1000, { market_slug: 'dallas' })], marketSlug: 'dallas' })
+    : marketPage()) });
+
+  h.controller.openPanel({ slug: first.slug, visibleIdentity: identityFor(first) });
+  await settleUnit(h, first);
+  assert.equal(h.searchCalls.length, 1);
+
+  h.controller.setPanelOpen(false);
+  h.controller.enterDetailPage({ slug: second.slug, visibleIdentity: identityFor(second) });
+  await settleUnit(h, second, 1);
+  assert.equal(h.searchCalls.length, 1, 'browsing with the panel closed collects nothing');
+
+  h.controller.setPanelOpen(true);
+  await tick();
+  await tick();
+  assert.equal(h.searchCalls.length, 2, 'reopening the panel collects for the unit now shown');
+});
+
+test('the subject price is shown with the terms and note it was supplied under', async () => {
+  const home = subjectHome({ overrides: { flex_options: [{ label: '6-Month+ Stay' }, { label: '12-Month+ Stay' }] } });
+  const h = harness();
+
+  h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
+  await settleUnit(h, home);
+
+  const { termsNote } = h.view().comparison;
+  assert.match(termsNote, /Terms supplied with this price: 6-Month\+ Stay, 12-Month\+ Stay\./);
+  assert.match(termsNote, /Price includes all fees except taxes\./);
+});
+
+test('terms the response never supplied are stated as unsupplied, not as no commitment', async () => {
+  const home = subjectHome({ overrides: { flex_options: undefined } });
+  const h = harness();
+
+  h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
+  await settleUnit(h, home);
+
+  assert.match(h.view().comparison.termsNote, /Terms for this price were not supplied\./);
 });
 
 test('cached comparison evidence is reused for a matching selection, and excludes that new subject', async () => {

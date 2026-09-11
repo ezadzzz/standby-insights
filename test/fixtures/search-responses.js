@@ -37,7 +37,12 @@ export function page({ homes, page: pageNumber = 1, perPage = 100, totalPages = 
   };
 }
 
-/** A subject home response carrying its own scope and advertised price. */
+/**
+ * A subject home response carrying its own scope and advertised price. These
+ * six comparison fields were read off a live GET /api/public/homes/{slug}
+ * (2026-09-11) rather than carried over from the search response's shape;
+ * test/browser/verify-unpacked.mjs asserts they are still there.
+ */
 export function subjectHome({ slug = 'apartment-in-austin-tx-subject-1', bedrooms = 1, amount = 2000, overrides = {} } = {}) {
   return {
     slug,

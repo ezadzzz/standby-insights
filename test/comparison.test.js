@@ -167,6 +167,11 @@ test('a page size that silently shrinks between pages leaves the comparison inco
   assert.equal((await collectComparison({ search, scope })).status, 'incomplete');
 });
 
+test('a first page quietly served at a smaller size leaves the comparison incomplete', async () => {
+  const { search } = searcher([page({ homes: [peer('a', 1000)], perPage: 25, totalPages: 1, totalCount: 1 })]);
+  assert.equal((await collectComparison({ search, scope })).status, 'incomplete');
+});
+
 test('a response for another market leaves the comparison incomplete', async () => {
   const { search } = searcher([page({ homes: [peer('a', 1000)], marketSlug: 'dallas' })]);
   assert.equal((await collectComparison({ search, scope })).status, 'incomplete');

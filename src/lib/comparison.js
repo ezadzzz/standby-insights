@@ -2,13 +2,14 @@
 // market with the same bedroom count. Every amount here is a currently
 // advertised all-in monthly price, never a quote for a matched stay.
 
-const PER_PAGE = 100;
-const MAX_PAGES = 10;
-const MIN_PEERS = 5;
+import { text } from './text.js';
 
-function text(value) {
-  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
-}
+const PER_PAGE = 100;
+// ponytail: a 1,000-home ceiling, which every market sampled so far sits well
+// under. Raise it only against a measured market that legitimately exceeds it,
+// never to rescue a market that paginated unexpectedly.
+const MAX_PAGES = 10;
+export const MINIMUM_PEERS = 5;
 
 /**
  * The subject's comparison scope, or null when it cannot be resolved. An
@@ -60,9 +61,14 @@ export function median(values) {
  * Validates one search page against the scope it was requested for. Anything
  * that would leave the sample partial or off-scope returns null, which the
  * collector turns into an incomplete comparison — a partial market sample is
- * never shown as a median. The echoed page and per_page are checked because
- * Landing's REST mirror silently pins per_page to 25 and ignores page (see
- * docs/research/2026-09-11), which would otherwise degrade coverage unnoticed.
+ * never shown as a median.
+ *
+ * The echoed page and per_page are checked against the ones asked for, not
+ * merely for self-consistency: Landing's REST mirror silently pins per_page to
+ * 25 and ignores page entirely (docs/research/2026-09-11-flex-options-and-
+ * special-offer.md). A page size quietly smaller than the requested one is the
+ * budget being spent against a different market shape than the one planned, so
+ * it is rejected rather than absorbed.
  */
 function readPage(envelope, { scope, expectedPage, expectedTotals }) {
   const response = envelope?.response;
@@ -71,7 +77,7 @@ function readPage(envelope, { scope, expectedPage, expectedTotals }) {
   if (response.page !== expectedPage) return null;
 
   const { per_page: perPage, total_pages: totalPages, total_count: totalCount, homes } = response;
-  if (!Number.isInteger(perPage) || perPage <= 0) return null;
+  if (perPage !== PER_PAGE) return null;
   if (!Number.isInteger(totalPages) || totalPages < 1) return null;
   if (!Number.isInteger(totalCount) || totalCount < 0) return null;
   if (expectedTotals && (expectedTotals.perPage !== perPage
@@ -127,8 +133,6 @@ export async function collectComparison({ search, scope }) {
 export function compareSubject(evidence, { subjectSlug }) {
   if (evidence?.status !== 'complete') return { status: 'unavailable', median: null, count: null };
   const peers = evidence.homes.filter((home) => home.slug !== subjectSlug && home.price !== null);
-  if (peers.length < MIN_PEERS) return { status: 'insufficient', median: null, count: peers.length };
+  if (peers.length < MINIMUM_PEERS) return { status: 'insufficient', median: null, count: peers.length };
   return { status: 'ready', median: median(peers.map((peer) => peer.price.amount)), count: peers.length };
 }
-
-export const MINIMUM_PEERS = MIN_PEERS;

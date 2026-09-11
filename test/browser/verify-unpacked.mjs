@@ -37,7 +37,22 @@ try {
   page.on('response', async (r) => {
     if (!r.url().includes('/api/public/homes/')) return;
     const body = await r.json().catch(() => null);
-    homeResponses.push({ status: r.status(), rangeCount: body?.availability?.ranges?.length ?? null, name: body?.name ?? null });
+    homeResponses.push({
+      status: r.status(),
+      rangeCount: body?.availability?.ranges?.length ?? null,
+      name: body?.name ?? null,
+      // The comparison reads its scope and the subject's own price off this
+      // same response, so the live shape of those fields is recorded here
+      // rather than assumed from the search response's shape.
+      comparisonFields: body === null ? null : {
+        market_slug: body.market_slug ?? null,
+        bedrooms: body.bedrooms ?? null,
+        is_price_monthly: body.is_price_monthly ?? null,
+        currency: body.currency ?? null,
+        display_price_with_discount: body.display_price_with_discount ?? null,
+        display_price_label: body.display_price_label ?? null,
+      },
+    });
   });
   page.on('request', (r) => {
     const url = new URL(r.url());
@@ -76,6 +91,15 @@ try {
   const ok = homeResponses.find((r) => r.status === 200);
   record('home response is 200 with a non-empty calendar', Boolean(ok && ok.rangeCount > 0),
     JSON.stringify(homeResponses));
+
+  // 1c. The subject side of the comparison is read off this response too.
+  const fields = ok?.comparisonFields ?? null;
+  record('home response carries the comparison scope (market_slug, bedrooms)',
+    typeof fields?.market_slug === 'string' && Number.isInteger(fields?.bedrooms),
+    JSON.stringify({ market_slug: fields?.market_slug, bedrooms: fields?.bedrooms }));
+  record('home response carries an advertised price the comparison rule can judge',
+    fields?.is_price_monthly === true && fields?.currency === 'USD' && Number.isFinite(fields?.display_price_with_discount),
+    JSON.stringify(fields));
 
   // 2. No credentials on the extension's own request.
   const credentialed = homeCalls.filter((c) => Object.keys(c.headers).some((h) => h.toLowerCase() === 'cookie'));
@@ -146,7 +170,11 @@ try {
   record('comparison request carries no cookie header', mcpCalls.length > 0 && mcpCredentialed.length === 0,
     mcpCredentialed.length ? 'cookie header present' : 'none');
   const echo = mcpCalls.find((c) => c.response)?.response;
-  record('the live search honours the requested page size', Boolean(echo && echo.echo && echo.echo.per_page === 100),
+  // A failure here is Landing no longer honouring per_page, not a defect in
+  // this extension: the comparison rejects a shrunken page rather than
+  // sampling part of a market, so this records that the design still holds.
+  record('Landing still honours the requested page size (design premise)',
+    Boolean(echo && echo.echo && echo.echo.per_page === 100),
     JSON.stringify(echo ?? 'no response captured'));
   record('comparison stayed within the ten-request budget', mcpCalls.length <= 10, `${mcpCalls.length} page request(s)`);
 
