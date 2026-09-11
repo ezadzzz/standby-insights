@@ -87,6 +87,8 @@ refreshButton.addEventListener('click', () => {
 chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {
   if (!tab) return;
   tabId = tab.id;
+  // Held open for this panel's lifetime so the page knows when it closes.
+  try { chrome.tabs.connect(tabId, { name: 'standby-panel' }); } catch { /* the page may not be ready to accept it */ }
   chrome.tabs.sendMessage(tabId, { type: 'request-open' }).catch(() => {});
   chrome.tabs.sendMessage(tabId, { type: 'request-state' }).then(applyMessage).catch(() => {});
 });

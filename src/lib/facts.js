@@ -1,8 +1,6 @@
-const SAMPLED_FLEX_FIELDS = new Set(['label', 'months', 'committed_nights', 'special_offer', 'early_termination_fee_type']);
+import { text } from './text.js';
 
-function text(value) {
-  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
-}
+const SAMPLED_FLEX_FIELDS = new Set(['label', 'months', 'committed_nights', 'special_offer', 'early_termination_fee_type']);
 
 /**
  * One supplied Flex term. The shape has been sampled once, so the fields that

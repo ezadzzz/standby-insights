@@ -78,6 +78,20 @@ function subjectPriceText(price) {
   return `This home: ${money(price.amount)}${label.startsWith(' ') ? '' : ' '}${label}.`;
 }
 
+/**
+ * The terms the subject's advertised price was supplied alongside. They are
+ * named because the price is only comparable under them, and a home that
+ * supplied none says so rather than reading as a home with no commitment.
+ */
+function termsText(price) {
+  if (!price) return '';
+  if (price.terms === null) return 'Terms for this price were not supplied.';
+  if (price.terms.length === 0) return 'This price was supplied with no commitment terms.';
+  return `Terms supplied with this price: ${price.terms.join(', ')}.`;
+}
+
+const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
+
 const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, which already reflect any discount a home is carrying. Underlying commitment and discount terms differ between homes. This is not a matched-date booking quote and not a prediction that this home’s price will change.';
 
 /**
@@ -96,16 +110,23 @@ function comparisonView(state) {
     return view;
   }
 
+  if (comparison.status === 'unresolved-scope') {
+    view.statusText = 'Comparison unavailable: this home’s market or bedroom count could not be resolved, so there is no scope to compare it against.';
+    return view;
+  }
+
   if (comparison.status === 'unavailable') {
     view.statusText = 'Comparison unavailable: the full set of comparable homes could not be collected.';
   } else if (comparison.status === 'insufficient') {
-    view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${comparison.count === 1 ? 'home' : 'homes'} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
+    view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${plural(comparison.count, 'home')} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
   } else if (comparison.status === 'ready') {
-    view.statusText = `Median advertised monthly price across ${comparison.count} other ${comparison.count === 1 ? 'home' : 'homes'} in the same market and bedroom count: ${money(comparison.median)}.`;
+    view.statusText = `Median advertised monthly price across ${comparison.count} other ${plural(comparison.count, 'home')} in the same market and bedroom count: ${money(comparison.median)}.`;
   }
 
   view.subjectText = subjectPriceText(comparison.subjectPrice);
-  if (comparison.subjectPrice?.note) view.termsNote = comparison.subjectPrice.note;
+  view.termsNote = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note]
+    .filter((line) => line)
+    .join(' ');
   view.disclosure = COMPARISON_DISCLOSURE;
 
   if (comparison.checkedAt !== null) {
