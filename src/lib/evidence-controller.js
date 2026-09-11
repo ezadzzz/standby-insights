@@ -1,5 +1,5 @@
 import { checkIdentity, responseIdentityFromHome } from './identity.js';
-import { deriveCalendarEvidence } from './calendar.js';
+import { deriveCalendarEvidence, summarizeForReference } from './calendar.js';
 import { RequestGate } from './request-gate.js';
 
 const EMPTY_STATE = {
@@ -8,11 +8,30 @@ const EMPTY_STATE = {
   identity: null,
   unitName: null,
   ranges: null,
+  checkIn: { status: 'none', date: null },
+  referenceDate: null,
+  summary: null,
   checkedAt: null,
   isChecking: false,
   isStale: false,
   error: null,
 };
+
+// ponytail: UTC day for the check-date reference; swap for the page's local
+// day if a timezone-sensitive reference is ever verified against Landing.
+function todayIso(now) {
+  return new Date(now()).toISOString().slice(0, 10);
+}
+
+/**
+ * The date facts are stated against. A usable selected check-in is the
+ * member's own; without one — including while the URL and the page's own
+ * controls disagree — facts fall back to the check date, which the panel
+ * labels rather than presenting as the member's plan.
+ */
+function referenceDateFor(checkIn, now) {
+  return checkIn?.status === 'selected' && checkIn.date ? checkIn.date : todayIso(now);
+}
 
 /**
  * Owns evidence for one unit on one Standby detail page instance: request
@@ -35,7 +54,13 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
     onChange?.(state);
   }
 
-  function startFetch(slug, visibleIdentity) {
+  function summaryFor(ranges, checkIn) {
+    if (!Array.isArray(ranges) || ranges.length === 0) return { referenceDate: null, summary: null };
+    const referenceDate = referenceDateFor(checkIn, now);
+    return { referenceDate, summary: summarizeForReference(ranges, referenceDate) };
+  }
+
+  function startFetch({ slug, visibleIdentity, checkIn }) {
     generation += 1;
     const myGeneration = generation;
     inFlightSlug = slug;
@@ -44,6 +69,7 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
     setState({
       ...(sameUnit ? state : EMPTY_STATE),
       slug,
+      checkIn: checkIn ?? EMPTY_STATE.checkIn,
       isChecking: true,
       isStale: sameUnit && state.checkedAt !== null,
     });
@@ -61,9 +87,16 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
           visiblePropertyLinkText: visibleIdentity?.visiblePropertyLinkText,
         });
         const calendar = identity === 'confirmed' ? deriveCalendarEvidence(raw) : { status: identity };
+        // Read the check-in from current state, not the one this request
+        // started with: a date change while it was in flight is newer.
+        const currentCheckIn = state.checkIn;
+        const { referenceDate, summary } = summaryFor(calendar.ranges, currentCheckIn);
         setState({
           slug,
           status: calendar.status,
+          checkIn: currentCheckIn,
+          referenceDate,
+          summary,
           identity,
           unitName: identity === 'confirmed' ? responseIdentity.unitName : null,
           ranges: calendar.ranges ?? null,
@@ -88,21 +121,26 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
     );
   }
 
-  function requestEvidence(slug, visibleIdentity) {
-    if (inFlightSlug === slug) return; // coalesce duplicate concurrent triggers
-    startFetch(slug, visibleIdentity);
+  function requestEvidence(trigger) {
+    if (inFlightSlug === trigger.slug) return; // coalesce duplicate concurrent triggers
+    startFetch(trigger);
   }
 
   return {
     getState,
-    enterDetailPage({ slug, visibleIdentity }) { requestEvidence(slug, visibleIdentity); },
-    openPanel({ slug, visibleIdentity }) {
-      if (!slug) return;
-      requestEvidence(slug, visibleIdentity);
+    enterDetailPage(trigger) { requestEvidence(trigger); },
+    openPanel(trigger) {
+      if (!trigger.slug) return;
+      requestEvidence(trigger);
     },
-    refresh({ slug, visibleIdentity }) {
+    refresh(trigger) {
       // Refresh always starts a fresh check, bypassing in-flight coalescing.
-      startFetch(slug, visibleIdentity);
+      startFetch(trigger);
+    },
+    // A date change re-states the existing evidence for this same unit; it is
+    // not new evidence, so it never advances the successful-check time.
+    selectCheckIn(checkIn) {
+      setState({ ...state, checkIn, ...summaryFor(state.ranges, checkIn) });
     },
     teardown() {
       generation += 1; // invalidate any still-pending response

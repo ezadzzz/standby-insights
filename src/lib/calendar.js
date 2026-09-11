@@ -1,9 +1,14 @@
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-function isValidDate(value) {
-  if (!ISO_DATE.test(value)) return false;
+/**
+ * True only for a real ISO calendar day. The round-trip matters: Date parses
+ * 2026-02-30 by rolling it into March, so a range-check alone would accept
+ * days that do not exist.
+ */
+export function isIsoDate(value) {
+  if (typeof value !== 'string' || !ISO_DATE.test(value)) return false;
   const d = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(d.getTime());
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
 }
 
 /**
@@ -19,10 +24,10 @@ function validateRanges(rawRanges) {
   const ranges = [];
   for (const raw of rawRanges) {
     if (!raw || typeof raw !== 'object') return { ok: false };
-    if (!isValidDate(raw.start_date)) return { ok: false };
+    if (!isIsoDate(raw.start_date)) return { ok: false };
 
     const hasEnd = raw.end_date !== undefined && raw.end_date !== null;
-    if (hasEnd && !isValidDate(raw.end_date)) return { ok: false };
+    if (hasEnd && !isIsoDate(raw.end_date)) return { ok: false };
     if (hasEnd && raw.end_date < raw.start_date) return { ok: false };
 
     if (typeof raw.move_in_allowed !== 'boolean') return { ok: false };
@@ -56,4 +61,68 @@ export function deriveCalendarEvidence(rawHome) {
   const validated = validateRanges(rawRanges);
   if (!validated.ok) return { status: 'unavailable' };
   return { status: 'ready', ranges: validated.ranges };
+}
+
+function dayAfter(isoDate) {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function contains(range, isoDate) {
+  return range.startDate <= isoDate && (range.endDate === null || isoDate <= range.endDate);
+}
+
+/** True only when ranges cover every day of [from, toExclusive) without a gap. */
+function coversInterval(rangeList, from, toExclusive) {
+  if (from >= toExclusive) return false; // no interval to observe
+  let cursor = from;
+  for (const range of rangeList) {
+    if (range.endDate !== null && range.endDate < cursor) continue;
+    if (range.startDate > cursor) return false;
+    if (range.endDate === null) return true;
+    cursor = dayAfter(range.endDate);
+    if (cursor >= toExclusive) return true;
+  }
+  return false;
+}
+
+function overlapsInterval(range, from, toExclusive) {
+  return range.startDate < toExclusive && (range.endDate === null || range.endDate >= from);
+}
+
+function isContiguous(rangeList) {
+  for (let i = 1; i < rangeList.length; i += 1) {
+    if (rangeList[i].startDate !== dayAfter(rangeList[i - 1].endDate)) return false;
+  }
+  return true;
+}
+
+/**
+ * Derives reference-date facts from already-validated ranges. Every negative
+ * conclusion requires continuous coverage of the interval it describes; a
+ * gap, or a reference date outside the returned calendar, withholds it.
+ * Reservation end dates are included for overlap display only — they are not
+ * a stay boundary.
+ */
+export function summarizeForReference(ranges, referenceDate) {
+  const covering = ranges.find((r) => contains(r, referenceDate)) ?? null;
+  const intersectingReservation = covering && covering.isReservation ? covering : null;
+  const nextReservation = ranges.find((r) => r.isReservation && r.startDate > referenceDate) ?? null;
+
+  const noStandardMoveInBeforeNext = intersectingReservation === null
+    && nextReservation !== null
+    && coversInterval(ranges, referenceDate, nextReservation.startDate)
+    && !ranges.some((r) => r.moveInAllowed && overlapsInterval(r, referenceDate, nextReservation.startDate));
+
+  const contiguous = isContiguous(ranges);
+  return {
+    intersectingReservation,
+    nextReservation,
+    noStandardMoveInBeforeNext,
+    noReservationsInCalendar: contiguous && !ranges.some((r) => r.isReservation),
+    noStandardMoveInInCalendar: contiguous && !ranges.some((r) => r.moveInAllowed),
+    coverageStart: ranges[0].startDate,
+    coverageEnd: ranges.at(-1).endDate,
+  };
 }

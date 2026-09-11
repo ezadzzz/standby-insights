@@ -62,3 +62,13 @@ test('only unbookable_reason "reserved" counts as a reservation', () => {
   const blockedButNotReserved = evidence.ranges.find((r) => r.unbookableReason === 'less_than_minimum_nightly_stay');
   assert.equal(blockedButNotReserved.isReservation, false);
 });
+
+test('a date naming a day that does not exist (2026-02-30) is malformed, not silently rolled forward', () => {
+  const home = {
+    slug: 'apartment-in-austin-tx-rolled-date-1',
+    name: 'Rolled Date Unit 1',
+    property: { name: 'Rolled Date Property' },
+    availability: { ranges: [{ start_date: '2026-02-30', end_date: '2026-03-05', move_in_allowed: true }] },
+  };
+  assert.equal(deriveCalendarEvidence(home).status, 'unavailable');
+});

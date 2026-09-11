@@ -2,7 +2,7 @@
 
 Personal-use Chrome extension for reservation evidence and advertised-price context while browsing Landing Standby.
 
-Status: [issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page. Card annotations, date-reference emphasis, price comparison, and building facts are separate issues (#4-#7) and not yet built.
+Status: [issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page, and [issue #4](https://github.com/ezadzzz/standby-insights/issues/4) adds selected-check-in summaries and standard move-in observations to it. Card annotations, price comparison, and building facts are separate issues (#5-#7) and not yet built.
 
 - [Specification](standby-extension-spec.md)
 - [Implementation issue](https://github.com/ezadzzz/standby-insights/issues/1)
@@ -38,6 +38,8 @@ The automated suite (`npm test`) exercises the public-evidence-to-panel-output s
 - `document.querySelector('a[href^="/properties/"]').textContent` → `"See all units at Lantana Hills"`, **not** the bare property name `"Lantana Hills"`. This was caught here and fixed: `checkIdentity` now checks the property name as a substring of the link text (`src/lib/identity.js`), not equality — the initial equality-based implementation would have wrongly flagged every real unit as a mismatch.
 - `fetch('https://www.hellolanding.com/api/public/homes/apartment-in-austin-tx-lantana-hills-2321', { credentials: 'omit', redirect: 'error' })` → `200`, `type: "basic"`, `redirected: false`, valid JSON with a non-empty `availability.ranges` array. No CSP block, no redirect.
 - No `<meta http-equiv="Content-Security-Policy">` tag on the page.
+
+Not re-verified for the selected-check-in slice: the detail page's `#unit-calendar-unified-start-date` control and the open picker's `td[aria-label^="Selected as start date."]` come from the recorded September 10 design inspection (`docs/provenance/`), not a fresh live read. The URL's `startDate` parameter is the primary source and was confirmed in that record; the two DOM selectors only reconcile it or supply a fallback, so an outdated selector degrades to "no selected check-in date was read" rather than a wrong date. Confirm both selectors when loading unpacked.
 
 Not yet observed — these require the packaged extension loaded unpacked, which this environment can't drive automatically. After loading unpacked, confirm in DevTools:
 

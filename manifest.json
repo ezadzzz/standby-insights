@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/lib/*.js"],
+      "resources": ["src/lib/*.js", "src/content/*.js"],
       "matches": ["https://www.hellolanding.com/*"]
     }
   ]
