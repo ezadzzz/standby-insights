@@ -30,12 +30,22 @@ npm test
 
 ## Manual browser verification (acceptance criterion, not fixture-testable)
 
-The automated suite (`npm test`) exercises the public-evidence-to-panel-output seam with fixtures; it cannot prove real fetch/CORS/CSP behavior or Chrome's side-panel/messaging plumbing. After loading unpacked, confirm in DevTools:
+The automated suite (`npm test`) exercises the public-evidence-to-panel-output seam with fixtures; it cannot prove real fetch/CORS/CSP behavior or Chrome's side-panel/messaging plumbing.
 
-- The `GET https://www.hellolanding.com/api/public/homes/{slug}` request succeeds from the content script's context with no credentials attached and no unexpected redirect.
+**Observed 2026-09-11**, against a live signed-out page at `https://www.hellolanding.com/homes/apartment-in-austin-tx-lantana-hills-2321/standby`, from that page's own script context (the same origin a content script's `fetch` runs in):
+
+- `document.querySelector('h1').textContent` → `"Lantana Hills 2321"`, matching `GET /api/public/homes/{slug}`'s `name` field exactly, confirming the identity check's heading comparison.
+- `document.querySelector('a[href^="/properties/"]').textContent` → `"See all units at Lantana Hills"`, **not** the bare property name `"Lantana Hills"`. This was caught here and fixed: `checkIdentity` now checks the property name as a substring of the link text (`src/lib/identity.js`), not equality — the initial equality-based implementation would have wrongly flagged every real unit as a mismatch.
+- `fetch('https://www.hellolanding.com/api/public/homes/apartment-in-austin-tx-lantana-hills-2321', { credentials: 'omit', redirect: 'error' })` → `200`, `type: "basic"`, `redirected: false`, valid JSON with a non-empty `availability.ranges` array. No CSP block, no redirect.
+- No `<meta http-equiv="Content-Security-Policy">` tag on the page.
+
+Not yet observed — these require the packaged extension loaded unpacked, which this environment can't drive automatically. After loading unpacked, confirm in DevTools:
+
+- The same home-fetch request succeeds from the actual content-script execution context (not just the page's own scripts), with no credentials attached.
 - The Network tab shows no other Landing origin/API called by the extension.
 - Application > Storage shows no extension-written Landing data in localStorage/sessionStorage/IndexedDB/chrome.storage.
 - The panel is keyboard-operable (Tab to Refresh, Enter/Space activates it) with a visible focus ring.
 - Reloading the tab or closing it clears in-memory evidence — reopening the panel shows a fresh check, not stale data from before the reload.
+- The side panel actually opens on the toolbar-icon click and stays disabled on non-detail pages (`chrome.sidePanel.setOptions` gating in `src/background/background.js`).
 
 If any of these differ from the design's assumptions, revise the design before changing the request location or permissions.

@@ -2,6 +2,11 @@ function normalize(text) {
   return typeof text === 'string' ? text.trim().toLowerCase().replace(/\s+/g, ' ') : null;
 }
 
+/** Pulls the identity fields checkIdentity needs out of a raw home response. */
+export function responseIdentityFromHome(raw) {
+  return { slug: raw?.slug, unitName: raw?.name, propertyName: raw?.property?.name };
+}
+
 /**
  * Confirms the fetched public response actually belongs to the exact unit
  * visibly displayed on the detail page. Never infers a unit from a

@@ -144,6 +144,41 @@ test('a failed refresh keeps retained evidence marked as an older check and does
   assert.ok(state.error);
 });
 
+test('confirmed identity exposes the validated unit name; unconfirmed identity attaches none', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: validClosedCalendarHome.slug, visibleIdentity: identityFor(validClosedCalendarHome) });
+  await tick();
+  calls[0].resolve(validClosedCalendarHome);
+  await tick();
+  assert.equal(controller.getState().unitName, validClosedCalendarHome.name);
+
+  controller.enterDetailPage({
+    slug: emptyRangesHome.slug,
+    visibleIdentity: { visibleHeadingText: 'Someone Else', visiblePropertyLinkText: 'Someone Else Property' },
+  });
+  await tick();
+  calls[1].resolve(emptyRangesHome);
+  await tick();
+  assert.equal(controller.getState().unitName, null);
+});
+
+test('onChange fires on every state transition: checking, then settled', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const seen = [];
+  const controller = createEvidenceController({ fetchHome, onChange: (s) => seen.push({ ...s }) });
+
+  controller.enterDetailPage({ slug: validClosedCalendarHome.slug, visibleIdentity: identityFor(validClosedCalendarHome) });
+  await tick();
+  calls[0].resolve(validClosedCalendarHome);
+  await tick();
+
+  assert.equal(seen.length, 2);
+  assert.equal(seen[0].isChecking, true);
+  assert.equal(seen[1].status, 'ready');
+});
+
 test('a late response for a unit the member has since navigated away from is discarded', async () => {
   const { fetchHome, calls } = fakeFetcher();
   const controller = createEvidenceController({ fetchHome });

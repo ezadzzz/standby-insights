@@ -17,6 +17,7 @@ function rangeText(range) {
  */
 export function describeState(state) {
   const view = {
+    headingText: state.unitName ?? 'Standby evidence',
     identityNote: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
