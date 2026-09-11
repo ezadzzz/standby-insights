@@ -45,6 +45,9 @@ function flexOptionText(entry) {
 export function deriveFacts(raw) {
   const property = raw?.property;
   const rating = property?.member_rating;
+  // The source application carries no minimum-stay parser to reuse: every
+  // occurrence of minimum_nightly_stay there is a plain night count, so
+  // reading the integer is the whole of the applicable parsing.
   const minimumStay = raw?.minimum_nightly_stay;
   return {
     minimumStay: Number.isInteger(minimumStay) && minimumStay > 0 ? minimumStay : null,

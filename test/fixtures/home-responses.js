@@ -91,10 +91,11 @@ export const rangeAfterOpenEndedHome = {
   },
 };
 
-// Field names confirmed against the public home response documented in the
-// source project's API verification research: minimum_nightly_stay,
+// Field names as recorded in the source project's API research, which is
+// historical evidence rather than fresh verification: minimum_nightly_stay,
 // flex_options, property.member_rating, and property.{walk,transit,bike}_score
-// with a matching *_description band word.
+// with a matching *_description band word. flex_options was never sampled
+// there, so its shape below is a guess the code must not depend on.
 export const completeFactsHome = {
   slug: 'apartment-in-austin-tx-facts-1',
   name: 'Facts Unit 1',

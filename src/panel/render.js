@@ -69,7 +69,9 @@ function ratingText(rating) {
   // A building nobody has reviewed is unrated. Stating its average would read
   // as a score the reviews never gave it.
   if (rating.count === 0) return 'Unrated (no reviews)';
-  return `${rating.average} out of 5 from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`;
+  // No sampled field states the scale this average is out of, so the panel
+  // states the number supplied and the count behind it, and invents neither.
+  return `${rating.average} from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`;
 }
 
 function flexText(flexOptions) {
@@ -85,7 +87,7 @@ function flexText(flexOptions) {
  */
 function factItemsFor(facts) {
   return [
-    { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} nights` },
+    { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
     { label: 'Flex', text: flexText(facts.flexOptions) },
     { label: 'Rating', text: ratingText(facts.rating) },
     { label: 'Walk score', text: scoreText(facts.scores.walk) },

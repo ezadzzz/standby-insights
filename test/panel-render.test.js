@@ -146,3 +146,14 @@ test('no facts section is offered before a check, or when identity is unconfirme
   assert.deepEqual(describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null, facts: null }).factItems, []);
   assert.deepEqual(describeState({ status: 'mismatch', identity: 'mismatch', unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null, facts: null }).factItems, []);
 });
+
+test('a one-night minimum reads as a night, and a rating states no scale the response did not supply', () => {
+  const view = describeState(factsState({
+    minimumStay: 1, flexOptions: null, rating: { average: 4.15, count: 1 },
+    scores: { walk: null, transit: null, bike: null },
+  }));
+  assert.match(factText(view, 'Minimum stay'), /\b1 night\b/);
+  assert.doesNotMatch(factText(view, 'Minimum stay'), /nights/);
+  assert.match(factText(view, 'Rating'), /1 review\b/);
+  assert.doesNotMatch(factText(view, 'Rating'), /out of/i);
+});

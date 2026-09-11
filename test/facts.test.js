@@ -39,7 +39,7 @@ test('a described score survives a sibling score being unusable', () => {
   assert.equal(facts.scores.transit, null);
 });
 
-test('zero reviews is an unrated building, not a rating of zero', () => {
+test('zero reviews is carried through as a real count, so the panel can call it unrated', () => {
   const facts = deriveFacts(zeroReviewsHome);
   assert.deepEqual(facts.rating, { average: 0, count: 0 });
 });
