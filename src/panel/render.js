@@ -1,3 +1,5 @@
+import { MINIMUM_PEERS } from '../lib/comparison.js';
+
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -58,6 +60,60 @@ function summaryItemsFor(summary) {
 }
 
 const UNAVAILABLE = 'Unavailable';
+
+const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+function money(amount) {
+  return moneyFormatter.format(amount);
+}
+
+/**
+ * The subject's own advertised price, in the response's own label. A price the
+ * comparison rule rejects — nightly, non-USD, unusable — is stated as
+ * unavailable rather than converted or guessed into a monthly figure.
+ */
+function subjectPriceText(price) {
+  if (!price) return 'This home has no eligible advertised monthly price, so it is not stated here.';
+  const label = price.label ?? 'per month (label not supplied)';
+  return `This home: ${money(price.amount)}${label.startsWith(' ') ? '' : ' '}${label}.`;
+}
+
+const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, which already reflect any discount a home is carrying. Underlying commitment and discount terms differ between homes. This is not a matched-date booking quote and not a prediction that this home’s price will change.';
+
+/**
+ * The comparison as the member sees it. Each outcome is distinguishable: too
+ * few eligible peers is not the same statement as an attempt that could not be
+ * completed, and neither is ever shown as a market median.
+ */
+function comparisonView(state) {
+  const comparison = state.comparison;
+  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', disclosure: '', checkTimeText: '' };
+  if (!comparison || comparison.status === 'idle') return view;
+
+  view.visible = true;
+  if (comparison.status === 'loading') {
+    view.statusText = 'Loading comparable advertised prices…';
+    return view;
+  }
+
+  if (comparison.status === 'unavailable') {
+    view.statusText = 'Comparison unavailable: the full set of comparable homes could not be collected.';
+  } else if (comparison.status === 'insufficient') {
+    view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${comparison.count === 1 ? 'home' : 'homes'} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
+  } else if (comparison.status === 'ready') {
+    view.statusText = `Median advertised monthly price across ${comparison.count} other ${comparison.count === 1 ? 'home' : 'homes'} in the same market and bedroom count: ${money(comparison.median)}.`;
+  }
+
+  view.subjectText = subjectPriceText(comparison.subjectPrice);
+  if (comparison.subjectPrice?.note) view.termsNote = comparison.subjectPrice.note;
+  view.disclosure = COMPARISON_DISCLOSURE;
+
+  if (comparison.checkedAt !== null) {
+    view.checkTimeText = `Comparison checked ${timeFormatter.format(new Date(comparison.checkedAt))}`;
+    if (comparison.isStale) view.checkTimeText += ' (showing an older check)';
+  }
+  return view;
+}
 
 function scoreText(score) {
   if (!score) return UNAVAILABLE;
@@ -152,6 +208,7 @@ export function describeState(state) {
     rangeItems: [],
     factItems: [],
     refreshFailedNote: null,
+    comparison: comparisonView(state),
   };
 
   if (state.status === 'mismatch' || state.status === 'ambiguous') {
