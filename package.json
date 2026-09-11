@@ -5,6 +5,6 @@
   "description": "Personal-use Chrome extension: browsing evidence for Landing Standby units.",
   "type": "module",
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test \"test/*.test.js\""
   }
 }

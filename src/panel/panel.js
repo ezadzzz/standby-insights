@@ -4,6 +4,8 @@ const heading = document.getElementById('unit-heading');
 const identityNote = document.getElementById('identity-note');
 const checkTime = document.getElementById('check-time');
 const calendarStatus = document.getElementById('calendar-status');
+const referenceNote = document.getElementById('reference-note');
+const summaryList = document.getElementById('summary-list');
 const rangeList = document.getElementById('range-list');
 const refreshButton = document.getElementById('refresh-button');
 const announcer = document.getElementById('announcer');
@@ -17,6 +19,13 @@ function render(state) {
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.refreshFailedNote ? `${view.checkTimeText}. ${view.refreshFailedNote}` : view.checkTimeText;
   calendarStatus.textContent = view.calendarStatusText;
+
+  referenceNote.textContent = view.referenceNote;
+  summaryList.replaceChildren(...view.summaryItems.map((text) => {
+    const li = document.createElement('li');
+    li.textContent = text;
+    return li;
+  }));
 
   rangeList.replaceChildren(...view.rangeItems.map((item) => {
     const li = document.createElement('li');
