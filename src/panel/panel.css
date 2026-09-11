@@ -67,3 +67,17 @@ button:focus-visible {
   padding: 4px 0;
   overflow-wrap: break-word;
 }
+
+#facts-list {
+  margin: 0;
+}
+
+#facts-list dt {
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+#facts-list dd {
+  margin: 0;
+  overflow-wrap: break-word;
+}

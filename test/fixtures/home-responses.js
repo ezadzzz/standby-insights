@@ -90,3 +90,64 @@ export const rangeAfterOpenEndedHome = {
     ],
   },
 };
+
+// Field names confirmed against the public home response documented in the
+// source project's API verification research: minimum_nightly_stay,
+// flex_options, property.member_rating, and property.{walk,transit,bike}_score
+// with a matching *_description band word.
+export const completeFactsHome = {
+  slug: 'apartment-in-austin-tx-facts-1',
+  name: 'Facts Unit 1',
+  property: {
+    name: 'Facts Property',
+    member_rating: { average: 4.15, count: 13 },
+    walk_score: 41,
+    walk_score_description: 'Car-Dependent',
+    transit_score: 29,
+    transit_score_description: 'Some Transit',
+    bike_score: 52,
+    bike_score_description: 'Bikeable',
+  },
+  minimum_nightly_stay: 30,
+  flex_options: [{ nights: 7, label: 'Flex 7' }, 'Flex 14'],
+  availability: { ranges: [{ start_date: '2026-09-11', move_in_allowed: true }] },
+};
+
+export const missingFactsHome = {
+  slug: 'apartment-in-austin-tx-facts-2',
+  name: 'Facts Unit 2',
+  property: { name: 'Facts Property Two' },
+  availability: { ranges: [{ start_date: '2026-09-11', move_in_allowed: true }] },
+};
+
+export const malformedFactsHome = {
+  slug: 'apartment-in-austin-tx-facts-3',
+  name: 'Facts Unit 3',
+  property: {
+    name: 'Facts Property Three',
+    member_rating: { average: 'great', count: -2 },
+    walk_score: 'high',
+    transit_score: 140,
+    bike_score: null,
+  },
+  minimum_nightly_stay: 0,
+  flex_options: 'sometimes',
+  availability: { ranges: [{ start_date: '2026-09-11', move_in_allowed: true }] },
+};
+
+export const zeroReviewsHome = {
+  slug: 'apartment-in-austin-tx-facts-4',
+  name: 'Facts Unit 4',
+  property: { name: 'Facts Property Four', member_rating: { average: 0, count: 0 } },
+  availability: { ranges: [{ start_date: '2026-09-11', move_in_allowed: true }] },
+};
+
+// Facts are intact but the calendar cannot be validated: one must not
+// suppress the other.
+export const factsWithBrokenCalendarHome = {
+  slug: 'apartment-in-austin-tx-facts-5',
+  name: 'Facts Unit 5',
+  property: { name: 'Facts Property Five', member_rating: { average: 4.8, count: 6 } },
+  minimum_nightly_stay: 30,
+  availability: { ranges: [] },
+};

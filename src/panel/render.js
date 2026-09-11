@@ -57,6 +57,43 @@ function summaryItemsFor(summary) {
   return items;
 }
 
+const UNAVAILABLE = 'Unavailable';
+
+function scoreText(score) {
+  if (!score) return UNAVAILABLE;
+  return score.description ? `${score.value} (${score.description})` : String(score.value);
+}
+
+function ratingText(rating) {
+  if (!rating) return UNAVAILABLE;
+  // A building nobody has reviewed is unrated. Stating its average would read
+  // as a score the reviews never gave it.
+  if (rating.count === 0) return 'Unrated (no reviews)';
+  return `${rating.average} out of 5 from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`;
+}
+
+function flexText(flexOptions) {
+  if (flexOptions === null) return UNAVAILABLE;
+  if (flexOptions.length === 0) return 'No Flex options supplied';
+  return flexOptions.join('; ');
+}
+
+/**
+ * The facts the response supplies about this unit and its building, in the
+ * specification's order. Every field gets its own line whether or not it could
+ * be read, so an absent fact is visibly absent rather than silently dropped.
+ */
+function factItemsFor(facts) {
+  return [
+    { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} nights` },
+    { label: 'Flex', text: flexText(facts.flexOptions) },
+    { label: 'Rating', text: ratingText(facts.rating) },
+    { label: 'Walk score', text: scoreText(facts.scores.walk) },
+    { label: 'Transit score', text: scoreText(facts.scores.transit) },
+    { label: 'Bike score', text: scoreText(facts.scores.bike) },
+  ];
+}
+
 /**
  * Pure formatting from evidence-controller state to panel text. Kept
  * separate from panel.js's DOM wiring so it is testable without a browser.
@@ -70,6 +107,7 @@ export function describeState(state) {
     referenceNote: '',
     summaryItems: [],
     rangeItems: [],
+    factItems: [],
     refreshFailedNote: null,
   };
 
@@ -86,6 +124,10 @@ export function describeState(state) {
     view.referenceNote = referenceNoteText(state);
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
   }
+
+  // Facts are independent of the calendar: they render whenever the response
+  // they came from was confirmed to be this unit's.
+  if (state.facts) view.factItems = factItemsFor(state.facts);
 
   if (state.checkedAt !== null) {
     view.checkTimeText = `Checked ${timeFormatter.format(new Date(state.checkedAt))}`;

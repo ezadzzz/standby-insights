@@ -7,6 +7,8 @@ const calendarStatus = document.getElementById('calendar-status');
 const referenceNote = document.getElementById('reference-note');
 const summaryList = document.getElementById('summary-list');
 const rangeList = document.getElementById('range-list');
+const factsSection = document.getElementById('facts-section');
+const factsList = document.getElementById('facts-list');
 const refreshButton = document.getElementById('refresh-button');
 const announcer = document.getElementById('announcer');
 
@@ -32,6 +34,17 @@ function render(state) {
     li.textContent = item.text;
     if (item.isReservation) li.className = 'reservation-label';
     return li;
+  }));
+
+  // A description list pairs each fact with its own visible label, so an
+  // unavailable field still reads as a labelled fact rather than stray text.
+  factsSection.hidden = view.factItems.length === 0;
+  factsList.replaceChildren(...view.factItems.flatMap((item) => {
+    const dt = document.createElement('dt');
+    dt.textContent = item.label;
+    const dd = document.createElement('dd');
+    dd.textContent = item.text;
+    return [dt, dd];
   }));
 
   if (state.checkedAt !== null && state.checkedAt !== lastCheckedAt && !state.isChecking) {
