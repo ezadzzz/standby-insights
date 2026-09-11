@@ -1,6 +1,6 @@
 # Standby browsing evidence extension
 
-Status: approved by the user on September 10, 2026, including the proposed testing boundaries. GitHub issue publication pending repository setup.
+Status: approved by the user on September 10, 2026, including the proposed testing boundaries. Implementation has not started.
 
 ## Problem Statement
 
@@ -116,5 +116,5 @@ Required behavioral cases:
 
 - Source: the user-supplied September 10 Standby browsing extension design. Its recorded research is historical evidence, not fresh verification in this task. It reports one signed-in market/detail flow and a small pagination probe, not universal DOM/API stability or complete market coverage.
 - Current inspection confirms the source application has reusable calendar derivations and fixture-based tests. Its current fetch/cache behavior is incompatible with this extension's missing-data and reopen rules. This task did not execute tests or change that application.
-- Repository: https://github.com/ezadzzz/standby-insights (private). GitHub Issues is the selected tracker; engineering-skill configuration is being established through /setup-matt-pocock-skills.
+- Repository: https://github.com/ezadzzz/standby-insights (private). GitHub Issues is the selected tracker; engineering-skill configuration lives in docs/agents/.
 - Intended publication label: ready-for-agent. The user approved this specification after synthesis. The original design is preserved unchanged in the repository's provenance documentation; its earlier review status remains historical context. Implementation has not started.
