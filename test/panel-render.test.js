@@ -173,8 +173,8 @@ test('a special offer on any Flex term is stated up front, with the term that ca
     term(),
     term({ label: '12-Month+ Stay', months: 12, committedNights: 365, specialOffer: true, earlyTerminationFeeType: 'two-months-rent' }),
   ]));
-  assert.match(item.text, /special offer on 1 of 2/i);
-  assert.equal(item.details.length, 2);
+  assert.match(item.text, /special offer advertised on 1 of 2/i);
+  assert.equal(item.details.filter((line) => /Stay/.test(line)).length, 2, 'one detail line per supplied term');
   assert.match(item.details[1], /12-Month\+ Stay/);
   assert.match(item.details[1], /special offer/i);
   assert.match(item.details[0], /no special offer/i);
@@ -202,4 +202,18 @@ test('the panel states no bump risk, ranking, or tenure claim from a special off
 test('fields outside the sampled shape reach the member without raw key underscores', () => {
   const item = flexItem(flexFactsState([term({ extra: ['brand new field: kept'] })]));
   assert.match(item.details[0], /brand new field: kept/);
+});
+
+test('an advertised term offer is not stated as a price the member will receive', () => {
+  const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12, specialOffer: true })]));
+  assert.match(item.text, /advertised/i);
+  const all = `${item.text} ${item.details.join(' ')}`;
+  assert.match(all, /not a quoted price/i);
+  assert.match(all, /move-in date/i);
+});
+
+test('with no advertised offer, no quote caveat is raised', () => {
+  const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12 })]));
+  assert.match(item.text, /no special offer advertised/i);
+  assert.doesNotMatch(item.details.join(' '), /quoted price/i);
 });
