@@ -1,12 +1,47 @@
+const SAMPLED_FLEX_FIELDS = new Set(['label', 'months', 'committed_nights', 'special_offer', 'early_termination_fee_type']);
+
+function text(value) {
+  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
+}
+
 /**
- * The supplied Flex eligibility facts, or null when the response carries none.
- * An empty list means the response supplied a Flex field with nothing in it,
- * which is stated as such — never as eligibility.
+ * One supplied Flex term. The shape has been sampled once, so the fields that
+ * sample carried are read by name and anything else it may carry is kept
+ * rather than dropped. special_offer belongs to the term, not to the unit, and
+ * its absence is unknown rather than a supplied false.
+ */
+function flexOption(entry) {
+  if (typeof entry === 'string' || typeof entry === 'number' || typeof entry === 'boolean') {
+    const label = text(String(entry));
+    return label === null ? null : { label, months: null, committedNights: null, specialOffer: null, earlyTerminationFeeType: null, extra: [] };
+  }
+  if (!entry || typeof entry !== 'object') return null;
+
+  const option = {
+    label: text(entry.label),
+    months: Number.isFinite(entry.months) ? entry.months : null,
+    committedNights: Number.isFinite(entry.committed_nights) ? entry.committed_nights : null,
+    specialOffer: typeof entry.special_offer === 'boolean' ? entry.special_offer : null,
+    earlyTerminationFeeType: text(entry.early_termination_fee_type),
+    extra: Object.entries(entry)
+      .filter(([key, value]) => !SAMPLED_FLEX_FIELDS.has(key)
+        && (text(value) !== null || typeof value === 'number' || typeof value === 'boolean'))
+      .map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value}`),
+  };
+  const empty = option.extra.length === 0
+    && [option.label, option.months, option.committedNights, option.specialOffer, option.earlyTerminationFeeType].every((v) => v === null);
+  return empty ? null : option;
+}
+
+/**
+ * The supplied Flex terms, or null when the response carries none. An empty
+ * list means the response supplied a Flex field with nothing in it, which is
+ * stated as such — never as eligibility.
  */
 function flexOptions(raw) {
   if (raw === undefined || raw === null) return null;
   const entries = Array.isArray(raw) ? raw : [raw];
-  return entries.map(flexOptionText).filter((text) => text !== null);
+  return entries.map(flexOption).filter((option) => option !== null);
 }
 
 /** A score Landing publishes on the 0–100 band scale, or null if unusable. */

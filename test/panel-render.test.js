@@ -74,7 +74,7 @@ const factText = (view, label) => view.factItems.find((item) => item.label === l
 test('complete facts are stated in the specification order, after the calendar', () => {
   const view = describeState(factsState({
     minimumStay: 30,
-    flexOptions: ['nights: 7, label: Flex 7'],
+    flexOptions: [{ label: '6-Month+ Stay', months: 6, committedNights: 180, specialOffer: false, earlyTerminationFeeType: 'one-month-rent', extra: [] }],
     rating: { average: 4.15, count: 13 },
     scores: {
       walk: { value: 41, description: 'Car-Dependent' },
@@ -84,7 +84,7 @@ test('complete facts are stated in the specification order, after the calendar',
   }));
   assert.deepEqual(view.factItems.map((item) => item.label), ['Minimum stay', 'Flex', 'Rating', 'Walk score', 'Transit score', 'Bike score']);
   assert.match(factText(view, 'Minimum stay'), /30 nights/);
-  assert.match(factText(view, 'Flex'), /Flex 7/);
+  assert.match(factText(view, 'Flex'), /no special offer/i);
   assert.match(factText(view, 'Rating'), /4\.15/);
   assert.match(factText(view, 'Rating'), /13 reviews/);
   assert.match(factText(view, 'Walk score'), /41/);
@@ -156,4 +156,50 @@ test('a one-night minimum reads as a night, and a rating states no scale the res
   assert.doesNotMatch(factText(view, 'Minimum stay'), /nights/);
   assert.match(factText(view, 'Rating'), /1 review\b/);
   assert.doesNotMatch(factText(view, 'Rating'), /out of/i);
+});
+
+const flexFactsState = (flexOptions) => factsState({
+  minimumStay: null, flexOptions, rating: null, scores: { walk: null, transit: null, bike: null },
+});
+const flexItem = (state) => describeState(state).factItems.find((item) => item.label === 'Flex');
+
+const term = (over = {}) => ({
+  label: '6-Month+ Stay', months: 6, committedNights: 180,
+  specialOffer: false, earlyTerminationFeeType: 'one-month-rent', extra: [], ...over,
+});
+
+test('a special offer on any Flex term is stated up front, with the term that carries it', () => {
+  const item = flexItem(flexFactsState([
+    term(),
+    term({ label: '12-Month+ Stay', months: 12, committedNights: 365, specialOffer: true, earlyTerminationFeeType: 'two-months-rent' }),
+  ]));
+  assert.match(item.text, /special offer on 1 of 2/i);
+  assert.equal(item.details.length, 2);
+  assert.match(item.details[1], /12-Month\+ Stay/);
+  assert.match(item.details[1], /special offer/i);
+  assert.match(item.details[0], /no special offer/i);
+  assert.match(item.details[0], /180 committed nights/);
+  assert.doesNotMatch(item.details[0], /committed_nights|special_offer/, 'raw response keys are never shown to the member');
+});
+
+test('every term supplying a false special offer says so, since the response stated it', () => {
+  const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12 })]));
+  assert.match(item.text, /no special offer/i);
+  assert.doesNotMatch(item.text, /1 of 2/);
+});
+
+test('a Flex term that never supplied the field is unknown, not an absent special offer', () => {
+  const item = flexItem(flexFactsState([term({ specialOffer: null })]));
+  assert.doesNotMatch(item.text, /no special offer/i);
+  assert.match(item.text, /not supplied|unknown/i);
+});
+
+test('the panel states no bump risk, ranking, or tenure claim from a special offer', () => {
+  const item = flexItem(flexFactsState([term({ specialOffer: true })]));
+  assert.doesNotMatch(`${item.text} ${item.details.join(' ')}`, /bump|risk|likel|protected|guarantee|safe/i);
+});
+
+test('fields outside the sampled shape reach the member without raw key underscores', () => {
+  const item = flexItem(flexFactsState([term({ extra: ['brand new field: kept'] })]));
+  assert.match(item.details[0], /brand new field: kept/);
 });

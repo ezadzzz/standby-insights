@@ -55,16 +55,40 @@ test('a response that is not an object yields all-absent facts rather than throw
   }
 });
 
-test('supplied Flex options are shown as given, including an unsampled object shape', () => {
-  const facts = deriveFacts(completeFactsHome);
-  assert.deepEqual(facts.flexOptions, ['nights: 7, label: Flex 7', 'Flex 14']);
+test('every supplied Flex term is kept, in the order the response gave them', () => {
+  assert.deepEqual(deriveFacts(completeFactsHome).flexOptions.map((o) => o.label), ['6-Month+ Stay', '12-Month+ Stay']);
 });
 
 test('a Flex field that is not a list is still shown rather than discarded', () => {
-  assert.deepEqual(deriveFacts(malformedFactsHome).flexOptions, ['sometimes']);
+  assert.deepEqual(deriveFacts(malformedFactsHome).flexOptions.map((o) => o.label), ['sometimes']);
 });
 
 test('an empty Flex field is an empty list, distinct from the field being absent', () => {
   assert.deepEqual(deriveFacts({ flex_options: [] }).flexOptions, []);
   assert.equal(deriveFacts(missingFactsHome).flexOptions, null);
+});
+
+test('a sampled Flex option keeps its own supplied fields, special offer included', () => {
+  const [sixMonth, twelveMonth] = deriveFacts(completeFactsHome).flexOptions;
+  assert.deepEqual(sixMonth, {
+    label: '6-Month+ Stay',
+    months: 6,
+    committedNights: 180,
+    specialOffer: false,
+    earlyTerminationFeeType: 'one-month-rent',
+    extra: [],
+  });
+  assert.equal(twelveMonth.specialOffer, true, 'special offer is per Flex term, not per unit');
+  assert.equal(twelveMonth.months, 12);
+});
+
+test('a missing special_offer field is unknown, never a supplied false', () => {
+  const [option] = deriveFacts({ flex_options: [{ label: '6-Month+ Stay', months: 6 }] }).flexOptions;
+  assert.equal(option.specialOffer, null);
+  assert.equal(option.label, '6-Month+ Stay');
+});
+
+test('fields outside the once-sampled shape are kept rather than dropped', () => {
+  const [option] = deriveFacts({ flex_options: [{ label: 'Some Term', brand_new_field: 'kept' }] }).flexOptions;
+  assert.deepEqual(option.extra, ['brand new field: kept']);
 });

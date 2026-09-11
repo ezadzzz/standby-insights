@@ -81,3 +81,9 @@ button:focus-visible {
   margin: 0;
   overflow-wrap: break-word;
 }
+
+#facts-list dd + dd {
+  margin-top: 2px;
+  padding-left: 12px;
+  color: #444;
+}

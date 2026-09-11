@@ -74,10 +74,42 @@ function ratingText(rating) {
   return `${rating.average} from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`;
 }
 
-function flexText(flexOptions) {
-  if (flexOptions === null) return UNAVAILABLE;
-  if (flexOptions.length === 0) return 'No Flex options supplied';
-  return flexOptions.join('; ');
+/** One Flex term, in the response's own words rather than its field names. */
+function flexOptionText(option) {
+  const parts = [];
+  const name = option.label ?? (option.months === null ? null : `${option.months}-month term`);
+  if (name !== null) parts.push(name);
+  if (option.months !== null && option.label !== null) parts.push(`${option.months} months`);
+  if (option.committedNights !== null) parts.push(`${option.committedNights} committed nights`);
+  if (option.specialOffer !== null) parts.push(option.specialOffer ? 'special offer' : 'no special offer');
+  if (option.earlyTerminationFeeType !== null) {
+    parts.push(`early termination fee: ${option.earlyTerminationFeeType.replace(/-/g, ' ')}`);
+  }
+  parts.push(...option.extra);
+  return parts.join(' · ');
+}
+
+/**
+ * Leads with whether any supplied Flex term carries a special offer, which is
+ * the fact worth seeing first. It is stated only about terms that actually
+ * supplied the field: a term that never carried one is unknown, not an absent
+ * offer. The panel states the fact and stops — what it implies about this
+ * unit's demand is the member's inference, not the extension's claim.
+ */
+function flexFact(flexOptions) {
+  if (flexOptions === null) return { text: UNAVAILABLE, details: [] };
+  if (flexOptions.length === 0) return { text: 'No Flex options supplied', details: [] };
+
+  const details = flexOptions.map(flexOptionText);
+  const stated = flexOptions.filter((option) => option.specialOffer !== null);
+  const offered = stated.filter((option) => option.specialOffer);
+  const terms = `${flexOptions.length} Flex ${flexOptions.length === 1 ? 'term' : 'terms'}`;
+
+  if (stated.length === 0) return { text: `${terms}; special offer not supplied`, details };
+  if (offered.length === 0) {
+    return { text: `No special offer on ${stated.length === 1 ? 'the supplied Flex term' : `any of the ${stated.length} supplied Flex terms`}`, details };
+  }
+  return { text: `Special offer on ${offered.length} of ${stated.length} supplied Flex terms`, details };
 }
 
 /**
@@ -88,12 +120,12 @@ function flexText(flexOptions) {
 function factItemsFor(facts) {
   return [
     { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
-    { label: 'Flex', text: flexText(facts.flexOptions) },
+    { label: 'Flex', ...flexFact(facts.flexOptions) },
     { label: 'Rating', text: ratingText(facts.rating) },
     { label: 'Walk score', text: scoreText(facts.scores.walk) },
     { label: 'Transit score', text: scoreText(facts.scores.transit) },
     { label: 'Bike score', text: scoreText(facts.scores.bike) },
-  ];
+  ].map((item) => ({ details: [], ...item }));
 }
 
 /**
