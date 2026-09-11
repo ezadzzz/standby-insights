@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Standby Browsing Insights (personal use)",
+  "version": "0.1.0",
+  "description": "Shows exact-unit calendar evidence for a Landing Standby detail page in a side panel.",
+  "permissions": ["sidePanel", "webNavigation"],
+  "host_permissions": ["https://www.hellolanding.com/*"],
+  "background": {
+    "service_worker": "src/background/background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "src/panel/panel.html"
+  },
+  "action": {
+    "default_title": "Open Standby evidence"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.hellolanding.com/homes/*/standby*"],
+      "js": ["src/content/content-script.js"],
+      "type": "module",
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/lib/*.js"],
+      "matches": ["https://www.hellolanding.com/*"]
+    }
+  ]
+}
