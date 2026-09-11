@@ -29,6 +29,7 @@ try {
   record('service worker registered', true, extensionId);
 
   const apiRequests = [];
+  const mcpCalls = [];
   const homeResponses = [];
   const consoleErrors = [];
   const page = await context.newPage();
@@ -40,9 +41,25 @@ try {
   });
   page.on('request', (r) => {
     const url = new URL(r.url());
-    if (url.hostname.endsWith('hellolanding.com') && url.pathname.startsWith('/api/')) {
+    if (!url.hostname.endsWith('hellolanding.com')) return;
+    if (url.pathname.startsWith('/api/')) {
       apiRequests.push({ url: r.url(), headers: r.headers() });
     }
+    if (url.pathname === '/mcp/public') {
+      let body = null;
+      try { body = JSON.parse(r.postData() ?? 'null'); } catch { body = 'unparseable'; }
+      mcpCalls.push({ url: r.url(), method: r.method(), headers: r.headers(), body });
+    }
+  });
+  page.on('response', async (r) => {
+    if (new URL(r.url()).pathname !== '/mcp/public') return;
+    const body = await r.json().catch(() => null);
+    let payload = null;
+    try { payload = JSON.parse(body?.result?.content?.[0]?.text ?? 'null'); } catch { payload = null; }
+    const call = mcpCalls.at(-1);
+    if (call) call.response = { status: r.status(), echo: payload?.response
+      ? { page: payload.response.page, per_page: payload.response.per_page, total_pages: payload.response.total_pages, market: payload.response.market?.slug, homes: payload.response.homes?.length }
+      : null };
   });
 
   await page.goto(DETAIL_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -101,6 +118,37 @@ try {
   record('property link present', dom.propertyLink !== null, dom.propertyLink);
   record('#unit-calendar-unified-start-date present', dom.startDateControl !== null, dom.startDateControl);
   record('picker label (fallback only, expected absent when closed)', true, dom.pickerLabel ?? 'absent');
+
+  // 6b. The comparison's own request boundary, exercised the way the panel
+  // does it: the panel is what triggers a comparison, so open it by hand.
+  await worker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({ url: 'https://www.hellolanding.com/homes/*/standby*' });
+    if (tab) await chrome.tabs.sendMessage(tab.id, { type: 'request-open' });
+  }).catch(() => {});
+  await page.waitForTimeout(12000);
+
+  record('comparison used only the fixed public MCP endpoint', mcpCalls.every((c) => c.url === 'https://www.hellolanding.com/mcp/public'),
+    mcpCalls.length ? `${mcpCalls.length} call(s)` : 'no /mcp/public request observed');
+  const toolNames = [...new Set(mcpCalls.map((c) => c.body?.params?.name))];
+  record('comparison called only search_apartments_tool', mcpCalls.length > 0 && toolNames.every((n) => n === 'search_apartments_tool'),
+    toolNames.join(', ') || 'n/a');
+  const args = mcpCalls[0]?.body?.params?.arguments ?? {};
+  const argued = args.min_bedrooms === args.max_bedrooms
+    && Number.isInteger(args.min_bedrooms)
+    && typeof args.market === 'string'
+    && args.per_page === 100
+    && args.include_hero_images === false
+    && !('start_date' in args) && !('end_date' in args) && !('committed_nights' in args)
+    && !('min_price' in args) && !('max_price' in args) && !('deals_only' in args)
+    && !('guest_rating' in args) && !('min_rating' in args) && !('sort_by' in args);
+  record('search arguments are scoped, exact-bedroom and unfiltered', argued, JSON.stringify(args));
+  const mcpCredentialed = mcpCalls.filter((c) => Object.keys(c.headers).some((h) => h.toLowerCase() === 'cookie'));
+  record('comparison request carries no cookie header', mcpCalls.length > 0 && mcpCredentialed.length === 0,
+    mcpCredentialed.length ? 'cookie header present' : 'none');
+  const echo = mcpCalls.find((c) => c.response)?.response;
+  record('the live search honours the requested page size', Boolean(echo && echo.echo && echo.echo.per_page === 100),
+    JSON.stringify(echo ?? 'no response captured'));
+  record('comparison stayed within the ten-request budget', mcpCalls.length <= 10, `${mcpCalls.length} page request(s)`);
 
   // 7. The adapter's own reading of this live page.
   const liveRead = await page.evaluate(async (id) => {

@@ -8,13 +8,58 @@ async function fetchHome(slug, signal) {
   return response.json();
 }
 
+// The one comparison tool this extension may call, on the one endpoint it may
+// call it on. Both are fixed here: nothing from the page or from a runtime
+// message can choose a destination or a tool name.
+const PUBLIC_MCP_URL = 'https://www.hellolanding.com/mcp/public';
+const SEARCH_TOOL = 'search_apartments_tool';
+
+/**
+ * One page of the fixed public search, scoped to an explicit market and an
+ * exact bedroom count. Dates, commitment, price, rating, amenity and Standby
+ * filters are all omitted so the result is the market's current advertised
+ * snapshot rather than a filtered subset. Hero images are opted out of.
+ */
+async function searchPeers({ market, bedrooms, page, perPage }, signal) {
+  const response = await fetch(PUBLIC_MCP_URL, {
+    method: 'POST',
+    signal,
+    credentials: 'omit',
+    redirect: 'error',
+    headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: page,
+      method: 'tools/call',
+      params: {
+        name: SEARCH_TOOL,
+        arguments: {
+          market,
+          min_bedrooms: bedrooms,
+          max_bedrooms: bedrooms,
+          page,
+          per_page: perPage,
+          include_hero_images: false,
+        },
+      },
+    }),
+  });
+  if (!response.ok) throw new Error(`Search request failed: ${response.status}`);
+  const body = await response.json();
+  // The tool returns its payload as JSON text inside the MCP envelope; an
+  // envelope that does not carry one is malformed, not an empty market.
+  const payload = body?.result?.content?.[0]?.text;
+  if (typeof payload !== 'string') throw new Error('Search response envelope was not readable');
+  return JSON.parse(payload);
+}
+
 let currentSlug = null;
 
 function broadcastState(state) {
   chrome.runtime.sendMessage({ type: 'evidence-state', slug: currentSlug, state }).catch(() => {});
 }
 
-const controller = createEvidenceController({ fetchHome, onChange: broadcastState });
+const controller = createEvidenceController({ fetchHome, searchPeers, onChange: broadcastState });
 
 function currentCheckIn() {
   return readSelectedCheckIn({ search: window.location.search, doc: document });

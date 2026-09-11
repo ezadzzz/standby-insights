@@ -7,6 +7,12 @@ const calendarStatus = document.getElementById('calendar-status');
 const referenceNote = document.getElementById('reference-note');
 const summaryList = document.getElementById('summary-list');
 const rangeList = document.getElementById('range-list');
+const comparisonSection = document.getElementById('comparison-section');
+const comparisonStatus = document.getElementById('comparison-status');
+const comparisonSubject = document.getElementById('comparison-subject');
+const comparisonTerms = document.getElementById('comparison-terms');
+const comparisonDisclosure = document.getElementById('comparison-disclosure');
+const comparisonCheckTime = document.getElementById('comparison-check-time');
 const factsSection = document.getElementById('facts-section');
 const factsList = document.getElementById('facts-list');
 const refreshButton = document.getElementById('refresh-button');
@@ -35,6 +41,13 @@ function render(state) {
     if (item.isReservation) li.className = 'reservation-label';
     return li;
   }));
+
+  comparisonSection.hidden = !view.comparison.visible;
+  comparisonStatus.textContent = view.comparison.statusText;
+  comparisonSubject.textContent = view.comparison.subjectText;
+  comparisonTerms.textContent = view.comparison.termsNote;
+  comparisonDisclosure.textContent = view.comparison.disclosure;
+  comparisonCheckTime.textContent = view.comparison.checkTimeText;
 
   // A description list pairs each fact with its own visible label, so an
   // unavailable field still reads as a labelled fact rather than stray text.
