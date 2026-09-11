@@ -1,7 +1,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createEvidenceController } from '../src/lib/evidence-controller.js';
-import { validClosedCalendarHome, validOpenCalendarHome, emptyRangesHome } from './fixtures/home-responses.js';
+import {
+  validClosedCalendarHome,
+  validOpenCalendarHome,
+  emptyRangesHome,
+  completeFactsHome,
+  missingFactsHome,
+  factsWithBrokenCalendarHome,
+} from './fixtures/home-responses.js';
 
 const identityFor = (home) => ({
   visibleHeadingText: home.name,
@@ -195,4 +202,104 @@ test('a late response for a unit the member has since navigated away from is dis
   const state = controller.getState();
   assert.equal(state.slug, validOpenCalendarHome.slug);
   assert.equal(state.ranges.length, 1, 'the late response for the previous unit never overwrites the current selection');
+});
+
+test('facts come from the same response as the calendar, with no additional request', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: completeFactsHome.slug, visibleIdentity: identityFor(completeFactsHome) });
+  await tick();
+  calls[0].resolve(completeFactsHome);
+  await tick();
+
+  assert.equal(calls.length, 1, 'facts must not trigger their own enrichment request');
+  assert.equal(controller.getState().facts.minimumStay, 30);
+  assert.deepEqual(controller.getState().facts.rating, { average: 4.15, count: 13 });
+});
+
+test('an unusable calendar does not suppress facts read from the same response', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: factsWithBrokenCalendarHome.slug, visibleIdentity: identityFor(factsWithBrokenCalendarHome) });
+  await tick();
+  calls[0].resolve(factsWithBrokenCalendarHome);
+  await tick();
+
+  const state = controller.getState();
+  assert.equal(state.status, 'unavailable');
+  assert.equal(state.facts.minimumStay, 30);
+  assert.deepEqual(state.facts.rating, { average: 4.8, count: 6 });
+});
+
+test('missing facts do not invalidate a calendar read from the same response', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: missingFactsHome.slug, visibleIdentity: identityFor(missingFactsHome) });
+  await tick();
+  calls[0].resolve(missingFactsHome);
+  await tick();
+
+  const state = controller.getState();
+  assert.equal(state.status, 'ready');
+  assert.equal(state.facts.minimumStay, null);
+  assert.equal(state.facts.rating, null);
+});
+
+test('an unconfirmed identity attaches no facts', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({
+    slug: completeFactsHome.slug,
+    visibleIdentity: { visibleHeadingText: 'Some Other Unit 9', visiblePropertyLinkText: 'See all units at Facts Property' },
+  });
+  await tick();
+  calls[0].resolve(completeFactsHome);
+  await tick();
+
+  const state = controller.getState();
+  assert.equal(state.identity, 'mismatch');
+  assert.equal(state.facts, null);
+});
+
+test('switching units drops the previous unit facts, and a late reply cannot attach them', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: completeFactsHome.slug, visibleIdentity: identityFor(completeFactsHome) });
+  await tick();
+  controller.enterDetailPage({ slug: missingFactsHome.slug, visibleIdentity: identityFor(missingFactsHome) });
+  await tick();
+  assert.equal(controller.getState().facts, null, 'a newly selected unit shows no previous unit evidence');
+
+  calls[0].resolve(completeFactsHome); // the superseded unit answers late
+  await tick();
+  assert.equal(controller.getState().facts, null);
+
+  calls[1].resolve(missingFactsHome);
+  await tick();
+  assert.equal(controller.getState().slug, missingFactsHome.slug);
+  assert.equal(controller.getState().facts.minimumStay, null);
+});
+
+test('a failed refresh keeps the previous facts, labeled as the older check', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: completeFactsHome.slug, visibleIdentity: identityFor(completeFactsHome) });
+  await tick();
+  calls[0].resolve(completeFactsHome);
+  await tick();
+
+  controller.refresh({ slug: completeFactsHome.slug, visibleIdentity: identityFor(completeFactsHome) });
+  await tick();
+  calls[1].reject(new Error('network'));
+  await tick();
+
+  const state = controller.getState();
+  assert.equal(state.isStale, true);
+  assert.equal(state.facts.minimumStay, 30);
 });

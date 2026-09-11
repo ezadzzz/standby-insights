@@ -1,5 +1,6 @@
 import { checkIdentity, responseIdentityFromHome } from './identity.js';
 import { deriveCalendarEvidence, summarizeForReference } from './calendar.js';
+import { deriveFacts } from './facts.js';
 import { RequestGate } from './request-gate.js';
 
 const EMPTY_STATE = {
@@ -8,6 +9,7 @@ const EMPTY_STATE = {
   identity: null,
   unitName: null,
   ranges: null,
+  facts: null,
   checkIn: { status: 'none', date: null },
   referenceDate: null,
   summary: null,
@@ -100,6 +102,9 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
           identity,
           unitName: identity === 'confirmed' ? responseIdentity.unitName : null,
           ranges: calendar.ranges ?? null,
+          // Facts stand on their own: an unusable calendar never withholds them,
+          // and an unreadable fact never invalidates the calendar.
+          facts: identity === 'confirmed' ? deriveFacts(raw) : null,
           checkedAt: now(),
           isChecking: false,
           isStale: false,
