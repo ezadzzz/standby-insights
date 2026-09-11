@@ -1,4 +1,4 @@
-import { checkIdentity } from './identity.js';
+import { checkIdentity, responseIdentityFromHome } from './identity.js';
 import { deriveCalendarEvidence } from './calendar.js';
 import { RequestGate } from './request-gate.js';
 
@@ -6,6 +6,7 @@ const EMPTY_STATE = {
   slug: null,
   status: 'idle',
   identity: null,
+  unitName: null,
   ranges: null,
   checkedAt: null,
   isChecking: false,
@@ -19,7 +20,7 @@ const EMPTY_STATE = {
  * Every trigger re-reads the caller-supplied visible identity because the
  * DOM is the source of truth, not something this controller should cache.
  */
-export function createEvidenceController({ fetchHome, now = () => Date.now(), gate } = {}) {
+export function createEvidenceController({ fetchHome, now = () => Date.now(), gate, onChange } = {}) {
   const requestGate = gate ?? new RequestGate();
   let state = { ...EMPTY_STATE };
   let generation = 0;
@@ -29,52 +30,59 @@ export function createEvidenceController({ fetchHome, now = () => Date.now(), ga
     return state;
   }
 
+  function setState(next) {
+    state = next;
+    onChange?.(state);
+  }
+
   function startFetch(slug, visibleIdentity) {
     generation += 1;
     const myGeneration = generation;
     inFlightSlug = slug;
 
     const sameUnit = state.slug === slug;
-    state = {
+    setState({
       ...(sameUnit ? state : EMPTY_STATE),
       slug,
       isChecking: true,
       isStale: sameUnit && state.checkedAt !== null,
-    };
+    });
 
     requestGate.schedule((signal) => fetchHome(slug, signal)).then(
       (raw) => {
         if (myGeneration !== generation) return; // stale: a newer trigger has since superseded this one
+        const responseIdentity = responseIdentityFromHome(raw);
         const identity = checkIdentity({
           requestedSlug: slug,
-          responseSlug: raw?.slug,
-          responseUnitName: raw?.name,
-          responsePropertyName: raw?.property?.name,
+          responseSlug: responseIdentity.slug,
+          responseUnitName: responseIdentity.unitName,
+          responsePropertyName: responseIdentity.propertyName,
           visibleHeadingText: visibleIdentity?.visibleHeadingText,
           visiblePropertyLinkText: visibleIdentity?.visiblePropertyLinkText,
         });
         const calendar = identity === 'confirmed' ? deriveCalendarEvidence(raw) : { status: identity };
-        state = {
+        setState({
           slug,
           status: calendar.status,
           identity,
+          unitName: identity === 'confirmed' ? responseIdentity.unitName : null,
           ranges: calendar.ranges ?? null,
           checkedAt: now(),
           isChecking: false,
           isStale: false,
           error: null,
-        };
+        });
         inFlightSlug = null;
       },
       (err) => {
         if (myGeneration !== generation) return;
-        state = {
+        setState({
           ...state,
           status: state.checkedAt !== null ? state.status : 'unavailable',
           isChecking: false,
           isStale: state.checkedAt !== null,
           error: err?.name ?? 'error',
-        };
+        });
         inFlightSlug = null;
       },
     );

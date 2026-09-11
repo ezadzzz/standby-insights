@@ -1,20 +1,5 @@
 import { createEvidenceController } from '../lib/evidence-controller.js';
-
-const SLUG_PATTERN = /^\/homes\/([^/]+)\/standby(?:\/|$)/;
-
-function readSlug() {
-  const match = SLUG_PATTERN.exec(window.location.pathname);
-  return match ? match[1] : null;
-}
-
-function readVisibleIdentity() {
-  const heading = document.querySelector('h1');
-  const propertyLink = document.querySelector('a[href^="/properties/"]');
-  return {
-    visibleHeadingText: heading ? heading.textContent : null,
-    visiblePropertyLinkText: propertyLink ? propertyLink.textContent : null,
-  };
-}
+import { parseSlugFromPath, extractVisibleIdentity } from './page-adapter.js';
 
 async function fetchHome(slug, signal) {
   const url = `https://www.hellolanding.com/api/public/homes/${encodeURIComponent(slug)}`;
@@ -23,33 +8,30 @@ async function fetchHome(slug, signal) {
   return response.json();
 }
 
-const controller = createEvidenceController({ fetchHome });
 let currentSlug = null;
 
-let lastBroadcast = null;
-function broadcastState() {
-  const payload = { type: 'evidence-state', slug: currentSlug, state: controller.getState() };
-  const serialized = JSON.stringify(payload);
-  if (serialized === lastBroadcast) return;
-  lastBroadcast = serialized;
-  chrome.runtime.sendMessage(payload).catch(() => {});
+function broadcastState(state) {
+  chrome.runtime.sendMessage({ type: 'evidence-state', slug: currentSlug, state }).catch(() => {});
 }
 
+const controller = createEvidenceController({ fetchHome, onChange: broadcastState });
+
 function checkEntry() {
-  const slug = readSlug();
+  const slug = parseSlugFromPath(window.location.pathname);
   if (!slug) return;
   currentSlug = slug;
-  controller.enterDetailPage({ slug, visibleIdentity: readVisibleIdentity() });
-  broadcastState();
+  controller.enterDetailPage({ slug, visibleIdentity: extractVisibleIdentity(document) });
 }
 
 // Poll instead of trusting a specific Landing DOM-mutation contract: only
 // one signed-in navigation flow has been verified (see docs/provenance), so
-// this stays conservative and just watches for the slug the URL reports.
+// this stays conservative and just watches for the slug the URL reports. No
+// network request happens here; the controller's own dedup decides whether
+// a re-entry needs a fresh fetch.
 // ponytail: interval poll, switch to a verified mutation/navigation hook if Landing's SPA contract gets inspected further.
 let lastCheckedSlug = null;
 const pollId = setInterval(() => {
-  const slug = readSlug();
+  const slug = parseSlugFromPath(window.location.pathname);
   if (slug && slug !== lastCheckedSlug) {
     lastCheckedSlug = slug;
     checkEntry();
@@ -59,15 +41,11 @@ const pollId = setInterval(() => {
 checkEntry();
 lastCheckedSlug = currentSlug;
 
-const stateBroadcastInterval = setInterval(broadcastState, 500);
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === 'request-open') {
-    controller.openPanel({ slug: currentSlug, visibleIdentity: readVisibleIdentity() });
-    broadcastState();
+    controller.openPanel({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document) });
   } else if (message?.type === 'request-refresh') {
-    controller.refresh({ slug: currentSlug, visibleIdentity: readVisibleIdentity() });
-    broadcastState();
+    controller.refresh({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document) });
   } else if (message?.type === 'request-state') {
     sendResponse({ type: 'evidence-state', slug: currentSlug, state: controller.getState() });
   }
@@ -75,6 +53,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 window.addEventListener('pagehide', () => {
   clearInterval(pollId);
-  clearInterval(stateBroadcastInterval);
   controller.teardown();
 });

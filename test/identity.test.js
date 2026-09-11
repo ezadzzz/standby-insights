@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { checkIdentity } from '../src/lib/identity.js';
+import { checkIdentity, responseIdentityFromHome } from '../src/lib/identity.js';
 
 const base = {
   requestedSlug: 'apartment-in-austin-tx-lantana-hills-2321',
@@ -51,4 +51,13 @@ test('visible identity could not be read from the page: ambiguous, no attached c
 
 test('missing response identity fields: ambiguous', () => {
   assert.equal(checkIdentity({ ...base, responseUnitName: null }), 'ambiguous');
+});
+
+test('responseIdentityFromHome pulls slug/name/property out of a raw home response', () => {
+  const raw = { slug: 's-1', name: 'Unit 1', property: { name: 'Property 1' } };
+  assert.deepEqual(responseIdentityFromHome(raw), { slug: 's-1', unitName: 'Unit 1', propertyName: 'Property 1' });
+});
+
+test('responseIdentityFromHome tolerates a missing property object', () => {
+  assert.deepEqual(responseIdentityFromHome({ slug: 's-1', name: 'Unit 1' }), { slug: 's-1', unitName: 'Unit 1', propertyName: undefined });
 });

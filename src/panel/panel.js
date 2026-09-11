@@ -13,6 +13,7 @@ let lastCheckedAt = null;
 
 function render(state) {
   const view = describeState(state);
+  heading.textContent = view.headingText;
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.refreshFailedNote ? `${view.checkTimeText}. ${view.refreshFailedNote}` : view.checkTimeText;
   calendarStatus.textContent = view.calendarStatusText;
@@ -32,7 +33,6 @@ function render(state) {
 
 function applyMessage(message) {
   if (message?.type !== 'evidence-state') return;
-  heading.textContent = message.slug ?? 'Standby evidence';
   render(message.state);
 }
 
