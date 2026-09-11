@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Standby evidence</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <main>
+    <h1 id="unit-heading">Standby evidence</h1>
+    <p id="identity-note" role="status"></p>
+
+    <div class="check-row">
+      <span id="check-time">Not checked yet</span>
+      <button id="refresh-button" type="button">Refresh</button>
+    </div>
+
+    <section id="calendar-section" aria-labelledby="calendar-heading">
+      <h2 id="calendar-heading">Calendar</h2>
+      <p id="calendar-status"></p>
+      <ol id="range-list"></ol>
+    </section>
+
+    <p id="announcer" role="status" aria-live="polite" class="visually-hidden"></p>
+  </main>
+  <script type="module" src="panel.js"></script>
+</body>
+</html>
