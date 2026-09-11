@@ -42,9 +42,14 @@ function render(state) {
   factsList.replaceChildren(...view.factItems.flatMap((item) => {
     const dt = document.createElement('dt');
     dt.textContent = item.label;
-    const dd = document.createElement('dd');
-    dd.textContent = item.text;
-    return [dt, dd];
+    // A fact with per-item detail (each supplied Flex term) gets one dd per
+    // line under its single label, rather than one run-on value.
+    const values = [item.text, ...item.details].map((line) => {
+      const dd = document.createElement('dd');
+      dd.textContent = line;
+      return dd;
+    });
+    return [dt, ...values];
   }));
 
   if (state.checkedAt !== null && state.checkedAt !== lastCheckedAt && !state.isChecking) {

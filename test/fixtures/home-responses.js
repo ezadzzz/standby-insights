@@ -91,7 +91,8 @@ export const rangeAfterOpenEndedHome = {
   },
 };
 
-// Field names as recorded in the source project's API research, which is
+// flex_options below matches a live unit sampled 2026-09-11; every other
+// field name is as recorded in the source project's API research, which is
 // historical evidence rather than fresh verification: minimum_nightly_stay,
 // flex_options, property.member_rating, and property.{walk,transit,bike}_score
 // with a matching *_description band word. flex_options was never sampled
@@ -110,7 +111,10 @@ export const completeFactsHome = {
     bike_score_description: 'Bikeable',
   },
   minimum_nightly_stay: 30,
-  flex_options: [{ nights: 7, label: 'Flex 7' }, 'Flex 14'],
+  flex_options: [
+    { committed_nights: 180, label: '6-Month+ Stay', months: 6, special_offer: false, early_termination_fee_type: 'one-month-rent' },
+    { committed_nights: 365, label: '12-Month+ Stay', months: 12, special_offer: true, early_termination_fee_type: 'two-months-rent' },
+  ],
   availability: { ranges: [{ start_date: '2026-09-11', move_in_allowed: true }] },
 };
 
