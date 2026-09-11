@@ -3,13 +3,14 @@ import { deriveCalendarEvidence } from './calendar.js';
 import { deriveFacts } from './facts.js';
 import { resolveScope, advertisedMonthlyPrice } from './comparison.js';
 import { RequestGate } from './request-gate.js';
+import { RateLimitedError } from './errors.js';
 
 /**
  * Evidence for one unit, as read from one public response. Everything here is
  * about the unit itself; nothing about who is looking at it, which date they
  * picked, or what it is being compared against.
  */
-const EMPTY_UNIT = {
+export const EMPTY_UNIT = {
   slug: null,
   status: 'idle',
   identity: null,
@@ -69,7 +70,7 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
       isStale: Boolean(held && held.checkedAt !== null),
     });
 
-    requestGate.schedule((signal) => fetchHome(slug, signal), { priority }).then(
+    requestGate.schedule((signal) => fetchHome(slug, signal), { priority, key: slug }).then(
       (raw) => {
         if (generations.get(slug) !== nextGeneration) return; // a newer read has since superseded this one
         inFlight.delete(slug);
@@ -117,7 +118,7 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
         // Landing asking us to slow down holds back offscreen card reads and
         // nothing else. It never retries on a timer: the queued work waits for
         // the member to ask for it.
-        if (err?.name === 'RateLimitedError') requestGate.pauseBackground();
+        if (err instanceof RateLimitedError) requestGate.pauseBackground();
         const current = units.get(slug) ?? EMPTY_UNIT;
         set(slug, {
           ...current,
@@ -148,7 +149,14 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
      */
     read(slug, { visibleIdentity, priority = 'background', force = false } = {}) {
       if (!slug) return;
-      if (inFlight.has(slug)) return;
+      if (inFlight.has(slug)) {
+        // Joining the request already running is what keeps a card read and a
+        // panel read from becoming two. But the member's own request must not
+        // inherit the lane an offscreen read was queued in, or a rate-limit
+        // pause would strand the very unit they asked to see.
+        if (priority === 'selected') requestGate.escalate(slug);
+        return;
+      }
       const held = units.get(slug);
       if (!force && held && held.checkedAt !== null) return;
       startRead(slug, { visibleIdentity, priority });

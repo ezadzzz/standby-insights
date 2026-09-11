@@ -1,30 +1,11 @@
 import { summarizeForReference } from './calendar.js';
+import { checkDate } from './reference-date.js';
 import { scopeKey, collectComparison, compareSubject } from './comparison.js';
-import { createUnitEvidenceStore } from './unit-evidence-store.js';
+import { createUnitEvidenceStore, EMPTY_UNIT } from './unit-evidence-store.js';
+import { RateLimitedError } from './errors.js';
 import { RequestGate } from './request-gate.js';
 
-const EMPTY_UNIT = {
-  slug: null,
-  status: 'idle',
-  identity: null,
-  unitName: null,
-  ranges: null,
-  facts: null,
-  scope: null,
-  subjectPrice: null,
-  checkedAt: null,
-  isChecking: false,
-  isStale: false,
-  error: null,
-};
-
 const NO_CHECK_IN = { status: 'none', date: null };
-
-// ponytail: UTC day for the check-date reference; swap for the page's local
-// day if a timezone-sensitive reference is ever verified against Landing.
-function todayIso(now) {
-  return new Date(now()).toISOString().slice(0, 10);
-}
 
 /**
  * The date facts are stated against. A usable selected check-in is the
@@ -33,7 +14,7 @@ function todayIso(now) {
  * labels rather than presenting as the member's plan.
  */
 function referenceDateFor(checkIn, now) {
-  return checkIn?.status === 'selected' && checkIn.date ? checkIn.date : todayIso(now);
+  return checkIn?.status === 'selected' && checkIn.date ? checkIn.date : checkDate(now());
 }
 
 /**
@@ -179,7 +160,13 @@ export function createEvidenceController({
       scope,
       // The comparison is the panel's own foreground work: the member is
       // looking at it, so it is never held back behind offscreen card reads.
-      search: (args) => requestGate.schedule((signal) => searchPeers(args, signal), { priority: 'selected' }),
+      search: (args) => requestGate.schedule((signal) => searchPeers(args, signal), { priority: 'selected' })
+        .catch((err) => {
+          // The comparison is the likeliest thing to hit a limit, being ten
+          // requests. When it does, offscreen card reads stop too.
+          if (err instanceof RateLimitedError) units.pauseBackground?.();
+          throw err;
+        }),
     }).then((result) => {
       if (myGeneration !== comparisonGeneration) return; // superseded by a newer attempt
       if (result.status === 'complete') {

@@ -7,12 +7,13 @@ import { observedCards, validClosedCalendarHome } from './fixtures/home-response
 
 const REFERENCE = '2026-09-15';
 
-function cardFor(rawRanges, { referenceDate = REFERENCE } = {}) {
+function cardFor(rawRanges, { referenceDate = REFERENCE, checkIn = { status: 'none', date: null } } = {}) {
   const calendar = deriveCalendarEvidence({ availability: { ranges: rawRanges } });
   return describeCard({
     evidence: { status: calendar.status, identity: 'confirmed', ranges: calendar.ranges ?? null, isStale: false, checkedAt: 1000 },
     summary: calendar.ranges ? summarizeForReference(calendar.ranges, referenceDate) : null,
     referenceDate,
+    checkIn,
   });
 }
 
@@ -87,7 +88,8 @@ test('an unusable calendar shows unavailable, never an absence of reservations',
     summary: null,
   });
   assert.equal(view.readable, true);
-  assert.equal(view.reservationText, 'Calendar unavailable');
+  assert.equal(view.statusText, 'Calendar unavailable');
+  assert.equal(view.reservationText, '', 'no reservation claim is made from an unusable calendar');
   assert.equal(view.moveInText, '');
 });
 
@@ -109,7 +111,8 @@ test('a card still being read says so without claiming anything about the unit',
     summary: null,
   });
   assert.equal(view.readable, true);
-  assert.equal(view.reservationText, 'Checking…');
+  assert.equal(view.statusText, 'Checking…');
+  assert.equal(view.reservationText, '', 'a card being read makes no claim yet');
 });
 
 test('retained evidence being rechecked is marked an older check, in words not colour', () => {
@@ -120,4 +123,31 @@ test('retained evidence being rechecked is marked an older check, in words not c
     referenceDate: REFERENCE,
   });
   assert.match(view.noteText, /older check/);
+});
+
+// ADR 1: there is always a reference date, and it is labeled when it is not
+// the member's own. A card is where that is easiest to get wrong, because it
+// has room for a date but not for a sentence explaining it.
+test('a card states its date as the check date when the member selected none', () => {
+  const view = cardFor([{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }], {
+    checkIn: { status: 'none', date: null },
+  });
+  assert.match(view.moveInText, /Sep 15, 2026/);
+  assert.match(view.referenceNote, /check date/i);
+  assert.doesNotMatch(view.referenceNote, /your selected check-in of/i, 'never stated as the member’s own date');
+});
+
+test('a card names the member’s own selected check-in as theirs', () => {
+  const view = cardFor([{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }], {
+    checkIn: { status: 'selected', date: '2026-09-15' },
+  });
+  assert.match(view.referenceNote, /your selected check-in/i);
+});
+
+test('a card whose page and address disagree says no date is treated as selected', () => {
+  const view = cardFor([{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }], {
+    checkIn: { status: 'disagreement', date: null },
+  });
+  assert.match(view.referenceNote, /disagree/i);
+  assert.doesNotMatch(view.referenceNote, /your selected/i);
 });

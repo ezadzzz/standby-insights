@@ -49,13 +49,30 @@ export class RequestGate {
    * card work, however much of it is already waiting: scrolling must never put
    * the unit they just opened behind a backlog.
    */
-  schedule(task, { priority = 'background' } = {}) {
+  schedule(task, { priority = 'background', key = null } = {}) {
     return new Promise((resolve, reject) => {
       if (this._tornDown) { reject(new GateCancelledError()); return; }
-      const entry = { task, resolve, reject, controller: null, priority };
+      const entry = { task, resolve, reject, controller: null, priority, key };
       this._queue.push(entry);
       this._drain();
     });
+  }
+
+  /**
+   * Promotes queued work to the member's own lane. Used when they ask for a
+   * unit a background read is already waiting on: the request they are waiting
+   * for must not sit behind a rate-limit pause it was queued under.
+   */
+  escalate(key) {
+    let promoted = false;
+    for (const entry of this._queue) {
+      if (entry.key === key && entry.priority !== 'selected') {
+        entry.priority = 'selected';
+        promoted = true;
+      }
+    }
+    if (promoted) this._drain();
+    return promoted;
   }
 
   /**

@@ -36,6 +36,21 @@ function moveInLine(summary, referenceDate) {
 }
 
 /**
+ * Says which date the card's statements are made against. A card has room for
+ * a date but not for a sentence, which is exactly where a check date is most
+ * likely to be read as the member's own plan — so it is named either way
+ * (ADR 1).
+ */
+function referenceNote(checkIn, referenceDate) {
+  const on = formatDate(referenceDate);
+  if (checkIn?.status === 'selected') return `Relative to your selected check-in of ${on}.`;
+  if (checkIn?.status === 'disagreement') {
+    return `This page and its address disagree on the date, so none is treated as selected. Stated against the check date, ${on}.`;
+  }
+  return `No selected check-in was read. Stated against the check date, ${on}.`;
+}
+
+/**
  * One card's annotation, as words. Pure: the DOM wiring decides where this
  * goes, this decides only what it may say.
  *
@@ -43,8 +58,8 @@ function moveInLine(summary, referenceDate) {
  * card contributes to the single "Some listings couldn't be read" notice
  * instead of carrying a notice of its own.
  */
-export function describeCard({ evidence, summary, referenceDate }) {
-  const view = { readable: true, reservationText: '', moveInText: '', noteText: '' };
+export function describeCard({ evidence, summary, referenceDate, checkIn }) {
+  const view = { readable: true, statusText: '', reservationText: '', moveInText: '', referenceNote: '', noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
     return { ...view, readable: false };
@@ -52,18 +67,20 @@ export function describeCard({ evidence, summary, referenceDate }) {
 
   if (evidence.isStale) view.noteText = 'Showing an older check';
 
+  // Neither of these is a claim about the unit, so they are kept out of the
+  // line that carries one.
   if (evidence.checkedAt === null) {
-    view.reservationText = evidence.isChecking ? 'Checking…' : '';
+    view.statusText = evidence.isChecking ? 'Checking…' : '';
     return view;
   }
 
   if (evidence.status !== 'ready' || summary === null) {
-    view.reservationText = 'Calendar unavailable';
+    view.statusText = 'Calendar unavailable';
     return view;
   }
 
-  const reference = referenceDate ?? summary.referenceDate ?? null;
-  view.reservationText = reservationLine(summary, reference);
-  view.moveInText = moveInLine(summary, reference);
+  view.reservationText = reservationLine(summary, referenceDate);
+  view.moveInText = moveInLine(summary, referenceDate);
+  view.referenceNote = referenceNote(checkIn, referenceDate);
   return view;
 }

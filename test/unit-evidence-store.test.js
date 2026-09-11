@@ -128,3 +128,40 @@ test('teardown stops a pending read from landing', async () => {
 
   assert.equal(store.get(home.slug)?.status, undefined);
 });
+
+test('opening evidence escalates a card read already running, so a pause cannot strand it', async () => {
+  const home = validClosedCalendarHome;
+  const { store, calls } = harness();
+
+  // A rate limit has already paused offscreen work, and a card read is queued.
+  store.pauseBackground();
+  store.read(home.slug, { visibleIdentity: identityFor(home), priority: 'background' });
+  await tick();
+  assert.equal(calls.length, 0, 'the card read is held behind the pause');
+
+  // The member opens evidence for that very unit.
+  store.read(home.slug, { visibleIdentity: identityFor(home), priority: 'selected', force: true });
+  await tick();
+
+  assert.equal(calls.length, 1, 'their own request runs rather than waiting behind the pause');
+  calls[0].resolve(home);
+  await tick();
+  assert.equal(store.get(home.slug).status, 'ready');
+  assert.equal(store.get(home.slug).isChecking, false, 'the card is not left checking forever');
+});
+
+test('a rate limit pauses offscreen card reads only', async () => {
+  const { store, calls } = harness();
+  store.pauseBackground();
+
+  store.read(validClosedCalendarHome.slug, { visibleIdentity: identityFor(validClosedCalendarHome), priority: 'background' });
+  store.read(validOpenCalendarHome.slug, { visibleIdentity: identityFor(validOpenCalendarHome), priority: 'selected', force: true });
+  await tick();
+
+  assert.deepEqual(calls.map((c) => c.slug), [validOpenCalendarHome.slug]);
+  assert.equal(store.isBackgroundPaused, true);
+
+  store.resumeBackground();
+  await tick();
+  assert.equal(calls.length, 2, 'explicit recovery releases the held card read');
+});

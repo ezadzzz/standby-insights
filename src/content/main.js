@@ -1,6 +1,8 @@
 import { createEvidenceController } from '../lib/evidence-controller.js';
 import { createUnitEvidenceStore } from '../lib/unit-evidence-store.js';
 import { RequestGate } from '../lib/request-gate.js';
+import { RateLimitedError } from '../lib/errors.js';
+import { checkDate } from '../lib/reference-date.js';
 import { createCardAnnotator } from './card-annotations.js';
 import {
   parseSlugFromPath,
@@ -10,11 +12,6 @@ import {
   isStandbySearchPath,
   SEARCH_CHECK_IN_SELECTOR,
 } from './page-adapter.js';
-
-/** Landing asking us to slow down, as distinct from any other failure. */
-class RateLimitedError extends Error {
-  constructor() { super('Rate limited'); this.name = 'RateLimitedError'; }
-}
 
 async function fetchHome(slug, signal) {
   const url = `https://www.hellolanding.com/api/public/homes/${encodeURIComponent(slug)}`;
@@ -93,13 +90,9 @@ function currentCheckIn() {
   });
 }
 
-// ponytail: UTC day, matching the panel's own fallback reference; both move
-// together if a timezone-sensitive reference is ever verified against Landing.
 function cardReferenceDate() {
   const checkIn = currentCheckIn();
-  return checkIn.status === 'selected' && checkIn.date
-    ? checkIn.date
-    : new Date().toISOString().slice(0, 10);
+  return checkIn.status === 'selected' && checkIn.date ? checkIn.date : checkDate();
 }
 
 /**
@@ -107,9 +100,25 @@ function cardReferenceDate() {
  * which is the only place that may, while the selection is made here so the
  * panel never shows the previous unit's evidence under this one's identity.
  */
+/**
+ * The identity the panel confirms its unit against, read from whichever page
+ * is actually showing. A search page has no detail heading or property link,
+ * so reading one there would confirm nothing and leave every unit ambiguous;
+ * its cards are what is visible, so a card is what gets compared.
+ */
+function panelIdentity() {
+  if (!onSearchPage) return extractVisibleIdentity(document);
+  const anchor = currentSlug === null ? null : cardAnchorFor(currentSlug);
+  return { cardText: anchor ? anchor.textContent : null };
+}
+
+function cardAnchorFor(slug) {
+  return [...document.querySelectorAll('a[data-testid="pdp-home-card-link"]')]
+    .find((anchor) => parseCardSlugFromHref(anchor.getAttribute('href')) === slug) ?? null;
+}
+
 function viewEvidenceFor(slug) {
-  const anchor = [...document.querySelectorAll('a[data-testid="pdp-home-card-link"]')]
-    .find((a) => parseCardSlugFromHref(a.getAttribute('href')) === slug);
+  const anchor = cardAnchorFor(slug);
   currentSlug = slug;
   controller.openPanel({
     slug,
@@ -124,7 +133,14 @@ const annotator = onSearchPage
     store,
     doc: document,
     getReferenceDate: cardReferenceDate,
+    getCheckIn: currentCheckIn,
     onViewEvidence: viewEvidenceFor,
+    // Explicit recovery after a rate limit, asked for by the member on the
+    // page itself. Nothing resumes on its own.
+    onResume: () => {
+      store.resumeBackground();
+      annotator.scan();
+    },
   })
   : null;
 
@@ -185,9 +201,9 @@ lastCheckInKey = checkInKey(currentCheckIn());
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === 'request-open') {
-    controller.openPanel({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document), checkIn: currentCheckIn() });
+    controller.openPanel({ slug: currentSlug, visibleIdentity: panelIdentity(), checkIn: currentCheckIn() });
   } else if (message?.type === 'request-refresh') {
-    controller.refresh({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document), checkIn: currentCheckIn() });
+    controller.refresh({ slug: currentSlug, visibleIdentity: panelIdentity(), checkIn: currentCheckIn() });
   } else if (message?.type === 'resume-background') {
     store.resumeBackground();
     annotator?.restate();

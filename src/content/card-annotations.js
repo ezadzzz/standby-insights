@@ -5,6 +5,10 @@ import { describeCard } from './card-view.js';
 const CARD_LINK = 'a[data-testid="pdp-home-card-link"]';
 const ANNOTATION_ATTRIBUTE = 'data-standby-evidence';
 const NOTICE_ATTRIBUTE = 'data-standby-notice';
+const NOTICE_SELECTOR = `[${NOTICE_ATTRIBUTE}]`;
+
+const UNREADABLE_NOTICE = "Some listings couldn't be read.";
+const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
 
 /**
  * Annotates rendered Standby search cards as the member scrolls past them.
@@ -18,8 +22,15 @@ const NOTICE_ATTRIBUTE = 'data-standby-notice';
  * card may claim is decided by a pure function the fixtures cover, and only
  * placement depends on a real browser.
  */
-export function createCardAnnotator({ store, doc, getReferenceDate, onViewEvidence }) {
-  const annotations = new Map(); // anchor -> its annotation element
+export function createCardAnnotator({
+  store,
+  doc,
+  getReferenceDate,
+  getCheckIn,
+  onViewEvidence,
+  onResume,
+}) {
+  const annotations = new Map(); // anchor -> { container, slug, ...parts }
   let observer = null;
   let unsubscribe = null;
 
@@ -27,8 +38,23 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
     return [...doc.querySelectorAll(CARD_LINK)];
   }
 
-  function anchorFor(slug) {
-    return cardsInDocument().filter((anchor) => parseCardSlugFromHref(anchor.getAttribute('href')) === slug);
+  function slugOf(anchor) {
+    return parseCardSlugFromHref(anchor.getAttribute('href'));
+  }
+
+  function anchorsFor(slug) {
+    return cardsInDocument().filter((anchor) => slugOf(anchor) === slug);
+  }
+
+  /** What one card is allowed to say right now, or null if nothing yet. */
+  function viewFor(slug) {
+    const evidence = store.get(slug);
+    if (!evidence) return null;
+    const referenceDate = getReferenceDate();
+    const summary = Array.isArray(evidence.ranges) && evidence.ranges.length > 0
+      ? summarizeForReference(evidence.ranges, referenceDate)
+      : null;
+    return describeCard({ evidence, summary, referenceDate, checkIn: getCheckIn?.() });
   }
 
   function buildAnnotation(slug) {
@@ -36,10 +62,14 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
     container.setAttribute(ANNOTATION_ATTRIBUTE, slug);
     container.className = 'standby-evidence';
 
+    const status = doc.createElement('p');
+    status.className = 'standby-evidence-status';
     const reservation = doc.createElement('p');
     reservation.className = 'standby-evidence-line';
     const moveIn = doc.createElement('p');
     moveIn.className = 'standby-evidence-line';
+    const reference = doc.createElement('p');
+    reference.className = 'standby-evidence-note';
     const note = doc.createElement('p');
     note.className = 'standby-evidence-note';
 
@@ -50,28 +80,32 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
     button.className = 'standby-evidence-button';
     button.textContent = 'View evidence';
     button.addEventListener('click', (event) => {
-      // The card is wrapped in Landing's own link; opening evidence must not
+      // The card sits inside Landing's own link; opening evidence must not
       // also navigate to the listing.
       event.preventDefault();
       event.stopPropagation();
       onViewEvidence?.(slug);
     });
 
-    container.append(reservation, moveIn, note, button);
-    return { container, reservation, moveIn, note };
+    // Card order the specification fixes: reservation summary, standard
+    // move-in observation, then View evidence.
+    container.append(status, reservation, moveIn, reference, note, button);
+    return { container, status, reservation, moveIn, reference, note, slug };
   }
 
   function paint(slug) {
-    const evidence = store.get(slug);
-    if (!evidence) return;
-    const referenceDate = getReferenceDate();
-    const summary = Array.isArray(evidence.ranges) && evidence.ranges.length > 0
-      ? summarizeForReference(evidence.ranges, referenceDate)
-      : null;
-    const view = describeCard({ evidence, summary, referenceDate });
+    const view = viewFor(slug);
+    if (view === null) return;
 
-    for (const anchor of anchorFor(slug)) {
+    for (const anchor of anchorsFor(slug)) {
       let parts = annotations.get(anchor);
+      // An anchor Landing re-renders in place for a different unit must not
+      // keep the previous unit's annotation, even briefly.
+      if (parts && parts.slug !== slug) {
+        parts.container.remove();
+        annotations.delete(anchor);
+        parts = undefined;
+      }
       if (!parts) {
         parts = buildAnnotation(slug);
         annotations.set(anchor, parts);
@@ -80,42 +114,65 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
       // An unreadable card carries no unit claim at all; it contributes to the
       // single page notice instead of stating anything of its own.
       parts.container.hidden = !view.readable;
+      parts.status.textContent = view.statusText;
       parts.reservation.textContent = view.reservationText;
       parts.moveIn.textContent = view.moveInText;
+      parts.reference.textContent = view.referenceNote;
       parts.note.textContent = view.noteText;
     }
     refreshNotice();
   }
 
-  /** One notice for the whole page, however many cards could not be read. */
-  function refreshNotice() {
-    const unreadable = cardsInDocument().filter((anchor) => {
-      const slug = parseCardSlugFromHref(anchor.getAttribute('href'));
-      const evidence = slug === null ? null : store.get(slug);
-      return slug === null
-        || (evidence && (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous'));
-    }).length;
+  /** A card that could not be read at all, for whatever reason. */
+  function isUnreadable(anchor) {
+    const slug = slugOf(anchor);
+    if (slug === null) return true; // an href this extension will not treat as a locator
+    const view = viewFor(slug);
+    // A read that failed leaves a card as unreadable as one that never
+    // matched; both belong in the one notice rather than in a blank box.
+    return view !== null && (!view.readable || view.statusText === 'Calendar unavailable');
+  }
 
-    let notice = doc.querySelector(`[${NOTICE_ATTRIBUTE}]`);
-    if (unreadable === 0) {
+  /**
+   * One notice for the whole page, however many cards could not be read, and
+   * the only place recovery is offered after a rate limit. Paused card reads
+   * never resume on a timer: this is where the member asks for them.
+   */
+  function refreshNotice() {
+    const unreadable = cardsInDocument().filter(isUnreadable).length;
+    const paused = store.isBackgroundPaused;
+
+    let notice = doc.querySelector(NOTICE_SELECTOR);
+    if (unreadable === 0 && !paused) {
       notice?.remove();
       return;
     }
     if (!notice) {
-      notice = doc.createElement('p');
+      notice = doc.createElement('div');
       notice.setAttribute(NOTICE_ATTRIBUTE, '');
       notice.setAttribute('role', 'status');
       notice.className = 'standby-evidence-notice';
-      const first = cardsInDocument()[0];
-      first?.insertAdjacentElement('beforebegin', notice);
+      cardsInDocument()[0]?.insertAdjacentElement('beforebegin', notice);
     }
-    notice.textContent = "Some listings couldn't be read.";
+
+    const text = doc.createElement('p');
+    text.textContent = paused ? PAUSED_NOTICE : UNREADABLE_NOTICE;
+    notice.replaceChildren(text);
+
+    if (paused) {
+      const resume = doc.createElement('button');
+      resume.type = 'button';
+      resume.className = 'standby-evidence-button';
+      resume.textContent = 'Resume reading listings';
+      resume.addEventListener('click', () => onResume?.());
+      notice.append(resume);
+    }
   }
 
   /** Drops annotations whose card Landing has since replaced or removed. */
   function dropOrphans() {
     for (const [anchor, parts] of annotations) {
-      if (!doc.contains(anchor)) {
+      if (!doc.contains(anchor) || slugOf(anchor) !== parts.slug) {
         parts.container.remove();
         annotations.delete(anchor);
       }
@@ -123,7 +180,7 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
   }
 
   function readCard(anchor) {
-    const slug = parseCardSlugFromHref(anchor.getAttribute('href'));
+    const slug = slugOf(anchor);
     if (slug === null) return; // an href this extension does not treat as a locator
     store.read(slug, {
       priority: 'background',
@@ -143,7 +200,13 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
       this.scan();
     },
 
-    /** Picks up cards Landing has rendered or replaced since the last look. */
+    /**
+     * Picks up cards Landing has rendered or replaced since the last look.
+     * ponytail: re-reads the whole card list each call, a full DOM sweep per
+     * tick on a list that only grows as the member scrolls. Swap for a
+     * MutationObserver on the results container if a long result list ever
+     * measures badly; the observed pages are tens of cards, not thousands.
+     */
     scan() {
       dropOrphans();
       for (const anchor of cardsInDocument()) observer?.observe(anchor);
@@ -152,10 +215,11 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
 
     /** Re-states every annotation against a newly selected check-in date. */
     restate() {
-      for (const anchor of annotations.keys()) {
-        const slug = parseCardSlugFromHref(anchor.getAttribute('href'));
+      for (const anchor of [...annotations.keys()]) {
+        const slug = slugOf(anchor);
         if (slug !== null) paint(slug);
       }
+      refreshNotice();
     },
 
     teardown() {
@@ -163,7 +227,7 @@ export function createCardAnnotator({ store, doc, getReferenceDate, onViewEviden
       unsubscribe?.();
       for (const parts of annotations.values()) parts.container.remove();
       annotations.clear();
-      doc.querySelector(`[${NOTICE_ATTRIBUTE}]`)?.remove();
+      doc.querySelector(NOTICE_SELECTOR)?.remove();
     },
   };
 }
