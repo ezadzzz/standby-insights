@@ -8,6 +8,10 @@ const SEARCH_PATH_PATTERN = /^\/s\/[^/]+\/apartments\/standby(?:\/|$)/;
 // a unit number or title.
 const CARD_HREF_PATTERN = /^\/homes\/([^/?#]+)$/;
 
+// The search page's own check-in control, observed live as showing "Check-in"
+// while no date is selected.
+export const SEARCH_CHECK_IN_SELECTOR = '#header-calendar-start-date';
+
 /** Whether this path is the supported Standby search route. */
 export function isStandbySearchPath(pathname) {
   return typeof pathname === 'string' && SEARCH_PATH_PATTERN.test(pathname);
@@ -76,11 +80,11 @@ function toIso({ year, month, day }) {
  * contradicts the URL yields 'disagreement' — a transient date change is not
  * a settled selection.
  */
-export function readSelectedCheckIn({ search, doc }) {
+export function readSelectedCheckIn({ search, doc, displayedSelector = '#unit-calendar-unified-start-date' }) {
   const urlDate = new URLSearchParams(search ?? '').get('startDate');
   const selected = isIsoDate(urlDate) ? urlDate : null;
 
-  const displayedEl = doc.querySelector('#unit-calendar-unified-start-date');
+  const displayedEl = doc.querySelector(displayedSelector);
   const displayed = displayedEl ? parseWrittenDate(displayedEl.textContent) : null;
 
   const pickerEl = doc.querySelector('td[aria-label^="Selected as start date."]');
