@@ -120,3 +120,22 @@ test('a gapped calendar cannot establish a calendar-wide absence of reservations
   );
   assert.equal(summary.noReservationsInCalendar, false);
 });
+
+test('the summary says whether the reference date itself offers standard move-in', () => {
+  const open = deriveCalendarEvidence({
+    availability: { ranges: [{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }] },
+  }).ranges;
+  assert.equal(summarizeForReference(open, '2026-09-15').moveInOnReferenceDate, true);
+
+  const reserved = deriveCalendarEvidence({
+    availability: { ranges: [{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: false, unbookable_reason: 'reserved' }] },
+  }).ranges;
+  assert.equal(summarizeForReference(reserved, '2026-09-15').moveInOnReferenceDate, false);
+});
+
+test('a reference date outside the returned calendar yields no move-in claim either way', () => {
+  const ranges = deriveCalendarEvidence({
+    availability: { ranges: [{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }] },
+  }).ranges;
+  assert.equal(summarizeForReference(ranges, '2026-12-01').moveInOnReferenceDate, null);
+});

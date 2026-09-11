@@ -120,6 +120,10 @@ export function summarizeForReference(ranges, referenceDate) {
     intersectingReservation,
     nextReservation,
     noStandardMoveInBeforeNext,
+    // Whether the reference date itself is offered for standard move-in. Null
+    // when the returned calendar does not cover that date at all: no range is
+    // not the same evidence as a range that disallows it.
+    moveInOnReferenceDate: covering === null ? null : covering.moveInAllowed === true,
     noReservationsInCalendar: contiguous && !ranges.some((r) => r.isReservation),
     noStandardMoveInInCalendar: contiguous && !ranges.some((r) => r.moveInAllowed),
     coverageStart: ranges[0].startDate,
