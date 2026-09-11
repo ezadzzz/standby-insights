@@ -1,0 +1,42 @@
+/* Annotations sit under Landing's own card link and never overlay it. Status
+   is carried by words, so nothing here is the only signal of anything. */
+.standby-evidence {
+  margin: 4px 0 12px;
+  padding: 8px 10px;
+  border-left: 3px solid currentColor;
+  font-size: 13px;
+  line-height: 1.4;
+  /* Long statements wrap rather than stretching or clipping Landing's layout. */
+  overflow-wrap: anywhere;
+}
+
+.standby-evidence-line,
+.standby-evidence-note {
+  margin: 0 0 4px;
+}
+
+.standby-evidence-note:empty,
+.standby-evidence-line:empty {
+  display: none;
+}
+
+.standby-evidence-note {
+  font-style: italic;
+}
+
+.standby-evidence-button {
+  font: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* Never remove the browser's focus ring; keyboard users need to see it. */
+.standby-evidence-button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.standby-evidence-notice {
+  margin: 8px 0;
+  font-size: 13px;
+}

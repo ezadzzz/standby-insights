@@ -1,4 +1,4 @@
-import { checkIdentity, responseIdentityFromHome } from './identity.js';
+import { checkIdentity, checkCardIdentity, responseIdentityFromHome } from './identity.js';
 import { deriveCalendarEvidence } from './calendar.js';
 import { deriveFacts } from './facts.js';
 import { resolveScope, advertisedMonthlyPrice } from './comparison.js';
@@ -75,14 +75,22 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
         inFlight.delete(slug);
 
         const responseIdentity = responseIdentityFromHome(raw);
-        const identity = checkIdentity({
+        const common = {
           requestedSlug: slug,
           responseSlug: responseIdentity.slug,
           responseUnitName: responseIdentity.unitName,
           responsePropertyName: responseIdentity.propertyName,
-          visibleHeadingText: visibleIdentity?.visibleHeadingText,
-          visiblePropertyLinkText: visibleIdentity?.visiblePropertyLinkText,
-        });
+        };
+        // A search card and a detail page display the same unit differently, so
+        // each is confirmed against what it actually shows. The caller says
+        // which it is by what it supplies; neither check is ever guessed at.
+        const identity = typeof visibleIdentity?.cardText === 'string'
+          ? checkCardIdentity({ ...common, cardText: visibleIdentity.cardText })
+          : checkIdentity({
+            ...common,
+            visibleHeadingText: visibleIdentity?.visibleHeadingText,
+            visiblePropertyLinkText: visibleIdentity?.visiblePropertyLinkText,
+          });
         const confirmed = identity === 'confirmed';
         const calendar = confirmed ? deriveCalendarEvidence(raw) : { status: identity };
 
@@ -106,6 +114,10 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
       (err) => {
         if (generations.get(slug) !== nextGeneration) return;
         inFlight.delete(slug);
+        // Landing asking us to slow down holds back offscreen card reads and
+        // nothing else. It never retries on a timer: the queued work waits for
+        // the member to ask for it.
+        if (err?.name === 'RateLimitedError') requestGate.pauseBackground();
         const current = units.get(slug) ?? EMPTY_UNIT;
         set(slug, {
           ...current,

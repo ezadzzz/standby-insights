@@ -1,9 +1,25 @@
 import { createEvidenceController } from '../lib/evidence-controller.js';
-import { parseSlugFromPath, extractVisibleIdentity, readSelectedCheckIn } from './page-adapter.js';
+import { createUnitEvidenceStore } from '../lib/unit-evidence-store.js';
+import { RequestGate } from '../lib/request-gate.js';
+import { createCardAnnotator } from './card-annotations.js';
+import {
+  parseSlugFromPath,
+  extractVisibleIdentity,
+  readSelectedCheckIn,
+  parseCardSlugFromHref,
+  isStandbySearchPath,
+  SEARCH_CHECK_IN_SELECTOR,
+} from './page-adapter.js';
+
+/** Landing asking us to slow down, as distinct from any other failure. */
+class RateLimitedError extends Error {
+  constructor() { super('Rate limited'); this.name = 'RateLimitedError'; }
+}
 
 async function fetchHome(slug, signal) {
   const url = `https://www.hellolanding.com/api/public/homes/${encodeURIComponent(slug)}`;
   const response = await fetch(url, { signal, credentials: 'omit', redirect: 'error' });
+  if (response.status === 429) throw new RateLimitedError();
   if (!response.ok) throw new Error(`Home request failed: ${response.status}`);
   return response.json();
 }
@@ -44,6 +60,7 @@ async function searchPeers({ market, bedrooms, page, perPage }, signal) {
       },
     }),
   });
+  if (response.status === 429) throw new RateLimitedError();
   if (!response.ok) throw new Error(`Search request failed: ${response.status}`);
   const body = await response.json();
   // The tool returns its payload as JSON text inside the MCP envelope; an
@@ -59,11 +76,57 @@ function broadcastState(state) {
   chrome.runtime.sendMessage({ type: 'evidence-state', slug: currentSlug, state }).catch(() => {});
 }
 
-const controller = createEvidenceController({ fetchHome, searchPeers, onChange: broadcastState });
+// One gate and one store for this page instance, so the cards the member
+// scrolls past and the unit the panel shows share both their evidence and
+// their request budget instead of competing for them.
+const gate = new RequestGate();
+const store = createUnitEvidenceStore({ fetchHome, gate });
+const controller = createEvidenceController({ searchPeers, gate, store, onChange: broadcastState });
+
+const onSearchPage = isStandbySearchPath(window.location.pathname);
 
 function currentCheckIn() {
-  return readSelectedCheckIn({ search: window.location.search, doc: document });
+  return readSelectedCheckIn({
+    search: window.location.search,
+    doc: document,
+    displayedSelector: onSearchPage ? SEARCH_CHECK_IN_SELECTOR : undefined,
+  });
 }
+
+// ponytail: UTC day, matching the panel's own fallback reference; both move
+// together if a timezone-sensitive reference is ever verified against Landing.
+function cardReferenceDate() {
+  const checkIn = currentCheckIn();
+  return checkIn.status === 'selected' && checkIn.date
+    ? checkIn.date
+    : new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * A card's View evidence button. The panel is opened by the service worker,
+ * which is the only place that may, while the selection is made here so the
+ * panel never shows the previous unit's evidence under this one's identity.
+ */
+function viewEvidenceFor(slug) {
+  const anchor = [...document.querySelectorAll('a[data-testid="pdp-home-card-link"]')]
+    .find((a) => parseCardSlugFromHref(a.getAttribute('href')) === slug);
+  currentSlug = slug;
+  controller.openPanel({
+    slug,
+    visibleIdentity: { cardText: anchor ? anchor.textContent : null },
+    checkIn: currentCheckIn(),
+  });
+  chrome.runtime.sendMessage({ type: 'open-panel' }).catch(() => {});
+}
+
+const annotator = onSearchPage
+  ? createCardAnnotator({
+    store,
+    doc: document,
+    getReferenceDate: cardReferenceDate,
+    onViewEvidence: viewEvidenceFor,
+  })
+  : null;
 
 const checkInKey = (checkIn) => `${checkIn.status}:${checkIn.date}`;
 
@@ -83,6 +146,17 @@ function checkEntry() {
 let lastCheckedSlug = null;
 let lastCheckInKey = null;
 const pollId = setInterval(() => {
+  if (onSearchPage) {
+    // Landing re-renders cards as results settle and as the member scrolls;
+    // this only looks at what is already rendered and never asks for more.
+    annotator.scan();
+    const searchKey = checkInKey(currentCheckIn());
+    if (searchKey !== lastCheckInKey) {
+      lastCheckInKey = searchKey;
+      annotator.restate();
+    }
+    return;
+  }
   const slug = parseSlugFromPath(window.location.pathname);
   if (!slug) return;
   if (slug !== lastCheckedSlug) {
@@ -101,8 +175,12 @@ const pollId = setInterval(() => {
   }
 }, 500);
 
-checkEntry();
-lastCheckedSlug = currentSlug;
+if (onSearchPage) {
+  annotator.start();
+} else {
+  checkEntry();
+  lastCheckedSlug = currentSlug;
+}
 lastCheckInKey = checkInKey(currentCheckIn());
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -110,6 +188,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     controller.openPanel({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document), checkIn: currentCheckIn() });
   } else if (message?.type === 'request-refresh') {
     controller.refresh({ slug: currentSlug, visibleIdentity: extractVisibleIdentity(document), checkIn: currentCheckIn() });
+  } else if (message?.type === 'resume-background') {
+    store.resumeBackground();
+    annotator?.restate();
   } else if (message?.type === 'request-state') {
     sendResponse({ type: 'evidence-state', slug: currentSlug, state: controller.getState() });
   }
@@ -126,5 +207,6 @@ chrome.runtime.onConnect.addListener((port) => {
 
 window.addEventListener('pagehide', () => {
   clearInterval(pollId);
+  annotator?.teardown();
   controller.teardown();
 });

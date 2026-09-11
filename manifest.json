@@ -17,8 +17,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.hellolanding.com/homes/*/standby*"],
+      "matches": [
+        "https://www.hellolanding.com/homes/*/standby*",
+        "https://www.hellolanding.com/s/*/apartments/standby*"
+      ],
       "js": ["src/content/content-script.js"],
+      "css": ["src/content/card-annotations.css"],
       "run_at": "document_idle"
     }
   ],

@@ -190,6 +190,60 @@ try {
   }, extensionId).catch((e) => ({ error: e.message }));
   record('adapter reads the live page', !liveRead.error, JSON.stringify(liveRead));
 
+  // 8. The Standby search route: card annotation, in a real browser against
+  // real cards. The fixtures decide what a card may say; only this can show
+  // that it lands in the page without disturbing Landing's own results.
+  const searchPage = await context.newPage();
+  const searchApi = [];
+  searchPage.on('request', (r) => {
+    const url = new URL(r.url());
+    if (url.hostname.endsWith('hellolanding.com') && url.pathname.startsWith('/api/public/homes/')) {
+      searchApi.push(r.url());
+    }
+  });
+  const searchErrors = [];
+  searchPage.on('console', (m) => { if (m.type() === 'error') searchErrors.push(m.text()); });
+
+  await searchPage.goto('https://www.hellolanding.com/s/austin-tx/apartments/standby', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await searchPage.waitForTimeout(14000);
+
+  const cards = await searchPage.evaluate(() => {
+    const anchors = [...document.querySelectorAll('a[data-testid="pdp-home-card-link"]')];
+    const annotations = [...document.querySelectorAll('[data-standby-evidence]')];
+    const perCard = anchors.map((a) => ({
+      href: a.getAttribute('href'),
+      next: a.nextElementSibling?.getAttribute?.('data-standby-evidence') ?? null,
+    }));
+    return {
+      anchorCount: anchors.length,
+      annotationCount: annotations.length,
+      duplicated: annotations.length !== new Set(annotations.map((el) => el.getAttribute('data-standby-evidence'))).size,
+      annotatedInPlace: perCard.filter((c) => c.next !== null).length,
+      sampleText: annotations.slice(0, 2).map((el) => el.textContent.trim().slice(0, 160)),
+      buttons: document.querySelectorAll('.standby-evidence-button').length,
+      anchorsStillLinks: anchors.every((a) => typeof a.getAttribute('href') === 'string'),
+      notice: document.querySelector('[data-standby-notice]')?.textContent ?? null,
+    };
+  });
+
+  record('search route renders cards the annotator can see', cards.anchorCount > 0, `${cards.anchorCount} cards`);
+  record('cards entering the viewport were annotated', cards.annotationCount > 0,
+    `${cards.annotationCount} annotations, ${searchApi.length} home reads`);
+  record('exactly one annotation per card, placed after Landing’s own link', !cards.duplicated && cards.annotatedInPlace === cards.annotationCount,
+    JSON.stringify({ annotationCount: cards.annotationCount, annotatedInPlace: cards.annotatedInPlace, duplicated: cards.duplicated }));
+  record('annotations state evidence in words', cards.sampleText.every((t) => t.length > 0), JSON.stringify(cards.sampleText));
+  record('every annotation carries a real View evidence button', cards.buttons === cards.annotationCount,
+    `${cards.buttons} buttons / ${cards.annotationCount} annotations`);
+  record('Landing’s own card links are left intact', cards.anchorsStillLinks, `${cards.anchorCount} anchors still linked`);
+  record('the annotator did not read more units than there are cards', searchApi.length <= cards.anchorCount,
+    `${searchApi.length} reads for ${cards.anchorCount} cards`);
+  record('unreadable-card notice appears at most once', (await searchPage.evaluate(() => document.querySelectorAll('[data-standby-notice]').length)) <= 1,
+    cards.notice ?? 'no notice shown');
+
+  const searchOwnErrors = searchErrors.filter((t) => /import statement|chrome-extension:|standby/i.test(t));
+  record('no extension console errors on the search route', searchOwnErrors.length === 0,
+    searchOwnErrors.slice(0, 3).join(' | ') || 'none');
+
   // Landing's own signed-out 401s and React warnings are not ours; only a
   // parse/runtime failure in the extension's own scripts counts.
   const ourErrors = consoleErrors.filter((t) => /import statement|chrome-extension:|standby/i.test(t));
