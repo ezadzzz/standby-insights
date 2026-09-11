@@ -81,7 +81,7 @@ function flexOptionText(option) {
   if (name !== null) parts.push(name);
   if (option.months !== null && option.label !== null) parts.push(`${option.months} months`);
   if (option.committedNights !== null) parts.push(`${option.committedNights} committed nights`);
-  if (option.specialOffer !== null) parts.push(option.specialOffer ? 'special offer' : 'no special offer');
+  if (option.specialOffer !== null) parts.push(option.specialOffer ? 'special offer advertised' : 'no special offer advertised');
   if (option.earlyTerminationFeeType !== null) {
     parts.push(`early termination fee: ${option.earlyTerminationFeeType.replace(/-/g, ' ')}`);
   }
@@ -90,11 +90,17 @@ function flexOptionText(option) {
 }
 
 /**
- * Leads with whether any supplied Flex term carries a special offer, which is
- * the fact worth seeing first. It is stated only about terms that actually
+ * Leads with whether any supplied Flex term advertises a special offer, which
+ * is the fact worth seeing first. It is stated only about terms that actually
  * supplied the field: a term that never carried one is unknown, not an absent
- * offer. The panel states the fact and stops — what it implies about this
- * unit's demand is the member's inference, not the extension's claim.
+ * offer.
+ *
+ * The flag is scoped to one term on one unit, and sampling showed it advertises
+ * that an offer exists rather than that a stay is discounted — the same flagged
+ * term yields a discount for one move-in date and none for another, and only a
+ * quote settles it. This panel requests no quotes, so an advertised offer is
+ * said to be advertised and nothing more. What it implies about competing
+ * demand for the unit is the member's inference, not the extension's claim.
  */
 function flexFact(flexOptions) {
   if (flexOptions === null) return { text: UNAVAILABLE, details: [] };
@@ -107,9 +113,12 @@ function flexFact(flexOptions) {
 
   if (stated.length === 0) return { text: `${terms}; special offer not supplied`, details };
   if (offered.length === 0) {
-    return { text: `No special offer on ${stated.length === 1 ? 'the supplied Flex term' : `any of the ${stated.length} supplied Flex terms`}`, details };
+    return { text: `No special offer advertised on ${stated.length === 1 ? 'the supplied Flex term' : `any of the ${stated.length} supplied Flex terms`}`, details };
   }
-  return { text: `Special offer on ${offered.length} of ${stated.length} supplied Flex terms`, details };
+  return {
+    text: `Special offer advertised on ${offered.length} of ${stated.length} supplied Flex terms`,
+    details: [...details, 'An advertised term offer is not a quoted price; whether it applies can depend on the move-in date.'],
+  };
 }
 
 /**
