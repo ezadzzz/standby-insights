@@ -1,6 +1,29 @@
 import { isIsoDate } from '../lib/calendar.js';
 
 const DETAIL_SLUG_PATTERN = /^\/homes\/([^/]+)\/standby(?:\/|$)/;
+// The observed Standby search route family, /s/{location}/apartments/standby.
+const SEARCH_PATH_PATTERN = /^\/s\/[^/]+\/apartments\/standby(?:\/|$)/;
+// A card's own href: /homes/{slug}, with no /standby suffix and no further
+// path. The slug is taken whole, UUID suffix included, and never rebuilt from
+// a unit number or title.
+const CARD_HREF_PATTERN = /^\/homes\/([^/?#]+)$/;
+
+/** Whether this path is the supported Standby search route. */
+export function isStandbySearchPath(pathname) {
+  return typeof pathname === 'string' && SEARCH_PATH_PATTERN.test(pathname);
+}
+
+/**
+ * The unit slug a rendered search card links to, or null. A general-home href
+ * inside a verified Standby card is a locator only; it never makes the general
+ * listing route itself supported.
+ */
+export function parseCardSlugFromHref(href) {
+  if (typeof href !== 'string') return null;
+  const path = href.split('?')[0].split('#')[0];
+  const match = CARD_HREF_PATTERN.exec(path);
+  return match ? match[1] : null;
+}
 
 /** Extracts the full unit slug from a Standby detail path, or null. */
 export function parseSlugFromPath(pathname) {

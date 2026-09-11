@@ -156,3 +156,28 @@ export const factsWithBrokenCalendarHome = {
   minimum_nightly_stay: 30,
   availability: { ranges: [] },
 };
+
+// Observed live on https://www.hellolanding.com/s/austin-tx/apartments/standby
+// (2026-09-11). A card's visible text runs property, rating, unit designator,
+// bed/bath and availability together with no separators, and the public
+// response's `name` is the property followed by that unit designator.
+export const observedCards = [
+  {
+    href: '/homes/apartment-in-austin-tx-cortland-south-park-terraces-1831-48765205-6241-4d0f-b7f3-2ce083663557',
+    text: 'Cortland Southpark Terraces4.2Unit 1831|2|1Available Saturday Sep 12',
+    response: {
+      slug: 'apartment-in-austin-tx-cortland-south-park-terraces-1831-48765205-6241-4d0f-b7f3-2ce083663557',
+      name: 'Cortland Southpark Terraces 1831',
+      property: { name: 'Cortland Southpark Terraces' },
+    },
+  },
+  {
+    href: '/homes/apartment-in-manor-tx-eighty-one10-2309',
+    text: 'Eighty One104.5Unit 2309|1|1Available Saturday Sep 12',
+    response: {
+      slug: 'apartment-in-manor-tx-eighty-one10-2309',
+      name: 'Eighty One10 2309',
+      property: { name: 'Eighty One10' },
+    },
+  },
+];
