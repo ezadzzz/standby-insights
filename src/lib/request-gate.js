@@ -23,15 +23,52 @@ export class RequestGate {
     this._startTimes = [];
     this._drainTimer = null;
     this._tornDown = false;
+    this._backgroundPaused = false;
   }
 
-  schedule(task) {
+  get isBackgroundPaused() {
+    return this._backgroundPaused;
+  }
+
+  /**
+   * Holds offscreen card work after a rate limit. Queued background tasks stay
+   * queued rather than failing, and nothing resumes on a timer: recovery is
+   * always something the member asks for.
+   */
+  pauseBackground() {
+    this._backgroundPaused = true;
+  }
+
+  resumeBackground() {
+    this._backgroundPaused = false;
+    this._drain();
+  }
+
+  /**
+   * Queues one task. The member's own selected unit is served before offscreen
+   * card work, however much of it is already waiting: scrolling must never put
+   * the unit they just opened behind a backlog.
+   */
+  schedule(task, { priority = 'background' } = {}) {
     return new Promise((resolve, reject) => {
       if (this._tornDown) { reject(new GateCancelledError()); return; }
-      const entry = { task, resolve, reject, controller: null };
+      const entry = { task, resolve, reject, controller: null, priority };
       this._queue.push(entry);
       this._drain();
     });
+  }
+
+  /**
+   * The next entry to start: any selected one, else the oldest queued that is
+   * currently allowed to run. Returns null when only paused work is waiting.
+   */
+  _takeNext() {
+    let index = this._queue.findIndex((entry) => entry.priority === 'selected');
+    if (index === -1) {
+      if (this._backgroundPaused) return null;
+      index = 0;
+    }
+    return this._queue.splice(index, 1)[0];
   }
 
   teardown() {
@@ -49,17 +86,21 @@ export class RequestGate {
   _drain() {
     if (this._drainTimer) { clearTimeout(this._drainTimer); this._drainTimer = null; }
 
+    let onlyPausedLeft = false;
     const windowStart = Date.now() - 1000;
     this._startTimes = this._startTimes.filter((t) => t > windowStart);
 
     while (this._queue.length > 0
       && this._active.size < this.maxConcurrent
       && this._startTimes.length < this.maxStartsPerSecond) {
-      const entry = this._queue.shift();
+      const entry = this._takeNext();
+      if (entry === null) { onlyPausedLeft = true; break; }
       this._start(entry);
     }
 
-    if (this._queue.length > 0) {
+    // Paused work is not waiting on a slot or the rate window, so no timer can
+    // release it — resumeBackground() is the only thing that does.
+    if (this._queue.length > 0 && !onlyPausedLeft) {
       const delay = this._active.size >= this.maxConcurrent
         ? null // freed by a completion event, not a timer
         : 1000 - (Date.now() - this._startTimes[0]);

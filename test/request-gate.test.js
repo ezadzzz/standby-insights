@@ -91,3 +91,68 @@ test('teardown cancels queued work and aborts in-flight work', async () => {
   assert.equal(queuedTaskCalled, false);
   assert.equal(sawAbort, true);
 });
+
+test('the selected unit starts before background card work already queued ahead of it', async () => {
+  const gate = new RequestGate({ maxConcurrent: 1, maxStartsPerSecond: 100, timeoutMs: 60000 });
+  const blocker = deferred();
+  const started = [];
+
+  const first = gate.schedule(async () => { started.push('first'); await blocker.promise; }, { priority: 'selected' });
+  gate.schedule(async () => { started.push('background-a'); }, { priority: 'background' });
+  gate.schedule(async () => { started.push('background-b'); }, { priority: 'background' });
+  gate.schedule(async () => { started.push('selected'); }, { priority: 'selected' });
+
+  await new Promise((r) => setImmediate(r));
+  assert.deepEqual(started, ['first'], 'only the one active slot is in use');
+
+  blocker.resolve();
+  await first;
+  await new Promise((r) => setImmediate(r));
+
+  assert.equal(started[1], 'selected', 'the member’s own unit goes next, ahead of offscreen cards');
+});
+
+test('background work defaults to background priority, and selected still overtakes it', async () => {
+  const gate = new RequestGate({ maxConcurrent: 1, maxStartsPerSecond: 100, timeoutMs: 60000 });
+  const blocker = deferred();
+  const started = [];
+
+  const first = gate.schedule(async () => { started.push('first'); await blocker.promise; });
+  gate.schedule(async () => { started.push('unmarked'); });
+  gate.schedule(async () => { started.push('selected'); }, { priority: 'selected' });
+
+  await new Promise((r) => setImmediate(r));
+  blocker.resolve();
+  await first;
+  await new Promise((r) => setImmediate(r));
+
+  assert.equal(started[1], 'selected');
+});
+
+test('a rate limit pauses background card reads while the selected unit still runs', async () => {
+  const gate = new RequestGate({ maxConcurrent: 4, maxStartsPerSecond: 100, timeoutMs: 60000 });
+  const started = [];
+
+  gate.pauseBackground();
+  gate.schedule(async () => { started.push('background'); });
+  gate.schedule(async () => { started.push('selected'); }, { priority: 'selected' });
+
+  await new Promise((r) => setImmediate(r));
+  assert.deepEqual(started, ['selected'], 'offscreen work waits; the member’s unit does not');
+  assert.equal(gate.isBackgroundPaused, true);
+});
+
+test('explicit recovery releases the paused background work, with no automatic retry', async () => {
+  const gate = new RequestGate({ maxConcurrent: 4, maxStartsPerSecond: 100, timeoutMs: 60000 });
+  const started = [];
+
+  gate.pauseBackground();
+  const queued = gate.schedule(async () => { started.push('background'); });
+  await new Promise((r) => setImmediate(r));
+  assert.deepEqual(started, []);
+
+  gate.resumeBackground();
+  await queued;
+  assert.deepEqual(started, ['background'], 'it runs only once recovery is asked for');
+  assert.equal(gate.isBackgroundPaused, false);
+});

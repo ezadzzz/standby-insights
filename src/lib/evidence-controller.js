@@ -1,35 +1,24 @@
-import { checkIdentity, responseIdentityFromHome } from './identity.js';
-import { deriveCalendarEvidence, summarizeForReference } from './calendar.js';
-import { deriveFacts } from './facts.js';
+import { summarizeForReference } from './calendar.js';
+import { scopeKey, collectComparison, compareSubject } from './comparison.js';
+import { createUnitEvidenceStore } from './unit-evidence-store.js';
 import { RequestGate } from './request-gate.js';
-import { resolveScope, scopeKey, advertisedMonthlyPrice, collectComparison, compareSubject } from './comparison.js';
 
-const EMPTY_STATE = {
+const EMPTY_UNIT = {
   slug: null,
   status: 'idle',
   identity: null,
   unitName: null,
   ranges: null,
   facts: null,
-  checkIn: { status: 'none', date: null },
-  referenceDate: null,
-  summary: null,
+  scope: null,
+  subjectPrice: null,
   checkedAt: null,
   isChecking: false,
   isStale: false,
   error: null,
-  scope: null,
-  subjectPrice: null,
-  comparison: {
-    status: 'idle',
-    median: null,
-    count: null,
-    subjectPrice: null,
-    checkedAt: null,
-    isChecking: false,
-    isStale: false,
-  },
 };
+
+const NO_CHECK_IN = { status: 'none', date: null };
 
 // ponytail: UTC day for the check-date reference; swap for the page's local
 // day if a timezone-sensitive reference is ever verified against Landing.
@@ -48,16 +37,28 @@ function referenceDateFor(checkIn, now) {
 }
 
 /**
- * Owns evidence for one unit on one Standby detail page instance: request
- * dedup, identity/calendar validation, and older-check/failure labeling.
- * Every trigger re-reads the caller-supplied visible identity because the
- * DOM is the source of truth, not something this controller should cache.
+ * The panel's view of one selected unit: which unit is showing, the date its
+ * facts are stated against, and the market comparison it is set in.
+ *
+ * Unit evidence itself belongs to the shared store, because the cards and this
+ * panel read the same units and must not compete for them. What stays here is
+ * everything that is about the *viewing* rather than the unit: the selection,
+ * the check-in, and the comparison, which only the panel shows.
  */
-export function createEvidenceController({ fetchHome, searchPeers, now = () => Date.now(), gate, onChange } = {}) {
+export function createEvidenceController({
+  fetchHome,
+  searchPeers,
+  now = () => Date.now(),
+  gate,
+  store,
+  onChange,
+} = {}) {
   const requestGate = gate ?? new RequestGate();
-  let state = { ...EMPTY_STATE };
-  let generation = 0;
-  let inFlightSlug = null;
+  const units = store ?? createUnitEvidenceStore({ fetchHome, now, gate: requestGate });
+
+  let selectedSlug = null;
+  let checkIn = NO_CHECK_IN;
+  let state = null;
 
   // Complete comparison evidence for this page instance, keyed by
   // market/bedrooms and stored unfiltered so any subject can be excluded from
@@ -67,34 +68,40 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
   let comparisonGeneration = 0;
   let panelOpen = false;
 
-  function getState() {
-    return state;
+  function selectedUnit() {
+    return (selectedSlug === null ? null : units.get(selectedSlug)) ?? EMPTY_UNIT;
+  }
+
+  function summaryFor(ranges) {
+    if (!Array.isArray(ranges) || ranges.length === 0) return { referenceDate: null, summary: null };
+    const referenceDate = referenceDateFor(checkIn, now);
+    return { referenceDate, summary: summarizeForReference(ranges, referenceDate) };
   }
 
   /**
    * The comparison as it stands for the currently selected subject: derived
-   * from the cache on every state change rather than stored, so a new
-   * selection can never inherit the previous subject's filtered median.
+   * from the cache on every rebuild rather than stored, so a new selection can
+   * never inherit the previous subject's filtered median.
    */
-  function comparisonViewFor() {
+  function comparisonViewFor(unit) {
     const view = {
       status: 'idle',
       median: null,
       count: null,
-      subjectPrice: state.subjectPrice ?? null,
+      subjectPrice: unit.subjectPrice ?? null,
       checkedAt: null,
       isChecking: false,
       isStale: false,
     };
-    if (!state.scope) {
+    if (!unit.scope) {
       // A confirmed unit with no resolvable market or bedroom count has no
       // scope to compare against, and that is a stated outcome rather than a
       // hidden one. An unconfirmed unit has nothing to say either way.
-      if (state.identity === 'confirmed') view.status = 'unresolved-scope';
+      if (unit.identity === 'confirmed') view.status = 'unresolved-scope';
       return view;
     }
 
-    const key = scopeKey(state.scope);
+    const key = scopeKey(unit.scope);
     const run = comparisonRun?.key === key ? comparisonRun : null;
     const cached = comparisonCache.get(key);
     view.isChecking = Boolean(run?.isChecking);
@@ -105,7 +112,7 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
       return view;
     }
 
-    const compared = compareSubject(cached, { subjectSlug: state.slug });
+    const compared = compareSubject(cached, { subjectSlug: unit.slug });
     return {
       ...view,
       status: compared.status,
@@ -118,25 +125,46 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
     };
   }
 
-  function setState(next) {
-    state = { ...next };
-    state.comparison = comparisonViewFor();
+  // Set whenever a rebuild has already told the panel about the transition in
+  // progress, so one member action never renders the panel twice.
+  let announced = false;
+
+  /** Rebuilds the panel's whole state from the store and this panel's own view. */
+  function rebuild({ notify = true } = {}) {
+    const unit = selectedUnit();
+    state = {
+      ...unit,
+      slug: selectedSlug,
+      checkIn,
+      ...summaryFor(unit.ranges),
+      comparison: comparisonViewFor(unit),
+    };
+    if (!notify) return;
+    announced = true;
     onChange?.(state);
   }
 
-  function restate() {
-    setState(state);
+  /**
+   * Runs one member action. The store announces synchronously when it starts a
+   * read, which rebuilds this panel already; the trailing rebuild is only for
+   * the actions where it did not — a reused cache, or a coalesced request.
+   */
+  function applyTrigger(act) {
+    announced = false;
+    act();
+    if (!announced) rebuild();
   }
 
   /**
-   * Loads comparison evidence for the current scope unless it is already
-   * cached. `force` is an explicit Refresh: it re-collects but keeps the
-   * cached evidence visible, labeled as an older check, until the new attempt
-   * succeeds. Never retries on its own.
+   * Loads comparison evidence for the selected unit's scope unless it is
+   * already cached. `force` is an explicit Refresh: it re-collects but keeps
+   * the cached evidence visible, labeled as an older check, until the new
+   * attempt succeeds. Never retries on its own.
    */
   function ensureComparison({ force = false } = {}) {
-    if (!searchPeers || !state.scope) return;
-    const key = scopeKey(state.scope);
+    const scope = selectedUnit().scope;
+    if (!searchPeers || !scope) return;
+    const key = scopeKey(scope);
     // An explicit Refresh supersedes whatever is running; anything else waits
     // for the attempt already in flight rather than duplicating it.
     if (!force && comparisonRun?.key === key && comparisonRun.isChecking) return;
@@ -145,12 +173,13 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
     comparisonGeneration += 1;
     const myGeneration = comparisonGeneration;
     comparisonRun = { key, isChecking: true, failed: false };
-    restate();
+    rebuild();
 
-    const scope = state.scope;
     collectComparison({
       scope,
-      search: (args) => requestGate.schedule((signal) => searchPeers(args, signal)),
+      // The comparison is the panel's own foreground work: the member is
+      // looking at it, so it is never held back behind offscreen card reads.
+      search: (args) => requestGate.schedule((signal) => searchPeers(args, signal), { priority: 'selected' }),
     }).then((result) => {
       if (myGeneration !== comparisonGeneration) return; // superseded by a newer attempt
       if (result.status === 'complete') {
@@ -160,114 +189,66 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
         // A failed attempt never advances the comparison's check time.
         comparisonRun = { key, isChecking: false, failed: true };
       }
-      restate();
+      rebuild();
     });
   }
 
-  function summaryFor(ranges, checkIn) {
-    if (!Array.isArray(ranges) || ranges.length === 0) return { referenceDate: null, summary: null };
-    const referenceDate = referenceDateFor(checkIn, now);
-    return { referenceDate, summary: summarizeForReference(ranges, referenceDate) };
+  // The store announces every unit it reads, including cards this panel is not
+  // showing. Only the selected one changes what the panel says.
+  units.subscribe((slug) => {
+    if (slug !== selectedSlug) return;
+    rebuild();
+    if (panelOpen) ensureComparison();
+  });
+
+  function select(trigger) {
+    selectedSlug = trigger.slug;
+    checkIn = trigger.checkIn ?? NO_CHECK_IN;
   }
 
-  function startFetch({ slug, visibleIdentity, checkIn }) {
-    generation += 1;
-    const myGeneration = generation;
-    inFlightSlug = slug;
-
-    const sameUnit = state.slug === slug;
-    setState({
-      ...(sameUnit ? state : EMPTY_STATE),
-      slug,
-      checkIn: checkIn ?? EMPTY_STATE.checkIn,
-      isChecking: true,
-      isStale: sameUnit && state.checkedAt !== null,
-    });
-
-    requestGate.schedule((signal) => fetchHome(slug, signal)).then(
-      (raw) => {
-        if (myGeneration !== generation) return; // stale: a newer trigger has since superseded this one
-        const responseIdentity = responseIdentityFromHome(raw);
-        const identity = checkIdentity({
-          requestedSlug: slug,
-          responseSlug: responseIdentity.slug,
-          responseUnitName: responseIdentity.unitName,
-          responsePropertyName: responseIdentity.propertyName,
-          visibleHeadingText: visibleIdentity?.visibleHeadingText,
-          visiblePropertyLinkText: visibleIdentity?.visiblePropertyLinkText,
-        });
-        const calendar = identity === 'confirmed' ? deriveCalendarEvidence(raw) : { status: identity };
-        // Read the check-in from current state, not the one this request
-        // started with: a date change while it was in flight is newer.
-        const currentCheckIn = state.checkIn;
-        const { referenceDate, summary } = summaryFor(calendar.ranges, currentCheckIn);
-        setState({
-          slug,
-          status: calendar.status,
-          checkIn: currentCheckIn,
-          referenceDate,
-          summary,
-          identity,
-          unitName: identity === 'confirmed' ? responseIdentity.unitName : null,
-          ranges: calendar.ranges ?? null,
-          // Facts stand on their own: an unusable calendar never withholds them,
-          // and an unreadable fact never invalidates the calendar.
-          facts: identity === 'confirmed' ? deriveFacts(raw) : null,
-          // Comparison scope and the subject's own advertised price come from
-          // the same confirmed response; an unconfirmed one resolves neither.
-          scope: identity === 'confirmed' ? resolveScope(raw) : null,
-          subjectPrice: identity === 'confirmed' ? advertisedMonthlyPrice(raw) : null,
-          checkedAt: now(),
-          isChecking: false,
-          isStale: false,
-          error: null,
-        });
-        inFlightSlug = null;
-        if (panelOpen) ensureComparison();
-      },
-      (err) => {
-        if (myGeneration !== generation) return;
-        setState({
-          ...state,
-          status: state.checkedAt !== null ? state.status : 'unavailable',
-          isChecking: false,
-          isStale: state.checkedAt !== null,
-          error: err?.name ?? 'error',
-        });
-        inFlightSlug = null;
-      },
-    );
-  }
-
-  function requestEvidence(trigger) {
-    if (inFlightSlug === trigger.slug) return; // coalesce duplicate concurrent triggers
-    startFetch(trigger);
-  }
+  rebuild({ notify: false });
 
   return {
-    getState,
-    enterDetailPage(trigger) { requestEvidence(trigger); },
+    getState() { return state; },
+
+    enterDetailPage(trigger) {
+      applyTrigger(() => {
+        select(trigger);
+        units.read(trigger.slug, { visibleIdentity: trigger.visibleIdentity, priority: 'selected', force: true });
+      });
+    },
+
     // The panel is what the comparison serves, so entering the listing never
     // collects one: the first panel use does, and later matching selections
     // reuse it while still rechecking unit evidence.
     openPanel(trigger) {
       if (!trigger.slug) return;
       panelOpen = true;
-      requestEvidence(trigger);
+      applyTrigger(() => {
+        select(trigger);
+        units.read(trigger.slug, { visibleIdentity: trigger.visibleIdentity, priority: 'selected', force: true });
+      });
       ensureComparison();
     },
+
     refresh(trigger) {
       // Refresh always starts a fresh check, bypassing in-flight coalescing
       // and both caches.
       panelOpen = true;
-      startFetch(trigger);
+      applyTrigger(() => {
+        select(trigger);
+        units.refresh(trigger.slug, { visibleIdentity: trigger.visibleIdentity });
+      });
       ensureComparison({ force: true });
     },
+
     // A date change re-states the existing evidence for this same unit; it is
     // not new evidence, so it never advances the successful-check time.
-    selectCheckIn(checkIn) {
-      setState({ ...state, checkIn, ...summaryFor(state.ranges, checkIn) });
+    selectCheckIn(next) {
+      checkIn = next;
+      rebuild();
     },
+
     // The panel reports its own lifetime over a port, so a closed panel stops
     // pulling comparisons for units the member merely browses past. Closing it
     // never refetches or discards anything already held.
@@ -275,9 +256,10 @@ export function createEvidenceController({ fetchHome, searchPeers, now = () => D
       panelOpen = open;
       if (open) ensureComparison();
     },
+
     teardown() {
-      generation += 1; // invalidate any still-pending response
       comparisonGeneration += 1;
+      units.teardown();
       requestGate.teardown();
     },
   };
