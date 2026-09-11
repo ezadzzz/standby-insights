@@ -19,7 +19,6 @@
     {
       "matches": ["https://www.hellolanding.com/homes/*/standby*"],
       "js": ["src/content/content-script.js"],
-      "type": "module",
       "run_at": "document_idle"
     }
   ],

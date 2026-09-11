@@ -5,6 +5,10 @@
   "description": "Personal-use Chrome extension: browsing evidence for Landing Standby units.",
   "type": "module",
   "scripts": {
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "verify:browser": "node test/browser/verify-unpacked.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
   }
 }
