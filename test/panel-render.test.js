@@ -42,6 +42,28 @@ test('ready calendar: shows the validated unit name and chronological range desc
   assert.match(view.rangeItems[0].text, /reservation/i);
   assert.match(view.rangeItems[1].text, /unspecified/i);
   assert.match(view.rangeItems[1].text, /move-in allowed/i);
+  assert.equal(view.rangeItems[0].statusText, 'Reservation');
+  assert.equal(view.rangeItems[0].icon, 'calendar');
+  assert.equal(view.rangeItems[1].dateText, 'Dec 18, 2026 – unspecified end');
+  assert.equal(view.rangeItems[1].icon, 'check');
+});
+
+test('price columns retain source labels and never show a median from incomplete evidence', () => {
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000,
+    subjectPrice: { amount: 2144, label: null, terms: null, note: null } };
+  const view = describeState({ checkedAt: null, comparison }).comparison;
+  assert.deepEqual(view.prices, [
+    { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
+    { label: 'Peer median', amount: '$2,400', unit: 'per month' },
+  ]);
+  assert.match(view.scopeText, /12 other homes.*same market and bedroom count/i);
+  assert.match(view.termsNote, /not supplied/);
+  for (const status of ['loading', 'unavailable', 'insufficient', 'unresolved-scope', 'idle']) {
+    assert.deepEqual(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.prices, []);
+  }
+  const missing = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: null } }).comparison;
+  assert.equal(missing.prices[0].amount, 'Unavailable');
+  assert.match(missing.subjectText, /no eligible advertised monthly price/);
 });
 
 test('stale evidence during a recheck is labeled an older check', () => {

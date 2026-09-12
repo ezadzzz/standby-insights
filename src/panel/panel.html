@@ -2,39 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
   <title>Standby evidence</title>
   <link rel="stylesheet" href="panel.css" />
 </head>
 <body>
+  <header class="masthead">
+    <svg class="brand-mark" aria-hidden="true"><use href="icons.svg#mark" /></svg>
+    <span>Standby Insights</span>
+  </header>
   <main>
-    <h1 id="unit-heading">Standby evidence</h1>
-    <p id="identity-note" role="status"></p>
-
-    <div class="check-row">
-      <span id="check-time">Not checked yet</span>
-      <button id="refresh-button" type="button">Refresh</button>
-    </div>
+    <header class="unit-header">
+      <h1 id="unit-heading">Standby evidence</h1>
+      <button id="refresh-button" type="button">
+        <svg class="icon" aria-hidden="true"><use href="icons.svg#refresh" /></svg>
+        <span>Refresh</span>
+      </button>
+      <p id="check-time">Not checked yet</p>
+      <p id="identity-note" role="status"></p>
+    </header>
 
     <section id="calendar-section" aria-labelledby="calendar-heading">
-      <h2 id="calendar-heading">Calendar</h2>
-      <p id="calendar-status"></p>
+      <h2 id="calendar-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#calendar" /></svg>Calendar</h2>
+      <p id="calendar-status" role="status"></p>
       <p id="reference-note"></p>
-      <ul id="summary-list"></ul>
+      <div id="calendar-summary" class="summary" hidden>
+        <svg class="icon" aria-hidden="true"><use href="icons.svg#info" /></svg>
+        <ul id="summary-list"></ul>
+      </div>
       <ol id="range-list"></ol>
     </section>
 
     <section id="comparison-section" aria-labelledby="comparison-heading" hidden>
-      <h2 id="comparison-heading">Advertised price comparison</h2>
+      <h2 id="comparison-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#tag" /></svg>Advertised price comparison</h2>
+      <dl id="comparison-prices" hidden></dl>
       <p id="comparison-status" role="status"></p>
       <p id="comparison-subject"></p>
-      <p id="comparison-terms"></p>
-      <p id="comparison-disclosure"></p>
-      <p id="comparison-check-time"></p>
+      <p id="comparison-terms" class="supporting"></p>
+      <p id="comparison-disclosure" class="supporting"></p>
+      <p id="comparison-check-time" class="check-time"></p>
     </section>
 
     <section id="facts-section" aria-labelledby="facts-heading" hidden>
-      <h2 id="facts-heading">Unit and building facts</h2>
-      <dl id="facts-list"></dl>
+      <h2 id="facts-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#building" /></svg>Unit and building facts</h2>
+      <dl id="facts-list" class="facts"></dl>
+    </section>
+    <section id="location-section" aria-labelledby="location-heading" hidden>
+      <h2 id="location-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#pin" /></svg>Location and reviews</h2>
+      <dl id="location-list" class="facts"></dl>
     </section>
 
     <p id="announcer" role="status" aria-live="polite" class="visually-hidden"></p>

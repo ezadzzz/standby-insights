@@ -7,10 +7,12 @@ function formatDate(isoDate) {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
 }
 
-function rangeText(range) {
+function rangeView(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
-  const kind = range.isReservation ? 'Reservation' : (range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed');
-  return `${formatDate(range.startDate)} – ${end}: ${kind}`;
+  const dateText = `${formatDate(range.startDate)} – ${end}`;
+  const statusText = range.isReservation ? 'Reservation' : (range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed');
+  return { dateText, statusText, text: `${dateText}: ${statusText}`, isReservation: range.isReservation,
+    icon: range.isReservation ? 'calendar' : (range.moveInAllowed ? 'check' : 'blocked') };
 }
 
 /**
@@ -101,7 +103,7 @@ const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, wh
  */
 function comparisonView(state) {
   const comparison = state.comparison;
-  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', disclosure: '', checkTimeText: '' };
+  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
   if (!comparison || comparison.status === 'idle') return view;
 
   view.visible = true;
@@ -121,6 +123,12 @@ function comparisonView(state) {
     view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${plural(comparison.count, 'home')} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
   } else if (comparison.status === 'ready') {
     view.statusText = `Median advertised monthly price across ${comparison.count} other ${plural(comparison.count, 'home')} in the same market and bedroom count: ${money(comparison.median)}.`;
+    view.scopeText = `${comparison.count} other ${plural(comparison.count, 'home')} · Same market and bedroom count.`;
+    view.prices = [
+      { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
+        unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
+      { label: 'Peer median', amount: money(comparison.median), unit: 'per month' },
+    ];
   }
 
   view.subjectText = subjectPriceText(comparison.subjectPrice);
@@ -241,7 +249,7 @@ export function describeState(state) {
   }
 
   if (state.status === 'ready' && Array.isArray(state.ranges)) {
-    view.rangeItems = state.ranges.map((r) => ({ text: rangeText(r), isReservation: r.isReservation }));
+    view.rangeItems = state.ranges.map(rangeView);
     view.referenceNote = referenceNoteText(state);
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
   }

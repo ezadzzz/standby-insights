@@ -15,11 +15,40 @@ const comparisonDisclosure = document.getElementById('comparison-disclosure');
 const comparisonCheckTime = document.getElementById('comparison-check-time');
 const factsSection = document.getElementById('facts-section');
 const factsList = document.getElementById('facts-list');
+const locationSection = document.getElementById('location-section');
+const locationList = document.getElementById('location-list');
+const comparisonPrices = document.getElementById('comparison-prices');
+const calendarSummary = document.getElementById('calendar-summary');
 const refreshButton = document.getElementById('refresh-button');
 const announcer = document.getElementById('announcer');
 
 let tabId = null;
 let lastCheckedAt = null;
+
+function icon(name) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'icon');
+  svg.setAttribute('aria-hidden', 'true');
+  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  use.setAttribute('href', `icons.svg#${name}`);
+  svg.append(use);
+  return svg;
+}
+
+const factIcons = { 'Minimum stay': 'calendar', Flex: 'tag', Rating: 'star', 'Walk score': 'walk', 'Transit score': 'transit', 'Bike score': 'bike' };
+
+function factRow(item) {
+  const row = document.createElement('div');
+  const dt = document.createElement('dt');
+  dt.append(icon(factIcons[item.label]), item.label);
+  row.append(dt);
+  for (const line of [item.text, ...item.details]) {
+    const dd = document.createElement('dd');
+    dd.textContent = line;
+    row.append(dd);
+  }
+  return row;
+}
 
 function render(state) {
   const view = describeState(state);
@@ -29,6 +58,7 @@ function render(state) {
   calendarStatus.textContent = view.calendarStatusText;
 
   referenceNote.textContent = view.referenceNote;
+  calendarSummary.hidden = view.summaryItems.length === 0;
   summaryList.replaceChildren(...view.summaryItems.map((text) => {
     const li = document.createElement('li');
     li.textContent = text;
@@ -37,14 +67,33 @@ function render(state) {
 
   rangeList.replaceChildren(...view.rangeItems.map((item) => {
     const li = document.createElement('li');
-    li.textContent = item.text;
+    const dates = document.createElement('span');
+    dates.textContent = item.dateText;
+    const status = document.createElement('span');
+    status.className = 'range-status';
+    status.append(icon(item.icon), item.statusText);
+    li.append(dates, status);
     if (item.isReservation) li.className = 'reservation-label';
     return li;
   }));
 
   comparisonSection.hidden = !view.comparison.visible;
-  comparisonStatus.textContent = view.comparison.statusText;
+  comparisonPrices.hidden = view.comparison.prices.length === 0;
+  comparisonPrices.replaceChildren(...view.comparison.prices.map((price) => {
+    const group = document.createElement('div');
+    const label = document.createElement('dt');
+    label.textContent = price.label;
+    const amount = document.createElement('dd');
+    amount.className = `price-amount${price.amount === 'Unavailable' ? ' unavailable' : ''}`;
+    amount.textContent = price.amount;
+    const unit = document.createElement('dd');
+    unit.textContent = price.unit;
+    group.append(label, amount, unit);
+    return group;
+  }));
+  comparisonStatus.textContent = view.comparison.scopeText || view.comparison.statusText;
   comparisonSubject.textContent = view.comparison.subjectText;
+  comparisonSubject.hidden = view.comparison.prices.length > 0 && view.comparison.prices[0].amount !== 'Unavailable';
   comparisonTerms.textContent = view.comparison.termsNote;
   comparisonDisclosure.textContent = view.comparison.disclosure;
   comparisonCheckTime.textContent = view.comparison.checkTimeText;
@@ -52,18 +101,9 @@ function render(state) {
   // A description list pairs each fact with its own visible label, so an
   // unavailable field still reads as a labelled fact rather than stray text.
   factsSection.hidden = view.factItems.length === 0;
-  factsList.replaceChildren(...view.factItems.flatMap((item) => {
-    const dt = document.createElement('dt');
-    dt.textContent = item.label;
-    // A fact with per-item detail (each supplied Flex term) gets one dd per
-    // line under its single label, rather than one run-on value.
-    const values = [item.text, ...item.details].map((line) => {
-      const dd = document.createElement('dd');
-      dd.textContent = line;
-      return dd;
-    });
-    return [dt, ...values];
-  }));
+  locationSection.hidden = view.factItems.length === 0;
+  factsList.replaceChildren(...view.factItems.slice(0, 2).map(factRow));
+  locationList.replaceChildren(...view.factItems.slice(2).map(factRow));
 
   if (state.checkedAt !== null && state.checkedAt !== lastCheckedAt && !state.isChecking) {
     lastCheckedAt = state.checkedAt;

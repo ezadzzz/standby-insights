@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-12T04:11:16.536Z",
+  "title": "Design System: Standby Insights Panel",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Deep Petrol Ink",
+        "canonical": "#08171c",
+        "tonalRamp": [
+          "oklch(15% 0.02301 221.60)",
+          "oklch(26% 0.02301 221.60)",
+          "oklch(38% 0.02301 221.60)",
+          "oklch(49% 0.02301 221.60)",
+          "oklch(61% 0.02301 221.60)",
+          "oklch(72% 0.02301 221.60)",
+          "oklch(84% 0.02301 221.60)",
+          "oklch(95% 0.02301 221.60)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Inset Petrol",
+        "canonical": "#0d2029",
+        "tonalRamp": [
+          "oklch(15% 0.03034 230.51)",
+          "oklch(26% 0.03034 230.51)",
+          "oklch(38% 0.03034 230.51)",
+          "oklch(49% 0.03034 230.51)",
+          "oklch(61% 0.03034 230.51)",
+          "oklch(72% 0.03034 230.51)",
+          "oklch(84% 0.03034 230.51)",
+          "oklch(95% 0.03034 230.51)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Raised Petrol Tone",
+        "canonical": "#132c36",
+        "tonalRamp": [
+          "oklch(15% 0.03598 226.39)",
+          "oklch(26% 0.03598 226.39)",
+          "oklch(38% 0.03598 226.39)",
+          "oklch(49% 0.03598 226.39)",
+          "oklch(61% 0.03598 226.39)",
+          "oklch(72% 0.03598 226.39)",
+          "oklch(84% 0.03598 226.39)",
+          "oklch(95% 0.03598 226.39)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Quiet Rule",
+        "canonical": "#1b3641",
+        "tonalRamp": [
+          "oklch(15% 0.03834 226.45)",
+          "oklch(26% 0.03834 226.45)",
+          "oklch(38% 0.03834 226.45)",
+          "oklch(49% 0.03834 226.45)",
+          "oklch(61% 0.03834 226.45)",
+          "oklch(72% 0.03834 226.45)",
+          "oklch(84% 0.03834 226.45)",
+          "oklch(95% 0.03834 226.45)"
+        ]
+      },
+      "rule-strong": {
+        "role": "primary",
+        "displayName": "Petrol Rule",
+        "canonical": "#44798a",
+        "tonalRamp": [
+          "oklch(15% 0.06231 220.78)",
+          "oklch(26% 0.06231 220.78)",
+          "oklch(38% 0.06231 220.78)",
+          "oklch(49% 0.06231 220.78)",
+          "oklch(61% 0.06231 220.78)",
+          "oklch(72% 0.06231 220.78)",
+          "oklch(84% 0.06231 220.78)",
+          "oklch(95% 0.06231 220.78)"
+        ]
+      },
+      "on": {
+        "role": "neutral",
+        "displayName": "Off-White Ink",
+        "canonical": "#edf5f4",
+        "tonalRamp": [
+          "oklch(15% 0.00858 188.11)",
+          "oklch(26% 0.00858 188.11)",
+          "oklch(38% 0.00858 188.11)",
+          "oklch(49% 0.00858 188.11)",
+          "oklch(61% 0.00858 188.11)",
+          "oklch(72% 0.00858 188.11)",
+          "oklch(84% 0.00858 188.11)",
+          "oklch(95% 0.00858 188.11)"
+        ]
+      },
+      "on-2": {
+        "role": "neutral",
+        "displayName": "Pale Blue-Gray",
+        "canonical": "#a6c3c8",
+        "tonalRamp": [
+          "oklch(15% 0.03211 209.16)",
+          "oklch(26% 0.03211 209.16)",
+          "oklch(38% 0.03211 209.16)",
+          "oklch(49% 0.03211 209.16)",
+          "oklch(61% 0.03211 209.16)",
+          "oklch(72% 0.03211 209.16)",
+          "oklch(84% 0.03211 209.16)",
+          "oklch(95% 0.03211 209.16)"
+        ]
+      },
+      "on-3": {
+        "role": "neutral",
+        "displayName": "Muted Blue-Gray",
+        "canonical": "#7c9aa2",
+        "tonalRamp": [
+          "oklch(15% 0.03547 215.76)",
+          "oklch(26% 0.03547 215.76)",
+          "oklch(38% 0.03547 215.76)",
+          "oklch(49% 0.03547 215.76)",
+          "oklch(61% 0.03547 215.76)",
+          "oklch(72% 0.03547 215.76)",
+          "oklch(84% 0.03547 215.76)",
+          "oklch(95% 0.03547 215.76)"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "Focus Blue-Gray",
+        "canonical": "#a6c3c8",
+        "tonalRamp": [
+          "oklch(15% 0.03211 209.16)",
+          "oklch(26% 0.03211 209.16)",
+          "oklch(38% 0.03211 209.16)",
+          "oklch(49% 0.03211 209.16)",
+          "oklch(61% 0.03211 209.16)",
+          "oklch(72% 0.03211 209.16)",
+          "oklch(84% 0.03211 209.16)",
+          "oklch(95% 0.03211 209.16)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Unit title",
+        "purpose": "Exact unit heading; 24px at 380px and below."
+      },
+      "price": {
+        "displayName": "Advertised amount",
+        "purpose": "Paired monthly amounts; 27px at 380px and below, with unavailable text held at 16px."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "refresh-background",
+        "value": "background-color 150ms ease-out",
+        "purpose": "Refresh hover and pressed tone; disabled under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack-rows-max",
+        "value": "380px"
+      },
+      {
+        "name": "stack-prices-max",
+        "value": "260px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Refresh",
+      "kind": "button",
+      "refersTo": "refresh",
+      "description": "The sole action; hover, pressed, focus and declared disabled styling. Current renderer does not set disabled.",
+      "html": "<div class=\"ds-example\"><button class=\"ds-refresh\" type=\"button\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M20 7a9 9 0 1 0 1 9 M20 2v6h-6\"/></svg><span>Refresh</span></button></div>",
+      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-refresh { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--rule-strong, #44798a); border-radius:0; color:var(--on, #edf5f4); background:transparent; font:700 11px/1.5 Archivo,system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:background-color 150ms ease-out; } .ds-refresh:hover { background:var(--ink-3, #132c36); } .ds-refresh:active { background:var(--ink-2, #0d2029); } .ds-refresh:disabled { color:var(--on-3, #7c9aa2); cursor:wait; } .ds-refresh:focus-visible { outline:2px solid var(--focus, #a6c3c8); outline-offset:3px; } @media(prefers-reduced-motion:reduce) { .ds-refresh { transition:none; } }"
+    },
+    {
+      "name": "Calendar summary",
+      "kind": "custom",
+      "refersTo": "summary",
+      "description": "Inset evidence summary with full text; illustrative date only, not a live claim.",
+      "html": "<div class=\"ds-example\"><div class=\"ds-summary\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 10v7 M12 6v1\"/></svg><ul class=\"ds-summary-list\"><li>Next reservation starts Oct 1, 2026.</li><li>No standard move-in offered before that reservation.</li></ul></div></div>",
+      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-summary { display:flex; align-items:flex-start; gap:12px; margin:16px 0 8px; padding:12px; border:1px solid var(--rule, #1b3641); background:var(--ink-2, #0d2029); } .ds-summary > .ds-icon { margin-top:2px; } .ds-summary-list { min-width:0; list-style:none; margin:0; padding:0; } .ds-summary-list li:first-child { font-weight:600; } .ds-summary-list li + li { margin-top:4px; color:var(--on-2, #a6c3c8); }"
+    },
+    {
+      "name": "Calendar range",
+      "kind": "custom",
+      "description": "Chronological date/status row; illustrative date range only. Reservation emphasis is weight, not color.",
+      "html": "<ol class=\"ds-example ds-ranges\"><li class=\"ds-reservation\"><span>Oct 1, 2026 – Oct 15, 2026</span><span class=\"ds-range-status\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 5h18v16H3z M7 2v6 M17 2v6 M3 10h18 M7 14h2 M13 14h2 M7 18h2 M13 18h2\"/></svg>Reservation</span></li></ol>",
+      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-ranges { list-style:none; margin:12px 0 0; padding:0; } .ds-ranges li { display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(0, 1fr); gap:12px; align-items:start; padding:12px 0; border-bottom:1px solid var(--rule, #1b3641); } .ds-reservation { font-weight:600; } .ds-range-status { display:flex; align-items:flex-start; gap:8px; } .ds-range-status .ds-icon { width:17px; height:17px; margin-top:2px; } @media(max-width:380px) { .ds-ranges li { grid-template-columns:minmax(0, 1fr); gap:4px; } }"
+    },
+    {
+      "name": "Advertised price pair",
+      "kind": "custom",
+      "description": "Paired labeled values, including unavailable subject treatment. Example median is illustrative, not live evidence; production keeps its disclosure below.",
+      "html": "<dl class=\"ds-example ds-prices\"><div><dt>This home</dt><dd class=\"ds-amount ds-unavailable\">Unavailable</dd><dd></dd></div><div><dt>Peer median</dt><dd class=\"ds-amount\">$2,400</dd><dd>per month</dd></div></dl>",
+      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-prices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 0 16px; } .ds-prices > div { min-width:0; } .ds-prices > div + div { border-left:1px solid var(--rule-strong, #44798a); padding-left:20px; margin-left:16px; } .ds-prices dd { margin:0; } .ds-prices .ds-amount { font-size:32px; font-weight:700; line-height:1.2; letter-spacing:-.02em; margin:4px 0; } .ds-prices .ds-amount.ds-unavailable { font-size:16px; letter-spacing:normal; } @media(max-width:380px) { .ds-prices .ds-amount { font-size:27px; } } @media(max-width:260px) { .ds-prices { grid-template-columns:minmax(0,1fr); gap:16px; } .ds-prices > div + div { border-left:0; border-top:1px solid var(--rule, #1b3641); margin-left:0; padding:12px 0 0; } }"
+    },
+    {
+      "name": "Labeled fact",
+      "kind": "custom",
+      "description": "A semantic fact row retains its label when evidence is unavailable.",
+      "html": "<dl class=\"ds-example ds-facts\"><div><dt><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 5h18v16H3z M7 2v6 M17 2v6 M3 10h18 M7 14h2 M13 14h2 M7 18h2 M13 18h2\"/></svg>Minimum stay</dt><dd>Unavailable</dd></div></dl>",
+      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-facts { margin:0; } .ds-facts > div { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr); border-bottom:1px solid var(--rule, #1b3641); } .ds-facts dt { display:flex; align-items:flex-start; gap:8px; padding:8px 12px 8px 0; color:var(--on-2, #a6c3c8); } .ds-facts dd { margin:0; grid-column:2; border-left:1px solid var(--rule, #1b3641); padding:8px 0 8px 12px; } .ds-facts dd + dd { color:var(--on-2, #a6c3c8); font-size:13px; padding-top:0; } .ds-facts .ds-icon { width:18px; height:18px; margin-top:2px; } @media(max-width:380px) { .ds-facts > div { grid-template-columns:minmax(0,1fr); padding-block:8px; } .ds-facts dt { padding-top:0; padding-bottom:4px; } .ds-facts dd { grid-column:1; border:0; padding:0 0 4px 26px; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Scout / Picture Desk",
+    "overview": "A compact, ruled evidence sheet in petrol ink, with Archivo typography and neutral outline signposts. Flat surfaces and off-white text keep dense evidence readable without assigning a reassuring or alarming color to its meaning.\n\nThis captures the approved September 12, 2026 panel implementation only. It does not prescribe the design of injected card annotations. The extension retains a distinct identity beside Landing.",
+    "keyCharacteristics": [
+      "Square controls and thin rules.",
+      "Neutral icons paired with explicit words.",
+      "Full evidence wording in a continuous, wrapping document."
+    ],
+    "rules": [
+      {
+        "name": "The Neutral Evidence Rule",
+        "body": "Status is stated in words; icons and color never replace those words or imply a condition rating.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do preserve full labels, source caveats and unavailable or older-check wording.",
+      "Do keep the panel in normal document flow and let narrow layouts stack.",
+      "Do retain local fonts, local SVG assets and visible keyboard focus."
+    ],
+    "donts": [
+      "Don't apply this panel palette to injected card annotations without a separate design decision.",
+      "Don't use condition colors or icon-only evidence statuses.",
+      "Don't add decorative controls, photographs, rounded cards or shadows to this approved panel."
+    ]
+  }
+}

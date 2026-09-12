@@ -1,0 +1,9 @@
+{
+  "approved": true,
+  "approvedAt": "2026-09-12",
+  "approval": "Good. Let's go with that",
+  "source": "Image generation in this task, exec-afe60771-460b-4b8f-a9ec-975a616ab179.png",
+  "references": ["Scout Picture Desk mockup", "A quiet editorial mockup for iconography only"],
+  "intent": "Preserve D's dark petrol palette, square geometry, Archivo-style type, evidence copy and ruled layout. Add A's neutral outline calendar, price-tag, building, location, information and fact icons. Every status retains words. No safety colors, additional actions or new evidence.",
+  "usage": "Development-only approved design reference. Illustrative data, not a live result. No raster from this comp ships in the panel."
+}
