@@ -25,6 +25,16 @@ npm test
 Fixture-level behavioral tests. No browser, no network.
 
 ```
+npm run verify:panel
+```
+
+Runs the panel in Chromium with illustrative evidence and a simulated extension
+message boundary; checks responsive layout, missing-data states, local assets,
+and keyboard Refresh without contacting Landing. Add `-- --screenshots` to save
+review captures under `.impeccable/review/`. The panel uses the approved Scout /
+Picture Desk design, with locally bundled Archivo under its included OFL license.
+
+```
 npm run verify:browser
 ```
 

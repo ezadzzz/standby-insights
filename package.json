@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "verify:browser": "node test/browser/verify-unpacked.mjs"
+    "verify:browser": "node test/browser/verify-unpacked.mjs",
+    "verify:panel": "node test/browser/verify-panel-layout.mjs"
   },
   "devDependencies": {
     "playwright": "^1.63.0"
