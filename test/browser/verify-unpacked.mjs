@@ -244,6 +244,154 @@ try {
   record('no extension console errors on the search route', searchOwnErrors.length === 0,
     searchOwnErrors.slice(0, 3).join(' | ') || 'none');
 
+  // 9. The side panel. Chrome has to carry the member's click out of the page,
+  // through the service worker, into chrome.sidePanel.open() — a hop no fixture
+  // can cover and the one the design was least sure of. If this check ever
+  // fails, open the panel another way rather than reaching for a synthetic
+  // gesture or a keepalive.
+  await worker.evaluate(() => {
+    self.__panelErrors = [];
+    self.addEventListener('unhandledrejection', (e) => self.__panelErrors.push(String(e.reason)));
+  });
+  const panelsBefore = await worker.evaluate(async () =>
+    (await chrome.runtime.getContexts({ contextTypes: ['SIDE_PANEL'] })).length);
+  // Opened by keyboard alone, which is both the accessibility requirement and
+  // the harder case for the gesture: focus the card's own button and press it.
+  const cardButton = searchPage.locator('.standby-evidence-button').first();
+  await cardButton.focus();
+  const focusedCardButton = await searchPage.evaluate(() => ({
+    isEvidenceButton: document.activeElement?.classList.contains('standby-evidence-button') ?? false,
+    focusVisible: document.activeElement?.matches(':focus-visible') ?? false,
+  }));
+  await searchPage.keyboard.press('Enter');
+  await searchPage.waitForTimeout(3000);
+  const panelsAfter = await worker.evaluate(async () => ({
+    documents: (await chrome.runtime.getContexts({ contextTypes: ['SIDE_PANEL'] })).map((c) => c.documentUrl),
+    errors: self.__panelErrors ?? [],
+  }));
+  record('View evidence takes keyboard focus with a visible focus ring',
+    focusedCardButton.isEvidenceButton && focusedCardButton.focusVisible, JSON.stringify(focusedCardButton));
+  record('pressing Enter on View evidence opens the side panel',
+    panelsBefore === 0 && panelsAfter.documents.length === 1,
+    JSON.stringify({ before: panelsBefore, after: panelsAfter.documents }));
+  record('opening the panel raised no service-worker error', panelsAfter.errors.length === 0,
+    panelsAfter.errors.join(' | ') || 'none');
+
+  // 9b. The panel stays available only on the routes this extension supports.
+  const offRoutePage = await context.newPage();
+  await offRoutePage.goto('https://www.hellolanding.com/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await offRoutePage.waitForTimeout(3000);
+  const gating = await worker.evaluate(async () => {
+    const enabledFor = async (pattern) => {
+      const tabs = await chrome.tabs.query({ url: pattern });
+      const tab = tabs.at(-1);
+      if (!tab) return null;
+      return (await chrome.sidePanel.getOptions({ tabId: tab.id })).enabled;
+    };
+    return {
+      standby: await enabledFor('https://www.hellolanding.com/s/*/apartments/standby*'),
+      elsewhere: await enabledFor('https://www.hellolanding.com/'),
+    };
+  });
+  record('the panel is enabled on a Standby route and disabled off it',
+    gating.standby === true && gating.elsewhere === false, JSON.stringify(gating));
+
+  // 9c. The panel document's own accessibility, read from the real markup
+  // rather than from the fixture that decides its wording.
+  const panelPage = await context.newPage();
+  await panelPage.goto(`chrome-extension://${extensionId}/src/panel/panel.html`, { waitUntil: 'domcontentloaded' });
+  const panelDom = await panelPage.evaluate(() => {
+    const refresh = document.getElementById('refresh-button');
+    const announcer = document.getElementById('announcer');
+    return {
+      refreshTag: refresh.tagName,
+      refreshType: refresh.type,
+      refreshName: refresh.textContent.trim(),
+      refreshTabIndex: refresh.tabIndex,
+      announcerLive: announcer.getAttribute('aria-live'),
+      announcerRole: announcer.getAttribute('role'),
+      identityRole: document.getElementById('identity-note').getAttribute('role'),
+      headingWraps: getComputedStyle(document.querySelector('h1')).overflowWrap,
+    };
+  });
+  await panelPage.keyboard.press('Tab');
+  const focusRing = await panelPage.evaluate(() => {
+    const active = document.activeElement;
+    return {
+      focused: active?.id ?? null,
+      focusVisible: active?.matches(':focus-visible') ?? false,
+      outlineWidth: active ? getComputedStyle(active, null).outlineWidth : null,
+    };
+  });
+  record('Refresh is a native keyboard-operable button with a meaningful name',
+    panelDom.refreshTag === 'BUTTON' && panelDom.refreshType === 'button'
+      && panelDom.refreshName === 'Refresh' && panelDom.refreshTabIndex === 0,
+    JSON.stringify(panelDom));
+  record('Tab reaches Refresh and it shows a visible focus ring',
+    focusRing.focused === 'refresh-button' && focusRing.focusVisible && focusRing.outlineWidth !== '0px',
+    JSON.stringify(focusRing));
+  // The wording and the moment of the announcement are the fixtures' job; what
+  // only a browser can confirm is that the element it lands in is a region a
+  // screen reader will read politely rather than interrupt with.
+  record('the announcer is a polite status region',
+    panelDom.announcerLive === 'polite' && panelDom.announcerRole === 'status', JSON.stringify(panelDom));
+  record('the identity note is a status region and a long unit name wraps',
+    panelDom.identityRole === 'status' && panelDom.headingWraps === 'break-word', JSON.stringify(panelDom));
+  await panelPage.close();
+
+  // 10. Page-instance memory, counted by what each page actually requests.
+  // Only the extension reads the public home endpoint without credentials —
+  // Landing's own page calls /api/v1/* and carries its session — so the
+  // uncredentialed read of this slug is what attributes a request to us.
+  const trackHomeReads = (p) => {
+    const seen = [];
+    p.on('request', (r) => {
+      if (!r.url().includes(`/api/public/homes/${SLUG}`)) return;
+      if (Object.keys(r.headers()).some((h) => h.toLowerCase() === 'cookie')) return;
+      seen.push(r.url());
+    });
+    return seen;
+  };
+  const tabA = await context.newPage();
+  const readsA = trackHomeReads(tabA);
+  await tabA.goto(DETAIL_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await tabA.waitForTimeout(8000);
+  const tabB = await context.newPage();
+  const readsB = trackHomeReads(tabB);
+  await tabB.goto(DETAIL_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
+  await tabB.waitForTimeout(8000);
+  record('a second tab reads the same unit for itself rather than sharing evidence',
+    readsA.length >= 1 && readsB.length >= 1, JSON.stringify({ tabA: readsA.length, tabB: readsB.length }));
+
+  // A fresh read after a reload is what page-instance memory looks like from
+  // outside; it is not by itself proof that nothing was retained, which is why
+  // the absence of any store is asserted separately below and above.
+  const beforeReload = readsA.length;
+  await tabA.reload({ waitUntil: 'domcontentloaded', timeout: 45000 });
+  await tabA.waitForTimeout(8000);
+  record('a reload re-reads the unit rather than resuming the previous page’s evidence',
+    readsA.length > beforeReload, JSON.stringify({ beforeReload, afterReload: readsA.length }));
+
+  // 10b. Nothing the extension writes survives in the page either: the
+  // service-worker check above covers chrome.storage, and this covers the
+  // stores a content script can reach without any permission at all.
+  const pageStores = await tabA.evaluate(async () => {
+    const named = (store) => { try { return Object.keys(store); } catch { return ['<blocked>']; } };
+    return {
+      local: named(localStorage).filter((k) => /standby|evidence/i.test(k)),
+      session: named(sessionStorage).filter((k) => /standby|evidence/i.test(k)),
+      databases: typeof indexedDB?.databases === 'function'
+        ? (await indexedDB.databases()).map((d) => d.name).filter((n) => /standby|evidence/i.test(n ?? ''))
+        : ['<unlistable>'],
+    };
+  }).catch((e) => ({ error: e.message }));
+  record('the extension left no Landing evidence in the page’s own storage',
+    pageStores.error === undefined && pageStores.local.length === 0
+      && pageStores.session.length === 0 && pageStores.databases.length === 0,
+    JSON.stringify(pageStores));
+
+  for (const opened of [offRoutePage, tabA, tabB]) await opened.close();
+
   // Landing's own signed-out 401s and React warnings are not ours; only a
   // parse/runtime failure in the extension's own scripts counts.
   const ourErrors = consoleErrors.filter((t) => /import statement|chrome-extension:|standby/i.test(t));

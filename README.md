@@ -2,7 +2,7 @@
 
 Personal-use Chrome extension for reservation evidence and advertised-price context while browsing Landing Standby.
 
-Status: the browsing path is complete. [Issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page, [#4](https://github.com/ezadzzz/standby-insights/issues/4) states it against the selected check-in, [#6](https://github.com/ezadzzz/standby-insights/issues/6) adds minimum-stay and building facts, and [#7](https://github.com/ezadzzz/standby-insights/issues/7) adds the advertised-price comparison. [#5](https://github.com/ezadzzz/standby-insights/issues/5) annotates rendered Standby search cards as the member browses. Integrated verification and packaging ([#8](https://github.com/ezadzzz/standby-insights/issues/8)) is not yet done.
+Status: the browsing path is complete and verified unpacked. [Issue #3](https://github.com/ezadzzz/standby-insights/issues/3) delivers exact-unit calendar evidence on a Standby detail page, [#4](https://github.com/ezadzzz/standby-insights/issues/4) states it against the selected check-in, [#6](https://github.com/ezadzzz/standby-insights/issues/6) adds minimum-stay and building facts, and [#7](https://github.com/ezadzzz/standby-insights/issues/7) adds the advertised-price comparison. [#5](https://github.com/ezadzzz/standby-insights/issues/5) annotates rendered Standby search cards as the member browses. [#8](https://github.com/ezadzzz/standby-insights/issues/8) packages it for local loading and turns the acceptance pass into a repeatable script; its remaining gaps are listed below.
 
 - [Specification](standby-extension-spec.md)
 - [Glossary](CONTEXT.md) — the vocabulary used in issues, code, and panel text
@@ -32,8 +32,10 @@ Loads this extension unpacked into a real Chromium (Playwright) against the live
 public Standby detail page and checks what fixtures cannot: that the content
 script parses and runs, which endpoints it calls, that the calls carry no
 cookies, that no storage permission exists, that the comparison stays inside its
-request budget and its fixed tool, and that the page's own DOM still matches the
-selectors the adapter depends on. Needs network access.
+request budget and its fixed tool, that a card's `View evidence` button opens
+the side panel from the keyboard and the panel stays disabled off route, that
+separate tabs never share evidence, and that the page's own DOM still matches
+the selectors the adapter depends on. Needs network access.
 
 **Run this periodically, not only before a merge.** Several checks assert
 *Landing's* current behavior rather than this extension's, and a failure there
@@ -46,11 +48,38 @@ unavailable, not that the code broke
 
 ## Loading the unpacked extension
 
-1. Visit `chrome://extensions`, enable Developer mode.
-2. Click **Load unpacked** and select this repository's root folder.
+Everything the extension runs is in this repository; `npm install` is only for
+the verification scripts, and nothing is bundled, compiled, or fetched at
+runtime. Load the repository root as-is.
+
+1. Visit `chrome://extensions`, enable **Developer mode** (top right).
+2. Click **Load unpacked** and select this repository's root folder — the one holding `manifest.json`.
 3. Navigate to a Landing Standby search page (`https://www.hellolanding.com/s/{location}/apartments/standby`) or a detail page (`https://www.hellolanding.com/homes/{slug}/standby`). Search cards are annotated as they scroll into view.
-4. Click the extension's toolbar icon to open the side panel. It stays disabled on every other page.
+4. Click the extension's toolbar icon, or a card's **View evidence** button, to open the side panel. It stays disabled on every other page.
 5. Use **Refresh** to force a fresh check; the panel labels retained evidence as an older check while refreshing or after a failed refresh.
+
+### Reloading after a change
+
+Editing a file under `src/` does not reach an already-loaded extension. With
+Developer mode on, the extension's card on `chrome://extensions` carries a
+circular **↻** reload control at its lower right; click it, then **reload the
+Landing tab as well**. A reload of the extension orphans the content scripts
+already injected into open tabs — they stop annotating and give no visible
+error — so a Landing tab left open across an extension reload will look
+silently dead until it is reloaded.
+
+If annotations stop appearing with no console error, check that in the same
+order: reload the extension, reload the tab, then confirm on the extension's
+**Details** page that **Site access** covers `www.hellolanding.com`. Chrome
+also keeps errors from earlier builds on that page; press **Clear all** before
+reading anything there as current.
+
+### Verifying a local load
+
+`npm run verify:browser` is the repeatable form of this: it loads this same
+folder unpacked into a real Chromium and checks the whole search-to-panel
+workflow against the live public site. Run it after loading to confirm the
+build is sound; what it covers, and what it cannot, is below.
 
 ## Manual browser verification (acceptance criterion, not fixture-testable)
 
@@ -63,7 +92,7 @@ The automated suite (`npm test`) exercises the public-evidence-to-panel-output s
 - `fetch('https://www.hellolanding.com/api/public/homes/apartment-in-austin-tx-lantana-hills-2321', { credentials: 'omit', redirect: 'error' })` → `200`, `type: "basic"`, `redirected: false`, valid JSON with a non-empty `availability.ranges` array. No CSP block, no redirect.
 - No `<meta http-equiv="Content-Security-Policy">` tag on the page.
 
-**Observed 2026-09-11 via `npm run verify:browser`**, extension loaded unpacked in Chromium against the live detail and search pages (31/31 checks):
+**Observed 2026-09-11 via `npm run verify:browser`**, extension loaded unpacked in Chromium against the live detail and search pages (42/42 checks):
 
 - The content script parses and runs. It previously did **not**: `content_scripts` had `"type": "module"`, which is not a supported manifest key, so every static `import` threw `Cannot use import statement outside a module` and the script died before doing anything. Found only by loading it in a browser — the fixture suite cannot see this. `content-script.js` is now a classic one-line dynamic-import loader for `src/content/main.js`.
 - Imported extension modules resolve, confirming they must be listed in `web_accessible_resources`.
@@ -77,15 +106,65 @@ On the Standby search route (`/s/austin-tx/apartments/standby`), signed out: 32 
 
 The card's visible identity differs from the detail page's, which is why it has its own check: a card reads `"Cortland Southpark Terraces4.2Unit 1831|2|1Available…"` while the public response names that unit `"Cortland Southpark Terraces 1831"`. An exact heading comparison, reused from the detail page, would have rejected every real card.
 
-Still unverified — these need a human at a real Chrome with a signed-in account, because `chrome.sidePanel` has no automation surface and the search flow needs credentials:
+### The side panel, settled
 
-- The side panel actually opens on the toolbar-icon click and stays disabled on non-detail pages (`chrome.sidePanel.setOptions` gating in `src/background/background.js`).
-- The panel is keyboard-operable (Tab to Refresh, Enter/Space activates it) with a visible focus ring, and refresh completion is announced.
-- **A card's View evidence button actually opens the side panel.** Chrome requires `chrome.sidePanel.open()` to run inside the user-gesture task, and this routes a content-script click through the service worker. The button, the message, and the selection it makes are covered by fixtures; whether Chrome honours the gesture across that hop is not something Playwright can show, because `chrome.sidePanel` has no automation surface. If it does not, the panel must be opened another way — revise the design rather than reaching for a keepalive or a synthetic gesture.
-- The signed-in search-to-detail handoff, and that scanning cards never opens the panel or moves focus.
-- Rate-limit behaviour against a real 429: that offscreen card reads pause, the selected unit still loads, and the on-page Resume control releases the held reads.
-- The panel's open/close port actually disconnects when the side panel is dismissed. The comparison depends on it: a closed panel must stop collecting comparisons for units the member merely browses past. Fixtures cover the controller's response to the signal, but only a real Chrome proves the signal arrives.
-- Reloading the tab or closing it clears in-memory evidence — reopening the panel shows a fresh check, not stale data from before the reload.
-- The signed-in search-to-detail handoff, multiple independent tabs, and service-worker idle/restart behavior.
+The design's largest open question was whether Chrome carries a member's click
+out of the page, through the service worker, and into `chrome.sidePanel.open()`
+— `sidePanel` has no automation surface, so it was recorded as unprovable. It
+is provable without one: `chrome.runtime.getContexts({ contextTypes:
+['SIDE_PANEL'] })` reports the panel document, and an `unhandledrejection`
+listener installed in the worker catches a refused `open()`.
 
-If any of these differ from the design's assumptions, revise the design before changing the request location or permissions.
+**Observed 2026-09-11**, from focusing a card's `View evidence` button and
+pressing Enter — keyboard alone, which is both the accessibility requirement
+and the harder case for the gesture: zero `SIDE_PANEL` contexts before, one
+afterwards (`.../src/panel/panel.html`), and no rejection in the worker. The
+gesture does survive the hop, so the design needs no revision here. The panel
+reads `enabled: true` on a Standby route and `enabled: false` on
+`https://www.hellolanding.com/`, which is the gating in
+`src/background/background.js` observed rather than assumed.
+
+Also now covered by the script: `Refresh` is a real `<button>` that Tab reaches
+with a visible focus ring, and the panel's announcer is a
+`role="status" aria-live="polite"` region — the wording and the moment of the
+announcement stay the fixtures' job. Two tabs on the same unit each issue their
+own uncredentialed read of it rather than sharing one, a reload makes the unit
+be read again rather than resuming the previous page's evidence, and the page's
+own `localStorage`, `sessionStorage` and IndexedDB hold nothing from the
+extension — the stores a content script can reach with no permission at all.
+
+### Observed in a signed-in desktop Chrome, 2026-09-11
+
+Driven through the Claude in Chrome extension against the user's own
+signed-in profile, which the Playwright run cannot reach:
+
+- The Standby search route annotated as the member scrolled: 32 cards rendered, 4 annotated on load and 12 after scrolling, one annotation per card, every one carrying a `View evidence` button, all 32 of Landing's anchors still linked and in their original order.
+- `document.activeElement` stayed `BODY` across load, annotation, and scrolling — background observation never moved focus and never opened the panel.
+- Full slugs survive the signed-in card list, including UUID-suffixed ones (`apartment-in-austin-tx-promesa-1323-f8b8cfb9-c931-433e-9c23-033cbc5dab35`).
+- Annotation text wraps (`overflow-wrap: anywhere`), states its status in words, and its `View evidence` control is a native `<button type="button">` with `tabIndex 0`, outside Landing's anchor.
+- The same route annotates in an ordinary hand-opened tab in that profile, confirmed by the user.
+
+### Remaining acceptance gaps
+
+These are not covered by either the fixture suite or `verify:browser`, and are
+reported rather than claimed:
+
+- **The toolbar-icon path.** `chrome.action.onClicked` opening the panel (`src/background/background.js`) has no automation surface — Playwright cannot click a toolbar icon — so only the card's `View evidence` path is verified end to end. Both routes end in the same `chrome.sidePanel.open()` call, and the gating around it is checked.
+- **Rate-limit behaviour against a real 429.** That offscreen card reads pause, the selected unit still loads, and the on-page `Resume reading listings` control releases the held reads. The controller's response is covered by fixtures; Landing did not return a 429 during any observed run, so the live path is unexercised.
+- **The panel's port disconnecting when the side panel is dismissed.** The comparison depends on it — a closed panel must stop collecting comparisons for units merely browsed past. Fixtures cover the controller's response to the signal; nothing here proves Chrome delivers it on dismissal.
+- **Service-worker idle/restart.** The worker holds no state the panel depends on, but that has not been demonstrated across an actual eviction.
+- **Route and locale coverage.** Every observation above is Austin and Dallas, on `/s/{location}/apartments/standby` and `/homes/{slug}/standby`, in English, signed in as one account. No other market, locale, or account tier has been inspected, and general-home routes are deliberately not annotated.
+
+A note on method, so the same false alarm is not chased twice: driving the
+signed-in Chrome through an automation extension, the annotator worked and
+then stopped, giving 32 cards and 0 annotations with no console error and no
+recovery from reloading the page or the extension. The same build annotated
+18/18 cards on three consecutive loads in a clean Chromium profile, kept
+annotating with the side panel open, and annotated normally in a tab the user
+opened by hand in that same signed-in Chrome. The stoppage is an artifact of
+the automated tab — a debugger-attached tab in a managed tab group — not
+extension behaviour. Confirm anything surprising in an ordinary tab before
+recording it as a defect.
+
+If any of these turn out to differ from the design's assumptions, revise the
+design before changing the request location or broadening permissions.
