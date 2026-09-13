@@ -1,5 +1,5 @@
 import { MINIMUM_PEERS } from '../lib/comparison.js';
-import { sixWeekView, describeStandbyOnly } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline } from '../lib/six-week-view.js';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -40,8 +40,11 @@ function summaryItemsFor(summary) {
   const { intersectingReservation: current, nextReservation: next } = summary;
 
   if (current) {
-    const end = current.endDate ? formatDate(current.endDate) : 'an unspecified end';
-    items.push(`A reservation is in progress on the reference date, running from ${formatDate(current.startDate)} to ${end} (end date shown for overlap only).`);
+    let runs = current.endDate
+      ? `runs ${formatDate(current.startDate)} to ${formatDate(current.endDate)}`
+      : `runs from ${formatDate(current.startDate)}, with no end date supplied`;
+    if (current.endDate === current.startDate) runs = `is for ${formatDate(current.startDate)} only`;
+    items.push(`The reservation on this date ${runs}. An end date shows only where it overlaps the calendar, not when a stay could start or end.`);
   }
   if (next) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
@@ -89,6 +92,10 @@ function calendarGrid(weeks, today, checkIn) {
 }
 
 const UNAVAILABLE = 'Unavailable';
+
+// Said once, in the panel only. The last clause is the part a member can't
+// see on the calendar: the gap is a consequence of the reservation after it.
+const STANDBY_ONLY_EXPLAINER = 'Standby-only nights are too few for a standard stay, so only Standby can book them. That lasts only while the reservation after them holds: if it moves or is cancelled, standard stays may be able to book those nights.';
 
 const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
@@ -154,7 +161,7 @@ function comparisonView(state) {
     view.prices = [
       { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
-      { label: 'Peer median', amount: money(comparison.median), unit: 'per month' },
+      { label: `Median of ${comparison.count} similar ${plural(comparison.count, 'home')}`, amount: money(comparison.median), unit: 'per month' },
     ];
   }
 
@@ -281,7 +288,8 @@ export function describeState(state) {
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
     if (state.today && state.referenceDate) {
       const weeks = sixWeekView(state.ranges, state.today, state.referenceDate);
-      view.standbyOnly = describeStandbyOnly(weeks);
+      view.standbyOnly = describeHeadline(weeks, state.summary, state.checkIn);
+      view.standbyOnly.explainer = view.standbyOnly.isStandbyOnly ? STANDBY_ONLY_EXPLAINER : '';
       view.grid = calendarGrid(weeks, state.today, state.checkIn);
     }
   }

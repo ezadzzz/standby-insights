@@ -119,6 +119,7 @@ export function summarizeForReference(ranges, referenceDate) {
 
   const contiguous = isContiguous(ranges);
   return {
+    referenceDate,
     intersectingReservation,
     nextReservation,
     noStandardMoveInBeforeNext,

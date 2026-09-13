@@ -43,7 +43,7 @@ test('price columns retain source labels and never show a median from incomplete
   const view = describeState({ checkedAt: null, comparison }).comparison;
   assert.deepEqual(view.prices, [
     { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
-    { label: 'Peer median', amount: '$2,400', unit: 'per month' },
+    { label: 'Median of 12 similar homes', amount: '$2,400', unit: 'per month' },
   ]);
   assert.match(view.scopeText, /12 other homes.*same market and bedroom count/i);
   assert.match(view.termsNote, /not supplied/);

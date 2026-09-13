@@ -23,6 +23,7 @@ const announcer = document.getElementById('announcer');
 const sixWeeks = document.getElementById('six-weeks');
 const standbyOnlyHeadline = document.getElementById('standby-only-headline');
 const standbyOnlyDetail = document.getElementById('standby-only-detail');
+const standbyOnlyExplainer = document.getElementById('standby-only-explainer');
 const calendarGrid = document.getElementById('calendar-grid');
 
 let tabId = null;
@@ -65,6 +66,8 @@ function render(state) {
     standbyOnlyHeadline.textContent = view.standbyOnly.headline;
     standbyOnlyHeadline.dataset.standbyOnly = String(view.standbyOnly.isStandbyOnly);
     standbyOnlyDetail.textContent = view.standbyOnly.detail;
+    standbyOnlyExplainer.textContent = view.standbyOnly.explainer;
+    standbyOnlyExplainer.hidden = !view.standbyOnly.explainer;
     calendarGrid.setAttribute('aria-label', view.grid.label);
     const blanks = Array.from({ length: view.grid.leadingBlanks }, () => document.createElement('span'));
     calendarGrid.replaceChildren(...blanks, ...view.grid.cells.map((cell) => {
