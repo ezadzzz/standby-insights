@@ -104,8 +104,10 @@ cover.
   from Landing's own card content, so no statement of this extension's can be
   mistaken for Landing's own. Confirmed 2026-09-11 as a product commitment
   about attribution, not a style preference. It applies to the panel too: the
-  panel is this product's surface, not a continuation of Landing's. Cards use
-  the panel's petrol ink for the same reason.
+  panel is this product's surface, not a continuation of Landing's. Cards
+  carry it quietly, confirmed 2026-09-12: an unfilled dashed monospace note
+  under a dark tab that names the source, so attribution is stated in words
+  rather than by a heavy dark block.
 - Voice: precise, unhedged about what is known, explicit about what is not.
   Written from the Standby member's perspective. Status is always carried by
   words, never by color or position alone. Color does carry meaning in one
