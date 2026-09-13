@@ -148,6 +148,7 @@ function harness({ checkIn = { status: 'none', date: null }, referenceDate = '20
     doc,
     getReferenceDate: () => currentReference,
     getCheckIn: () => checkIn,
+    getToday: () => '2026-09-10',
     onViewEvidence: (slug) => viewed.push(slug),
     onResume: () => resumed.push(true),
   });
@@ -224,17 +225,17 @@ test('a reply for a unit no longer on the page annotates nothing', () => {
 });
 
 test('changing the selected check-in re-states every annotation against the new date', () => {
-  const h = harness();
+  const h = harness({ checkIn: { status: 'selected', date: '2026-09-15' } });
   addCard(h.doc, CARD);
   h.annotator.start();
   h.store.set(CARD.response.slug, READY);
-  assert.match(h.annotations()[0].textContent, /Sep 15, 2026/);
+  const marker = () => descendants(h.annotations()[0]).find((el) => el.className === 'standby-strip-check-in').getAttribute('style');
+  const before = marker();
 
   h.setReference('2026-09-20');
   h.annotator.restate();
 
-  assert.match(h.annotations()[0].textContent, /Sep 20, 2026/);
-  assert.doesNotMatch(h.annotations()[0].textContent, /Sep 15, 2026/);
+  assert.notEqual(marker(), before, 'the check-in marker moves with the new date');
 });
 
 test('an unconfirmed card makes no claim and contributes to one page notice', () => {

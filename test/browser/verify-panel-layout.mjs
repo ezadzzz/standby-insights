@@ -52,7 +52,7 @@ try {
       await page.evaluate(s => window.deliver(s), current);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow ${width}/${variant}`);
       assert(await page.locator('#refresh-button').isVisible());
-      assert.equal(await page.locator('#range-list li').count(), current.ranges?.length ?? 0);
+      assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
       if (variant === 'long') assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
       if (variant === 'disagreement') assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
@@ -62,6 +62,7 @@ try {
         assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only thru Sep 24/);
         assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
+        assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12, 2026 – Sep 24, 2026: Standby-only/);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
       }

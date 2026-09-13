@@ -8,15 +8,15 @@ function formatDate(isoDate) {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
 }
 
-function rangeView(range) {
+/** The whole returned range a grid day belongs to, shown on hover. */
+function rangeText(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
   const dateText = `${formatDate(range.startDate)} – ${end}`;
   const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
   let statusText = range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed';
   if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
   if (range.isReservation) statusText = 'Reservation';
-  return { dateText, statusText, text: `${dateText}: ${statusText}`, isReservation: range.isReservation,
-    icon: range.isReservation ? 'calendar' : (range.moveInAllowed ? 'check' : (standbyOnly ? 'info' : 'blocked')) };
+  return `${dateText}: ${statusText}`;
 }
 
 /**
@@ -29,9 +29,8 @@ function referenceNoteText(state) {
   if (state.checkIn?.status === 'disagreement') {
     return `The date on this page and the date in its address disagree, so no date is treated as selected. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
   }
-  if (state.checkIn?.status === 'selected') {
-    return `Relative to your selected check-in of ${formatDate(state.referenceDate)}.`;
-  }
+  // The member's own date is marked on the grid and needs no sentence.
+  if (state.checkIn?.status === 'selected') return '';
   return `No selected check-in date was read. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
 }
 
@@ -83,6 +82,7 @@ function calendarGrid(weeks, today, checkIn) {
         kind: day.kind,
         isToday: index === 0,
         isCheckIn: index === checkInIndex,
+        title: day.range ? rangeText(day.range) : 'Not in the returned calendar',
       };
     }),
   };
@@ -263,7 +263,6 @@ export function describeState(state) {
     standbyOnly: null,
     grid: null,
     summaryItems: [],
-    rangeItems: [],
     factItems: [],
     refreshFailedNote: null,
     comparison: comparisonView(state),
@@ -278,7 +277,6 @@ export function describeState(state) {
   }
 
   if (state.status === 'ready' && Array.isArray(state.ranges)) {
-    view.rangeItems = state.ranges.map(rangeView);
     view.referenceNote = referenceNoteText(state);
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
     if (state.today && state.referenceDate) {

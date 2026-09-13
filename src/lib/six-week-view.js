@@ -57,7 +57,7 @@ export function sixWeekView(ranges, today, referenceDate) {
   for (let i = 0; i < VIEW_DAYS; i += 1) {
     const date = addDays(today, i);
     const range = ranges.find((r) => r.startDate <= date && (r.endDate === null || date <= r.endDate));
-    days.push({ date, kind: kindOf(range) });
+    days.push({ date, kind: kindOf(range), range: range ?? null });
   }
 
   const segments = [];
@@ -117,7 +117,7 @@ export function describeStandbyOnly(view) {
   return {
     isStandbyOnly: false,
     headline: view.covered
-      ? `No standby-only nights through ${short(view.lastDate)}`
+      ? 'No standby-only window detected'
       : `The returned calendar doesn't cover every night through ${short(view.lastDate)}`,
     detail: '',
   };

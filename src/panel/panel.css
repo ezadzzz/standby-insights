@@ -120,7 +120,7 @@ h2 {
 .weekdays, #calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 .weekdays { margin-top: var(--space-4); color: var(--on-3); font-size: 11px; text-align: center; }
 #calendar-grid { margin-top: var(--space-1); forced-color-adjust: none; }
-#calendar-grid span { min-height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1.1; text-align: center; overflow-wrap: normal; }
+#calendar-grid span { cursor: default; min-height: 34px; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1.1; text-align: center; overflow-wrap: normal; }
 #calendar-grid [data-kind="standby-only"], .grid-legend [data-kind="standby-only"] { background: var(--standby-only); color: var(--ink); font-weight: 700; }
 #calendar-grid [data-kind="reserved"], #calendar-grid [data-kind="blocked"], .grid-legend [data-kind="reserved"] { background: var(--hatch); color: var(--on); }
 #calendar-grid [data-kind="move-in"], .grid-legend [data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--rule-strong); }
@@ -148,18 +148,6 @@ h2 {
 #summary-list { min-width: 0; }
 #summary-list li + li { margin-top: var(--space-1); color: var(--on-2); }
 #summary-list li:first-child { font-weight: 600; }
-#range-list:not(:empty) { margin-top: var(--space-3); }
-#range-list li {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: var(--space-3);
-  align-items: start;
-  padding: var(--space-3) 0;
-  border-bottom: 1px solid var(--rule);
-}
-.range-status { display: flex; align-items: flex-start; gap: var(--space-2); }
-.range-status .icon { width: 17px; height: 17px; margin-top: 2px; }
-.reservation-label { font-weight: 600; }
 #comparison-prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: var(--space-4); }
 #comparison-prices > div { min-width: 0; }
 #comparison-prices > div + div { border-left: 1px solid var(--rule-strong); padding-left: var(--space-5); margin-left: var(--space-4); }
@@ -179,7 +167,6 @@ h2 {
   h1 { font-size: 24px; }
   .unit-header { grid-template-columns: minmax(0, 1fr); }
   #refresh-button { justify-self: start; }
-  #range-list li { grid-template-columns: minmax(0, 1fr); gap: var(--space-1); }
   .facts > div { grid-template-columns: minmax(0, 1fr); padding-block: var(--space-2); }
   .facts dt { padding-top: 0; padding-bottom: var(--space-1); }
   .facts dd { grid-column: 1; border: 0; padding: 0 0 var(--space-1) 26px; }

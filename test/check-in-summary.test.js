@@ -38,13 +38,13 @@ const summaryText = (view) => view.summaryItems.join(' | ');
 
 test('a selected check-in spanned by a reservation: the in-progress reservation is stated with its end shown for overlap only', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-10-01' });
-  assert.match(view().referenceNote, /selected check-in/i);
-  assert.match(view().referenceNote, /Oct 1, 2026/);
+  assert.equal(view().referenceNote, '', 'the member’s own date is marked on the grid, not restated');
+  assert.equal(view().grid.cells.find((cell) => cell.isCheckIn).dayText, 'Oct 1');
   assert.match(summaryText(view()), /reservation is in progress/i);
   assert.match(summaryText(view()), /Oct 24, 2026/);
   assert.match(summaryText(view()), /overlap/i);
   assert.match(summaryText(view()), /Next reservation starts Nov 2, 2026/);
-  assert.equal(view().rangeItems.length, 9); // full calendar preserved
+  assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reservation/); // each day names its whole range on hover
 });
 
 test('no reservation before the next one, with continuous coverage: the standard move-in observation is shown', async () => {
@@ -73,7 +73,7 @@ test('a URL/control date disagreement suspends personalized emphasis but keeps c
   assert.match(view().referenceNote, /check date, Sep 11, 2026/);
   // The reference is the check date, so dated facts survive the disagreement.
   assert.match(summaryText(view()), /reservation is in progress/i);
-  assert.equal(view().rangeItems.length, 9);
+  assert.equal(view().grid.cells.some((cell) => cell.isCheckIn), false);
 });
 
 test('a no-reservation calendar describes the returned calendar and its finite coverage', async () => {
@@ -104,7 +104,6 @@ test('a date change updates the visible summary for the same unit without refetc
   controller.selectCheckIn({ status: 'selected', date: '2026-10-25' });
   assert.equal(calls.length, 1);
   assert.match(summaryText(view()), /No standard move-in offered before that reservation/);
-  assert.match(view().referenceNote, /Oct 25, 2026/);
 });
 
 test('a refresh carries the current selected date through to the new evidence', async () => {
@@ -117,7 +116,6 @@ test('a refresh carries the current selected date through to the new evidence', 
   await tick();
   calls[1].resolve(validClosedCalendarHome);
   await tick();
-  assert.match(view().referenceNote, /Oct 25, 2026/);
   assert.match(summaryText(view()), /No standard move-in offered before that reservation/);
 });
 
@@ -129,7 +127,7 @@ test('switching units shows no summary from the previous unit', async () => {
     checkIn: { status: 'selected', date: '2026-10-01' },
   });
   assert.equal(view().summaryItems.length, 0);
-  assert.equal(view().rangeItems.length, 0);
+  assert.equal(view().grid, null);
 });
 
 test('a date change landing while a check is in flight is not reverted by that older response', async () => {
@@ -146,7 +144,6 @@ test('a date change landing while a check is in flight is not reverted by that o
   await tick();
 
   const view = describeState(controller.getState());
-  assert.match(view.referenceNote, /Oct 25, 2026/);
   assert.match(view.summaryItems.join(' | '), /No standard move-in offered before that reservation/);
 });
 
@@ -180,6 +177,6 @@ test('invalid, missing, and contradictory calendars state no conclusions a membe
     assert.equal(view().calendarStatusText, 'Calendar unavailable', home.slug);
     assert.equal(view().summaryItems.length, 0, home.slug);
     assert.equal(view().referenceNote, '', home.slug);
-    assert.equal(view().rangeItems.length, 0, home.slug);
+    assert.equal(view().grid, null, home.slug);
   }
 });

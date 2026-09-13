@@ -24,21 +24,6 @@ function reservationLine(summary, referenceDate) {
 }
 
 /**
- * Says which date the card's statements are made against. A card has room for
- * a date but not for a sentence, which is exactly where a check date is most
- * likely to be read as the member's own plan — so it is named either way
- * (ADR 1).
- */
-function referenceNote(checkIn, referenceDate) {
-  const on = formatDate(referenceDate);
-  if (checkIn?.status === 'selected') return `Relative to your selected check-in of ${on}.`;
-  if (checkIn?.status === 'disagreement') {
-    return `This page and its address disagree on the date, so none is treated as selected. Stated against the check date, ${on}.`;
-  }
-  return `No selected check-in was read. Stated against the check date, ${on}.`;
-}
-
-/**
  * One card's annotation, as words plus the six-week strip. Pure: the DOM
  * wiring decides where this goes, this decides only what it may say.
  *
@@ -51,7 +36,7 @@ function referenceNote(checkIn, referenceDate) {
  * instead of carrying a notice of its own.
  */
 export function describeCard({ evidence, summary, referenceDate, today, checkIn }) {
-  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, detailText: '', strip: null, referenceNote: '', noteText: '' };
+  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, detailText: '', strip: null, noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
     return { ...view, readable: false };
@@ -76,9 +61,9 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   view.headlineText = statement.headline;
   view.isStandbyOnly = statement.isStandbyOnly;
   view.detailText = statement.isStandbyOnly ? statement.detail : reservationLine(summary, referenceDate);
-  // The marker is the member's own date; a check date is already today's edge.
+  // The marker is the member's own date and needs no sentence; without one the
+  // strip's statements run from its labeled Today edge (ADR 1).
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
   view.strip = { segments: weeks.segments, label: weeks.label, checkInIndex, endLabel: formatDate(weeks.lastDate) };
-  view.referenceNote = referenceNote(checkIn, referenceDate);
   return view;
 }

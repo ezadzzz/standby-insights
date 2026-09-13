@@ -303,7 +303,7 @@ test('a first comparison that cannot be completed says so, and the calendar stay
   assert.equal(state.status, 'ready', 'calendar evidence is unaffected');
 
   const view = h.view();
-  assert.equal(view.rangeItems.length, 1);
+  assert.equal(view.grid.cells.length, 42);
   assert.match(view.comparison.statusText, /could not be collected/);
   assert.equal(view.comparison.checkTimeText, '');
 });

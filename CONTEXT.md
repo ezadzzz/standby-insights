@@ -52,8 +52,9 @@ bumped. The gap exists only while the reservation after it holds.
 weekday grid in the panel. Standby-only is green, reservations and other blocked
 days are hatched, standard move-in is outlined, and a day no range covers is
 left blank as *not returned*. The member's selected check-in is marked; a check
-date is not. Statements are made from the reference date forward, and "no
-standby-only nights" requires coverage through the view's last day.
+date is not. Statements are made from the reference date forward, and "No
+standby-only window detected" requires coverage through the view's last day;
+otherwise the view says the returned calendar doesn't cover it.
 
 **Standard move-in** — a range that allows move-in. Its absence is only stated
 under coverage (below).
