@@ -18,12 +18,14 @@ await page.addInitScript(() => {
 // Illustrative presentation fixture, not live Landing evidence.
 const state = {
   status: 'ready', unitName: 'Lantana Hills 2321', checkedAt: Date.UTC(2026,8,11,16), isChecking: false, isStale: false, error: null,
-  referenceDate: '2026-10-01', checkIn: {status:'selected'},
-  summary: {nextReservation: {startDate:'2026-10-14'}, noStandardMoveInBeforeNext:true},
+  today: '2026-09-12', referenceDate: '2026-09-15', checkIn: {status:'selected', date:'2026-09-15'},
+  summary: {nextReservation: {startDate:'2026-09-26'}, noStandardMoveInBeforeNext:true},
   ranges: [
-    {startDate:'2026-09-11',endDate:'2026-10-13',moveInAllowed:false,isReservation:false},
-    {startDate:'2026-10-14',endDate:'2026-11-30',moveInAllowed:false,isReservation:true},
-    {startDate:'2026-12-01',endDate:null,moveInAllowed:true,isReservation:false}
+    {startDate:'2026-09-12',endDate:'2026-09-24',moveInAllowed:false,isReservation:false,unbookableReason:'less_than_minimum_nightly_stay'},
+    {startDate:'2026-09-25',endDate:'2026-09-25',moveInAllowed:false,isReservation:false,unbookableReason:'reserved_move_in_blocked'},
+    {startDate:'2026-09-26',endDate:'2026-10-24',moveInAllowed:false,isReservation:true,unbookableReason:'reserved'},
+    {startDate:'2026-10-25',endDate:'2026-10-31',moveInAllowed:false,isReservation:false,unbookableReason:'less_than_minimum_nightly_stay'},
+    {startDate:'2026-11-01',endDate:null,moveInAllowed:true,isReservation:false,unbookableReason:null}
   ],
   comparison: {status:'ready', count:12, median:2400, subjectPrice:{amount:2144,label:'per month',terms:['6 months'],note:null},checkedAt:Date.UTC(2026,8,11,16)},
   facts: {minimumStay:30,flexOptions:[{label:'6-Month+ Stay',months:6,committedNights:180,specialOffer:true,earlyTerminationFeeType:'one-month-rent',extra:[]}],rating:{average:4.15,count:13},scores:{walk:{value:41,description:'Car-Dependent'},transit:null,bike:{value:52,description:'Bikeable'}}}
@@ -57,6 +59,9 @@ try {
       if (variant === 'missingPrice') assert.match(await page.locator('#comparison-subject').innerText(), /no eligible advertised monthly price/);
       if (variant === 'ready') {
         assert.equal(await page.locator('.facts dt').count(), 6);
+        assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only thru Sep 24/);
+        assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
+        assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
       }

@@ -1,4 +1,5 @@
 import { MINIMUM_PEERS } from '../lib/comparison.js';
+import { sixWeekView, describeStandbyOnly } from '../lib/six-week-view.js';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -10,9 +11,12 @@ function formatDate(isoDate) {
 function rangeView(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
   const dateText = `${formatDate(range.startDate)} – ${end}`;
-  const statusText = range.isReservation ? 'Reservation' : (range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed');
+  const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
+  let statusText = range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed';
+  if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
+  if (range.isReservation) statusText = 'Reservation';
   return { dateText, statusText, text: `${dateText}: ${statusText}`, isReservation: range.isReservation,
-    icon: range.isReservation ? 'calendar' : (range.moveInAllowed ? 'check' : 'blocked') };
+    icon: range.isReservation ? 'calendar' : (range.moveInAllowed ? 'check' : (standbyOnly ? 'info' : 'blocked')) };
 }
 
 /**
@@ -59,6 +63,29 @@ function summaryItemsFor(summary) {
     items.push(`The returned calendar shows no standard move-in range from ${formatDate(summary.coverageStart)} ${through}.`);
   }
   return items;
+}
+
+/**
+ * The six-week calendar grid: the same days as a card's strip, laid out by
+ * weekday so today and the member's check-in can be found at a glance. The
+ * grid's label states every stretch in words.
+ */
+function calendarGrid(weeks, today, checkIn) {
+  const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
+  const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return {
+    label: weeks.label,
+    leadingBlanks: new Date(`${today}T00:00:00Z`).getUTCDay(),
+    cells: weeks.days.map((day, index) => {
+      const date = new Date(`${day.date}T00:00:00Z`);
+      return {
+        dayText: index === 0 || date.getUTCDate() === 1 ? monthDay.format(date) : String(date.getUTCDate()),
+        kind: day.kind,
+        isToday: index === 0,
+        isCheckIn: index === checkInIndex,
+      };
+    }),
+  };
 }
 
 const UNAVAILABLE = 'Unavailable';
@@ -233,6 +260,8 @@ export function describeState(state) {
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
     referenceNote: '',
+    standbyOnly: null,
+    grid: null,
     summaryItems: [],
     rangeItems: [],
     factItems: [],
@@ -252,6 +281,11 @@ export function describeState(state) {
     view.rangeItems = state.ranges.map(rangeView);
     view.referenceNote = referenceNoteText(state);
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
+    if (state.today && state.referenceDate) {
+      const weeks = sixWeekView(state.ranges, state.today, state.referenceDate);
+      view.standbyOnly = describeStandbyOnly(weeks);
+      view.grid = calendarGrid(weeks, state.today, state.checkIn);
+    }
   }
 
   // Facts are independent of the calendar: they render whenever the response

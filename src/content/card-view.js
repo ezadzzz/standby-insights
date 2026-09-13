@@ -1,3 +1,5 @@
+import { sixWeekView, describeStandbyOnly } from '../lib/six-week-view.js';
+
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 function formatDate(isoDate) {
@@ -22,20 +24,6 @@ function reservationLine(summary, referenceDate) {
 }
 
 /**
- * The standard move-in observation for the reference date. A date the returned
- * calendar does not cover yields no claim in either direction: missing evidence
- * is not an absence of move-in, and it is not an offer either.
- */
-function moveInLine(summary, referenceDate) {
-  if (summary.moveInOnReferenceDate === null) {
-    return `${formatDate(referenceDate)} is not covered by the returned calendar`;
-  }
-  return summary.moveInOnReferenceDate
-    ? `Standard move-in offered ${formatDate(referenceDate)}`
-    : `No standard move-in offered ${formatDate(referenceDate)}`;
-}
-
-/**
  * Says which date the card's statements are made against. A card has room for
  * a date but not for a sentence, which is exactly where a check date is most
  * likely to be read as the member's own plan — so it is named either way
@@ -51,15 +39,19 @@ function referenceNote(checkIn, referenceDate) {
 }
 
 /**
- * One card's annotation, as words. Pure: the DOM wiring decides where this
- * goes, this decides only what it may say.
+ * One card's annotation, as words plus the six-week strip. Pure: the DOM
+ * wiring decides where this goes, this decides only what it may say.
+ *
+ * The headline is what a Standby member scans a results column for: whether
+ * a standby-only gap is open from their date. Without one, the reservation
+ * line carries the card's reservation fact instead.
  *
  * `readable` false means no unit-specific claim may be attached at all — the
  * card contributes to the single "Some listings couldn't be read" notice
  * instead of carrying a notice of its own.
  */
-export function describeCard({ evidence, summary, referenceDate, checkIn }) {
-  const view = { readable: true, statusText: '', reservationText: '', moveInText: '', referenceNote: '', noteText: '' };
+export function describeCard({ evidence, summary, referenceDate, today, checkIn }) {
+  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, detailText: '', strip: null, referenceNote: '', noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
     return { ...view, readable: false };
@@ -68,7 +60,7 @@ export function describeCard({ evidence, summary, referenceDate, checkIn }) {
   if (evidence.isStale) view.noteText = 'Showing an older check';
 
   // Neither of these is a claim about the unit, so they are kept out of the
-  // line that carries one.
+  // lines that carry one.
   if (evidence.checkedAt === null) {
     view.statusText = evidence.isChecking ? 'Checking…' : '';
     return view;
@@ -79,8 +71,14 @@ export function describeCard({ evidence, summary, referenceDate, checkIn }) {
     return view;
   }
 
-  view.reservationText = reservationLine(summary, referenceDate);
-  view.moveInText = moveInLine(summary, referenceDate);
+  const weeks = sixWeekView(evidence.ranges, today, referenceDate);
+  const statement = describeStandbyOnly(weeks);
+  view.headlineText = statement.headline;
+  view.isStandbyOnly = statement.isStandbyOnly;
+  view.detailText = statement.isStandbyOnly ? statement.detail : reservationLine(summary, referenceDate);
+  // The marker is the member's own date; a check date is already today's edge.
+  const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
+  view.strip = { segments: weeks.segments, label: weeks.label, checkInIndex, endLabel: formatDate(weeks.lastDate) };
   view.referenceNote = referenceNote(checkIn, referenceDate);
   return view;
 }

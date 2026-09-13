@@ -26,6 +26,19 @@
     <section id="calendar-section" aria-labelledby="calendar-heading">
       <h2 id="calendar-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#calendar" /></svg>Calendar</h2>
       <p id="calendar-status" role="status"></p>
+      <div id="six-weeks" hidden>
+        <p id="standby-only-headline"></p>
+        <p id="standby-only-detail"></p>
+        <div class="weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+        <div id="calendar-grid" role="img"></div>
+        <ul class="grid-legend" aria-hidden="true">
+          <li><i data-kind="standby-only"></i>Standby-only</li>
+          <li><i data-kind="reserved"></i>Reserved or move-in blocked</li>
+          <li><i data-kind="move-in"></i>Standard move-in</li>
+          <li><i class="today-key"></i>Today</li>
+          <li><i class="check-in-key"></i>Your check-in</li>
+        </ul>
+      </div>
       <p id="reference-note"></p>
       <div id="calendar-summary" class="summary" hidden>
         <svg class="icon" aria-hidden="true"><use href="icons.svg#info" /></svg>

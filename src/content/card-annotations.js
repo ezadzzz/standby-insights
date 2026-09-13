@@ -1,6 +1,8 @@
 import { summarizeForReference } from '../lib/calendar.js';
 import { parseCardSlugFromHref } from './page-adapter.js';
 import { describeCard } from './card-view.js';
+import { checkDate } from '../lib/reference-date.js';
+import { VIEW_DAYS } from '../lib/six-week-view.js';
 
 const CARD_LINK = 'a[data-testid="pdp-home-card-link"]';
 const ANNOTATION_ATTRIBUTE = 'data-standby-evidence';
@@ -27,6 +29,7 @@ export function createCardAnnotator({
   doc,
   getReferenceDate,
   getCheckIn,
+  getToday = checkDate,
   onViewEvidence,
   onResume,
 }) {
@@ -54,7 +57,7 @@ export function createCardAnnotator({
     const summary = Array.isArray(evidence.ranges) && evidence.ranges.length > 0
       ? summarizeForReference(evidence.ranges, referenceDate)
       : null;
-    return describeCard({ evidence, summary, referenceDate, checkIn: getCheckIn?.() });
+    return describeCard({ evidence, summary, referenceDate, today: getToday(), checkIn: getCheckIn?.() });
   }
 
   function buildAnnotation(slug) {
@@ -64,10 +67,17 @@ export function createCardAnnotator({
 
     const status = doc.createElement('p');
     status.className = 'standby-evidence-status';
-    const reservation = doc.createElement('p');
-    reservation.className = 'standby-evidence-line';
-    const moveIn = doc.createElement('p');
-    moveIn.className = 'standby-evidence-line';
+    const headline = doc.createElement('p');
+    headline.className = 'standby-evidence-headline';
+    const detail = doc.createElement('p');
+    detail.className = 'standby-evidence-line';
+    // The strip repeats the words above as a picture; its label says every
+    // stretch in words, so nothing it shows is carried by colour alone.
+    const strip = doc.createElement('div');
+    strip.className = 'standby-strip';
+    strip.setAttribute('role', 'img');
+    const scale = doc.createElement('p');
+    scale.className = 'standby-strip-scale';
     const reference = doc.createElement('p');
     reference.className = 'standby-evidence-note';
     const note = doc.createElement('p');
@@ -87,10 +97,37 @@ export function createCardAnnotator({
       onViewEvidence?.(slug);
     });
 
-    // Card order the specification fixes: reservation summary, standard
-    // move-in observation, then View evidence.
-    container.append(status, reservation, moveIn, reference, note, button);
-    return { container, status, reservation, moveIn, reference, note, slug };
+    // Card order the specification fixes: standby-only headline, its detail,
+    // the six-week strip, the reference date, then View evidence.
+    container.append(status, headline, detail, strip, scale, reference, note, button);
+    return { container, status, headline, detail, strip, scale, reference, note, slug };
+  }
+
+  function paintStrip(parts, strip) {
+    parts.strip.hidden = strip === null;
+    parts.scale.hidden = strip === null;
+    if (strip === null) return;
+    parts.strip.setAttribute('aria-label', strip.label);
+    const pieces = strip.segments.map((segment) => {
+      const piece = doc.createElement('span');
+      piece.className = 'standby-strip-segment';
+      piece.setAttribute('data-kind', segment.kind);
+      piece.setAttribute('style', `flex-grow: ${segment.days}`);
+      return piece;
+    });
+    if (strip.checkInIndex !== null) {
+      const marker = doc.createElement('span');
+      marker.className = 'standby-strip-check-in';
+      marker.setAttribute('style', `left: ${((strip.checkInIndex + 0.5) / VIEW_DAYS) * 100}%`);
+      pieces.push(marker);
+    }
+    parts.strip.replaceChildren(...pieces);
+    const start = doc.createElement('span');
+    start.textContent = 'Today';
+    const end = doc.createElement('span');
+    end.textContent = strip.endLabel;
+    parts.scale.replaceChildren(start, end);
+    parts.scale.setAttribute('aria-hidden', 'true');
   }
 
   function paint(slug) {
@@ -115,8 +152,10 @@ export function createCardAnnotator({
       // single page notice instead of stating anything of its own.
       parts.container.hidden = !view.readable;
       parts.status.textContent = view.statusText;
-      parts.reservation.textContent = view.reservationText;
-      parts.moveIn.textContent = view.moveInText;
+      parts.headline.textContent = view.headlineText;
+      parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
+      parts.detail.textContent = view.detailText;
+      paintStrip(parts, view.strip);
       parts.reference.textContent = view.referenceNote;
       parts.note.textContent = view.noteText;
     }

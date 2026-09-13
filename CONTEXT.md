@@ -38,6 +38,23 @@ unbookable reason is called a reservation. A reservation's end date is shown
 **for overlap display only**: it is never a protected, safe-until, or guaranteed
 duration.
 
+**Standby-only** — a range whose unbookable reason is
+`less_than_minimum_nightly_stay`: too few nights for a standard stay, so only
+Standby can book them. Contiguous standby-only ranges read as one **standby-only
+gap**, named with its end ("Standby-only thru Sep 24") and the reservation that
+shortens it ("Standard stays can't fit before the Sep 26 reservation"). This is
+what a Standby member scans for, and the extension states it from their side.
+It is Landing's published reason, never inferred from neighbouring ranges, and
+it says only that a standard stay cannot fit — not that the member cannot be
+bumped. The gap exists only while the reservation after it holds.
+
+**Six-week view** — the 42 days from today drawn as a strip on each card and a
+weekday grid in the panel. Standby-only is green, reservations and other blocked
+days are hatched, standard move-in is outlined, and a day no range covers is
+left blank as *not returned*. The member's selected check-in is marked; a check
+date is not. Statements are made from the reference date forward, and "no
+standby-only nights" requires coverage through the view's last day.
+
 **Standard move-in** — a range that allows move-in. Its absence is only stated
 under coverage (below).
 
@@ -101,8 +118,11 @@ explicit **Refresh** is what starts a new bounded attempt.
 
 ## Terms deliberately not used
 
-**Bump risk**, **protection**, **safe until**, **guaranteed** — the extension
-makes no such claim, and the spec forbids deriving one from this evidence.
+**Bump risk**, **protection**, **protected thru**, **safe until**, **guaranteed**
+— the extension makes no such claim, and the spec forbids deriving one from this
+evidence. No Standby stay is ever truly protected: a standby-only gap can open
+to standard bookings if the reservation after it changes. Say **standby-only**
+instead.
 
 **Special offer** as a unit-level fact — the flag is scoped to one commitment
 term on one unit and only says an offer is *advertised*. Whether a stay is
