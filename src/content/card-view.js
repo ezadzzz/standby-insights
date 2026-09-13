@@ -57,7 +57,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   }
 
   const weeks = sixWeekView(evidence.ranges, today, referenceDate);
-  const statement = describeStandbyOnly(weeks);
+  const statement = describeStandbyOnly(weeks, { isStale: evidence.isStale });
   view.headlineText = statement.headline;
   view.isStandbyOnly = statement.isStandbyOnly;
   view.detailText = statement.isStandbyOnly ? statement.detail : reservationLine(summary, referenceDate);

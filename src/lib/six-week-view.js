@@ -99,8 +99,17 @@ export function sixWeekView(ranges, today, referenceDate) {
  * The words a member scans for. A standby-only gap is stated from Landing's
  * reason with the reservation that shortens it; nothing here says the member
  * cannot be bumped, only that a standard stay cannot fit.
+ *
+ * Evidence from an older check says so in the headline itself, so the words a
+ * member scans are never stronger than the check behind them.
  */
-export function describeStandbyOnly(view) {
+export function describeStandbyOnly(view, { isStale = false } = {}) {
+  const statement = standbyOnlyStatement(view);
+  if (isStale) statement.headline = `From an older check: ${statement.headline}`;
+  return statement;
+}
+
+function standbyOnlyStatement(view) {
   const { gap } = view;
   if (gap) {
     let headline;

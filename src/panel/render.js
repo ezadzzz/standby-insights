@@ -281,7 +281,7 @@ export function describeState(state) {
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
     if (state.today && state.referenceDate) {
       const weeks = sixWeekView(state.ranges, state.today, state.referenceDate);
-      view.standbyOnly = describeStandbyOnly(weeks);
+      view.standbyOnly = describeStandbyOnly(weeks, { isStale: state.isStale });
       view.grid = calendarGrid(weeks, state.today, state.checkIn);
     }
   }

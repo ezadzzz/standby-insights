@@ -45,6 +45,7 @@ try {
     disagreement: {...state,checkIn:{status:'disagreement'}},
     insufficient: {...state,comparison:{...state.comparison,status:'insufficient',count:4}},
     missingPrice: {...state,comparison:{...state.comparison,subjectPrice:null}},
+    notReturned: {...state,ranges:state.ranges.slice(0,2)},
   };
   for (const width of [320,480,768,200]) {
     await page.setViewportSize({width,height:900});
@@ -54,8 +55,20 @@ try {
       assert(await page.locator('#refresh-button').isVisible());
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
-      if (variant === 'long') assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
-      if (variant === 'disagreement') assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
+      if (variant === 'long') {
+        assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
+        assert.match(await page.locator('#standby-only-headline').innerText(), /^From an older check: /);
+      }
+      if (variant === 'notReturned') {
+        const missing = page.locator('#calendar-grid [data-kind="not-returned"]');
+        assert(await missing.count() > 0, 'uncovered days are not-returned');
+        assert.notEqual(await missing.first().evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'not-returned days are drawn');
+        assert.match(await page.locator('.grid-legend').innerText(), /Not returned/);
+      }
+      if (variant === 'disagreement') {
+        assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
+        assert(await page.evaluate(() => document.getElementById('reference-note').compareDocumentPosition(document.getElementById('six-weeks')) & Node.DOCUMENT_POSITION_FOLLOWING), 'reference note precedes the grid');
+      }
       if (variant === 'missingPrice') assert.match(await page.locator('#comparison-subject').innerText(), /no eligible advertised monthly price/);
       if (variant === 'ready') {
         assert.equal(await page.locator('.facts dt').count(), 6);
@@ -66,7 +79,7 @@ try {
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
       }
-      if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long'].includes(variant)))) {
+      if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement'].includes(variant)))) {
         await page.screenshot({path:`.impeccable/review/panel-${variant}-${width}.png`,fullPage:true});
       }
     }
@@ -83,5 +96,5 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');
   assert.deepEqual(errors, []);
-  console.log('PASS: 36 width/state combinations; local font and icons; full evidence and missing-data labels; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
+  console.log('PASS: 40 width/state combinations; local font and icons; full evidence and missing-data labels; not-returned days drawn and keyed; older-check headline; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
 } finally { await browser.close(); }

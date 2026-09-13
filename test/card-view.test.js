@@ -146,3 +146,17 @@ test('a card whose page and address disagree marks no check-in', () => {
   assert.equal(view.strip.checkInIndex, null);
   assert.equal(view.headlineText, 'No standby-only window detected');
 });
+
+test('an older check says so in the headline itself, not only in a trailing note', () => {
+  const calendar = deriveCalendarEvidence(validClosedCalendarHome);
+  const base = {
+    summary: summarizeForReference(calendar.ranges, REFERENCE),
+    referenceDate: REFERENCE,
+    today: REFERENCE,
+  };
+  const evidence = { status: 'ready', identity: 'confirmed', ranges: calendar.ranges, isChecking: false, checkedAt: 1000 };
+  const fresh = describeCard({ ...base, evidence: { ...evidence, isStale: false } });
+  const stale = describeCard({ ...base, evidence: { ...evidence, isStale: true } });
+  assert.doesNotMatch(fresh.headlineText, /older check/i);
+  assert.equal(stale.headlineText, `From an older check: ${fresh.headlineText}`);
+});
