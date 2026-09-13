@@ -11,6 +11,18 @@ colors:
   on-2: "#a6c3c8"
   on-3: "#7c9aa2"
   focus: "#a6c3c8"
+  standby-only: "#1d9e75"
+  standby-only-text: "#5dcaa5"
+  standby-only-text-light: "#0f6e52"
+  card-tab: "#22343a"
+  card-tab-on: "#eef3f2"
+  card-on: "#2d3538"
+  card-on-2: "#5d686b"
+  card-on-3: "#7d878a"
+  card-outline: "#a7b0b2"
+  card-hatch: "#b4bcbe"
+  card-hatch-ground: "#f1f3f3"
+  card-move-in: "#8a9598"
 typography:
   body:
     fontFamily: "Archivo, system-ui, sans-serif"
@@ -86,7 +98,7 @@ components:
 
 A compact, ruled evidence sheet in petrol ink, with Archivo typography and neutral outline signposts. Flat surfaces and off-white text keep dense evidence readable without assigning a reassuring or alarming color to its meaning.
 
-This captures the approved September 12, 2026 panel implementation. Card annotations share its petrol ink and the six-week view's color key (below) by a separate decision the same day. The extension retains a distinct identity beside Landing.
+This captures the approved September 12, 2026 panel implementation. Card annotations share the six-week view's color key (below) but not the petrol ground; see Card annotations under Components. The extension retains a distinct identity beside Landing.
 
 **Key Characteristics:**
 
@@ -167,6 +179,12 @@ A semantic description list pairs each amount with its own label and monthly uni
 ### Facts
 
 Ruled description lists pair Minimum stay and Flex with their values, followed by Rating and walk, transit and bike scores in a separate section. Additional detail lines use supporting typography; unavailable facts retain their labels.
+
+### Card annotations
+
+Approved 2026-09-12 (mock "Option E, tabbed margin note") to replace the petrol slab, which outweighed Landing's cards. Source: [card-annotations.css](src/content/card-annotations.css).
+
+An unfilled note on Landing's white page: 1px dashed `card-outline` border, square, with system monospace text (`ui-monospace`; nothing fetched). A dark `card-tab` label reading "Standby Insights" sits across the top border, so attribution is carried by words, not by a heavy block. Headline 12px/600 in `card-on`; supporting lines 11.5px in `card-on-2`. A standby-only headline turns `standby-only-text-light` and gains a 7px `standby-only` square beside its words. The strip is 10px tall with a 1.5px Today edge; reservations use a `card-hatch` hatch on `card-hatch-ground`. View evidence is a borderless monospace text action prefixed with an arrow, underlined on hover, with a 2px `card-on` focus outline.
 
 ### Accessibility and states
 

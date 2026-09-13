@@ -1,99 +1,126 @@
 /* Annotations sit under Landing's own card link and never overlay it. Status
-   is carried by words; the strip repeats them as a picture. The petrol ink is
-   deliberately unlike Landing's own cards, so nothing here reads as theirs. */
+   is carried by words; the strip repeats them as a picture. A dashed, unfilled
+   note in monospace under a dark tab that names the source: nothing Landing
+   draws looks like this, so nothing here reads as theirs, without outweighing
+   the listing itself. */
 .standby-evidence {
-  margin: 4px 0 12px;
-  padding: 10px;
-  border-top: 3px solid #44798a;
-  background: #08171c;
-  color: #edf5f4;
-  font: 13px/1.45 system-ui, sans-serif;
+  position: relative;
+  margin: 16px 0 12px;
+  padding: 13px 10px 8px;
+  border: 1px dashed #a7b0b2;
+  color: #2d3538;
+  font: 11.5px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
   /* Long statements wrap rather than stretching or clipping Landing's layout. */
   overflow-wrap: anywhere;
+}
+.standby-evidence::before {
+  content: "Standby Insights";
+  position: absolute;
+  left: 8px;
+  top: -9px;
+  padding: 1px 6px;
+  background: #22343a;
+  color: #eef3f2;
+  font: 700 9px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
 }
 
 .standby-evidence p { margin: 0; }
 .standby-evidence p:empty { display: none; }
 .standby-evidence-status { margin-bottom: 4px; }
-.standby-evidence-headline { font-size: 14px; font-weight: 600; }
+.standby-evidence-headline { font-size: 12px; font-weight: 600; }
 /* Green is what a Standby member hunts for; the headline's words still say it. */
-.standby-evidence-headline[data-standby-only="true"] { color: #5dcaa5; }
-.standby-evidence-line { color: #a6c3c8; font-size: 12px; margin-top: 2px; }
-.standby-evidence-note { color: #a6c3c8; font-size: 12px; font-style: italic; margin-top: 4px; }
+.standby-evidence-headline[data-standby-only="true"] { color: #0f6e52; }
+.standby-evidence-headline[data-standby-only="true"]::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  vertical-align: 1px;
+  background: #1d9e75;
+  forced-color-adjust: none;
+}
+.standby-evidence-line { color: #5d686b; margin-top: 1px; }
+.standby-evidence-note { color: #5d686b; font-style: italic; margin-top: 4px; }
 
 .standby-strip {
   position: relative;
   display: flex;
-  height: 16px;
-  margin: 10px 0 3px;
+  height: 10px;
+  margin: 9px 0 3px;
   forced-color-adjust: none;
 }
+/* The display rules above would otherwise override the hidden attribute. */
+.standby-strip[hidden],
+.standby-evidence .standby-strip-scale[hidden] { display: none; }
 /* Week dividers and today's edge, drawn over the segments. */
 .standby-strip::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, transparent calc(100% - 1px), #08171c 0) 0 0 / calc(100% / 6) 100%;
+  background: linear-gradient(to right, transparent calc(100% - 1px), #fff 0) 0 0 / calc(100% / 6) 100%;
   pointer-events: none;
 }
 .standby-strip::before {
   content: "";
   position: absolute;
   left: 0;
-  top: -4px;
-  bottom: -4px;
-  width: 2px;
-  background: #edf5f4;
+  top: -3px;
+  bottom: -3px;
+  width: 1.5px;
+  background: #2d3538;
   z-index: 1;
 }
 .standby-strip-segment { flex-basis: 0; min-width: 0; }
 .standby-strip-segment[data-kind="standby-only"] { background: #1d9e75; }
 .standby-strip-segment[data-kind="reserved"],
 .standby-strip-segment[data-kind="blocked"] {
-  background: repeating-linear-gradient(135deg, #7c9aa2 0 2px, #132c36 2px 5px);
+  background: repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px);
 }
-.standby-strip-segment[data-kind="move-in"] { box-shadow: inset 0 0 0 1px #44798a; }
+.standby-strip-segment[data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }
 .standby-strip-segment[data-kind="not-returned"] { background: transparent; }
 .standby-strip-check-in {
   position: absolute;
-  top: -7px;
+  top: -6px;
   width: 0;
   height: 0;
-  margin-left: -5px;
-  border: 5px solid transparent;
-  border-top-color: #edf5f4;
+  margin-left: -4px;
+  border: 4px solid transparent;
+  border-top-color: #2d3538;
   z-index: 1;
 }
-.standby-strip-scale {
+.standby-evidence .standby-strip-scale {
   display: flex;
   justify-content: space-between;
-  color: #7c9aa2;
-  font-size: 11px;
+  color: #7d878a;
+  font-size: 10.5px;
 }
 
-.standby-evidence .standby-evidence-button {
-  margin-top: 8px;
-  padding: 4px 10px;
-  border: 1px solid #44798a;
+.standby-evidence-button {
+  margin-top: 7px;
+  padding: 3px 0;
+  border: 0;
   border-radius: 0;
   background: transparent;
-  color: #edf5f4;
-  font: 600 11px/1.5 system-ui, sans-serif;
-  letter-spacing: .1em;
-  text-transform: uppercase;
+  color: #2d3538;
+  font: 500 11px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
   cursor: pointer;
 }
-.standby-evidence .standby-evidence-button:hover { background: #132c36; }
+.standby-evidence-button::before { content: "→ "; }
+.standby-evidence-button:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Never remove the browser's focus ring; keyboard users need to see it. */
 .standby-evidence-button:focus-visible {
-  outline: 2px solid #a6c3c8;
+  outline: 2px solid #2d3538;
   outline-offset: 2px;
 }
 
 .standby-evidence-notice {
   margin: 8px 0;
-  font-size: 13px;
+  color: #2d3538;
+  font: 12px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
 }
 
 .standby-evidence-notice p {
