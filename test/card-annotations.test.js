@@ -334,5 +334,5 @@ test('an older check keeps its note directly under the headline it qualifies', (
   const classes = h.annotations()[0].children.map((el) => el.className);
   assert.equal(classes[classes.indexOf('standby-evidence-headline') + 1], 'standby-evidence-note');
   const note = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-note');
-  assert.match(note.textContent, /older check/);
+  assert.match(note.textContent, /older check/i);
 });

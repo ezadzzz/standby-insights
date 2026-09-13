@@ -254,7 +254,7 @@ test('the grid marks no check-in when the date is only the check date', () => {
   assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
 });
 
-test('an older check says so in the six-week headline, and not-returned days are their own kind', () => {
+test('an older check leaves the six-week headline plain, and not-returned days are their own kind', () => {
   const state = {
     status: 'ready', identity: 'confirmed', unitName: null, checkedAt: 1000, isChecking: false, error: null,
     today: '2026-09-11', referenceDate: '2026-09-11', checkIn: { status: 'none', date: null },
@@ -262,8 +262,8 @@ test('an older check says so in the six-week headline, and not-returned days are
   };
   const fresh = describeState({ ...state, isStale: false });
   const stale = describeState({ ...state, isStale: true });
-  assert.doesNotMatch(fresh.standbyOnly.headline, /older check/i);
-  assert.equal(stale.standbyOnly.headline, `From an older check: ${fresh.standbyOnly.headline}`);
+  assert.equal(stale.standbyOnly.headline, fresh.standbyOnly.headline);
+  assert.match(stale.checkTimeText, /older check/i);
   const missing = fresh.grid.cells[10];
   assert.equal(missing.kind, 'not-returned');
   assert.equal(missing.title, 'Not in the returned calendar');

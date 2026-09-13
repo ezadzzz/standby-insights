@@ -134,7 +134,7 @@ test('retained evidence being rechecked is marked an older check, in words not c
     referenceDate: REFERENCE,
     today: REFERENCE,
   });
-  assert.match(view.noteText, /older check/);
+  assert.match(view.noteText, /older check/i);
 });
 
 // ADR 1: there is always a reference date. A card names it without a
@@ -147,7 +147,7 @@ test('a card whose page and address disagree marks no check-in', () => {
   assert.equal(view.headlineText, 'No standby-only window detected');
 });
 
-test('an older check says so in the headline itself, not only in a trailing note', () => {
+test('an older check leaves the headline plain and names its check time in the note', () => {
   const calendar = deriveCalendarEvidence(validClosedCalendarHome);
   const base = {
     summary: summarizeForReference(calendar.ranges, REFERENCE),
@@ -157,6 +157,7 @@ test('an older check says so in the headline itself, not only in a trailing note
   const evidence = { status: 'ready', identity: 'confirmed', ranges: calendar.ranges, isChecking: false, checkedAt: 1000 };
   const fresh = describeCard({ ...base, evidence: { ...evidence, isStale: false } });
   const stale = describeCard({ ...base, evidence: { ...evidence, isStale: true } });
-  assert.doesNotMatch(fresh.headlineText, /older check/i);
-  assert.equal(stale.headlineText, `From an older check: ${fresh.headlineText}`);
+  assert.equal(stale.headlineText, fresh.headlineText);
+  assert.equal(fresh.noteText, '');
+  assert.match(stale.noteText, /^Older check · checked [A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}\s[AP]M$/);
 });

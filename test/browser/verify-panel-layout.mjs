@@ -57,7 +57,7 @@ try {
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
       if (variant === 'long') {
         assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
-        assert.match(await page.locator('#standby-only-headline').innerText(), /^From an older check: /);
+        assert.doesNotMatch(await page.locator('#standby-only-headline').innerText(), /older check/i);
       }
       if (variant === 'notReturned') {
         const missing = page.locator('#calendar-grid [data-kind="not-returned"]');
@@ -96,5 +96,5 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');
   assert.deepEqual(errors, []);
-  console.log('PASS: 40 width/state combinations; local font and icons; full evidence and missing-data labels; not-returned days drawn and keyed; older-check headline; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
+  console.log('PASS: 40 width/state combinations; local font and icons; full evidence and missing-data labels; not-returned days drawn and keyed; older-check label beside the check time; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
 } finally { await browser.close(); }
