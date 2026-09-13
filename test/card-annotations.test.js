@@ -324,3 +324,15 @@ test('an href this extension will not treat as a locator is read as unreadable, 
   assert.deepEqual(h.store.reads, [], 'a general listing href triggers no request');
   assert.equal(h.notices().length, 1, 'it contributes to the one notice instead');
 });
+
+test('an older check keeps its note directly under the headline it qualifies', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, isStale: true });
+
+  const classes = h.annotations()[0].children.map((el) => el.className);
+  assert.equal(classes[classes.indexOf('standby-evidence-headline') + 1], 'standby-evidence-note');
+  const note = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-note');
+  assert.match(note.textContent, /older check/i);
+});

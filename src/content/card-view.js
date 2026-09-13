@@ -1,6 +1,7 @@
 import { sixWeekView, describeStandbyOnly } from '../lib/six-week-view.js';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const checkTimeFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
 function formatDate(isoDate) {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
@@ -42,7 +43,13 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
     return { ...view, readable: false };
   }
 
-  if (evidence.isStale) view.noteText = 'Showing an older check';
+  // Sits directly under the headline, so the words and the time of the check
+  // are read before the strip, not after it.
+  if (evidence.isStale) {
+    view.noteText = evidence.checkedAt === null
+      ? 'Older check'
+      : `Older check · checked ${checkTimeFormatter.format(new Date(evidence.checkedAt))}`;
+  }
 
   // Neither of these is a claim about the unit, so they are kept out of the
   // lines that carry one.

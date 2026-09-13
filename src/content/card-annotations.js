@@ -96,8 +96,9 @@ export function createCardAnnotator({
     });
 
     // Card order the specification fixes: standby-only headline, its detail,
-    // the six-week strip, then View evidence.
-    container.append(status, headline, detail, strip, scale, note, button);
+    // the six-week strip, then View evidence. An older-check note sits directly
+    // under the headline it qualifies.
+    container.append(status, headline, note, detail, strip, scale, button);
     return { container, status, headline, detail, strip, scale, note, slug };
   }
 

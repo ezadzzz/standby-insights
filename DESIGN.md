@@ -129,7 +129,7 @@ A dark petrol family supports pale blue-gray secondary text and off-white primar
 
 **The Neutral Evidence Rule.** Status is stated in words; icons and color never replace those words or imply a condition rating.
 
-**The Standby-only Exception.** One color carries meaning: standby-only green (`#1d9e75` fill, `#5dcaa5` text) marks nights too short for a standard stay, always beside words that say so. Reservations and blocked days are a quiet hatch (`#2c5260` on `ink-3` in the panel grid), standard move-in is a `rule-strong` outline, and not-returned days are blank.
+**The Standby-only Exception.** One color carries meaning: standby-only green (`#1d9e75` fill, `#5dcaa5` text) marks nights too short for a standard stay, always beside words that say so. Reservations and blocked days are a quiet hatch (`#2c5260` on `ink-3` in the panel grid), standard move-in is a `rule-strong` outline, and not-returned days are a dot texture (`#2c5260` dots in the panel grid, `card-move-in` dots on the card strip), keyed "Not returned" so missing days never read as open. An older check leaves the headline plain: the card states "Older check · checked {time}" directly under it, and the panel's check time says "(showing an older check)".
 
 ## Typography
 
