@@ -7,9 +7,31 @@ import { fileURLToPath } from 'node:url';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { parseCardSlugFromHref } from '../../src/content/page-adapter.js';
 
 const EXTENSION_PATH = fileURLToPath(new URL('../..', import.meta.url));
-const SLUG = 'apartment-in-austin-tx-lantana-hills-2321';
+const SEARCH_URL = 'https://www.hellolanding.com/s/austin-tx/apartments/standby';
+
+// The detail unit is whichever one Landing lists first right now. A pinned
+// slug goes stale: once a unit has no future availability Landing stops
+// rendering its check-in control, and the selector check fails for a reason
+// that has nothing to do with the extension. Found in a plain browser, so the
+// extension's own reads of the search page never touch this lookup.
+async function currentlyListedSlug() {
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const href = await page.locator('a[data-testid="pdp-home-card-link"]').first().getAttribute('href', { timeout: 30000 });
+    const slug = parseCardSlugFromHref(href);
+    if (!slug) throw new Error(`no Standby card slug found on ${SEARCH_URL} (first href: ${href})`);
+    return slug;
+  } finally {
+    await browser.close();
+  }
+}
+
+const SLUG = await currentlyListedSlug();
 const DETAIL_URL = `https://www.hellolanding.com/homes/${SLUG}/standby?startDate=2026-10-01`;
 
 const results = [];
@@ -204,7 +226,7 @@ try {
   const searchErrors = [];
   searchPage.on('console', (m) => { if (m.type() === 'error') searchErrors.push(m.text()); });
 
-  await searchPage.goto('https://www.hellolanding.com/s/austin-tx/apartments/standby', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await searchPage.goto(SEARCH_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await searchPage.waitForTimeout(14000);
 
   const cards = await searchPage.evaluate(() => {

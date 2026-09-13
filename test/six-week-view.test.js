@@ -55,7 +55,7 @@ test('an unspecified gap end is said to be unspecified, never open-ended', () =>
 
 test('no standby-only nights is stated only when every night through the view is covered', () => {
   const covered = sixWeekView(ranges([{ start_date: '2026-09-01', end_date: '2027-09-01', move_in_allowed: true }]), TODAY, TODAY);
-  assert.equal(describeStandbyOnly(covered).headline, 'No standby-only nights through Oct 23');
+  assert.equal(describeStandbyOnly(covered).headline, 'No standby-only window detected');
 
   const short = sixWeekView(ranges([{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }]), TODAY, TODAY);
   assert.equal(describeStandbyOnly(short).headline, "The returned calendar doesn't cover every night through Oct 23");

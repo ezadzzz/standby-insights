@@ -6,7 +6,6 @@ const checkTime = document.getElementById('check-time');
 const calendarStatus = document.getElementById('calendar-status');
 const referenceNote = document.getElementById('reference-note');
 const summaryList = document.getElementById('summary-list');
-const rangeList = document.getElementById('range-list');
 const comparisonSection = document.getElementById('comparison-section');
 const comparisonStatus = document.getElementById('comparison-status');
 const comparisonSubject = document.getElementById('comparison-subject');
@@ -72,6 +71,7 @@ function render(state) {
       const day = document.createElement('span');
       day.dataset.kind = cell.kind;
       day.textContent = cell.dayText;
+      day.title = cell.title;
       if (cell.isToday) day.classList.add('today');
       if (cell.isCheckIn) day.classList.add('check-in');
       return day;
@@ -83,18 +83,6 @@ function render(state) {
   summaryList.replaceChildren(...view.summaryItems.map((text) => {
     const li = document.createElement('li');
     li.textContent = text;
-    return li;
-  }));
-
-  rangeList.replaceChildren(...view.rangeItems.map((item) => {
-    const li = document.createElement('li');
-    const dates = document.createElement('span');
-    dates.textContent = item.dateText;
-    const status = document.createElement('span');
-    status.className = 'range-status';
-    status.append(icon(item.icon), item.statusText);
-    li.append(dates, status);
-    if (item.isReservation) li.className = 'reservation-label';
     return li;
   }));
 

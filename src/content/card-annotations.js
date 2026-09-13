@@ -78,8 +78,6 @@ export function createCardAnnotator({
     strip.setAttribute('role', 'img');
     const scale = doc.createElement('p');
     scale.className = 'standby-strip-scale';
-    const reference = doc.createElement('p');
-    reference.className = 'standby-evidence-note';
     const note = doc.createElement('p');
     note.className = 'standby-evidence-note';
 
@@ -98,9 +96,9 @@ export function createCardAnnotator({
     });
 
     // Card order the specification fixes: standby-only headline, its detail,
-    // the six-week strip, the reference date, then View evidence.
-    container.append(status, headline, detail, strip, scale, reference, note, button);
-    return { container, status, headline, detail, strip, scale, reference, note, slug };
+    // the six-week strip, then View evidence.
+    container.append(status, headline, detail, strip, scale, note, button);
+    return { container, status, headline, detail, strip, scale, note, slug };
   }
 
   function paintStrip(parts, strip) {
@@ -156,7 +154,6 @@ export function createCardAnnotator({
       parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
       parts.detail.textContent = view.detailText;
       paintStrip(parts, view.strip);
-      parts.reference.textContent = view.referenceNote;
       parts.note.textContent = view.noteText;
     }
     refreshNotice();

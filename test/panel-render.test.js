@@ -5,7 +5,7 @@ import { describeState } from '../src/panel/render.js';
 test('idle state: prompts without asserting anything about a unit', () => {
   const view = describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null });
   assert.equal(view.checkTimeText, 'Not checked yet');
-  assert.equal(view.rangeItems.length, 0);
+  assert.equal(view.grid, null);
   assert.equal(view.headingText, 'Standby evidence');
 });
 
@@ -13,7 +13,7 @@ test('mismatched or ambiguous identity attaches no unit-specific claim, includin
   for (const identity of ['mismatch', 'ambiguous']) {
     const view = describeState({ status: identity, identity, unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null });
     assert.match(view.identityNote, /could not confirm/i);
-    assert.equal(view.rangeItems.length, 0);
+    assert.equal(view.grid, null);
     assert.equal(view.headingText, 'Standby evidence');
   }
 });
@@ -23,29 +23,18 @@ test('unavailable calendar: labeled unavailable, not an empty result', () => {
   assert.equal(view.calendarStatusText, 'Calendar unavailable');
 });
 
-test('ready calendar: shows the validated unit name and chronological range descriptions with reservation and unspecified-end labels', () => {
+test('ready calendar: each grid day names its whole returned range on hover, including an unspecified end', () => {
   const view = describeState({
-    status: 'ready',
-    identity: 'confirmed',
-    unitName: 'Lantana Hills 2321',
+    status: 'ready', identity: 'confirmed', unitName: 'Lantana Hills 2321', checkedAt: 1000, isChecking: false, isStale: false, error: null,
+    today: '2026-09-11', referenceDate: '2026-09-11', checkIn: { status: 'none', date: null },
     ranges: [
       { startDate: '2026-09-11', endDate: '2026-09-11', moveInAllowed: false, isReservation: true, unbookableReason: 'reserved' },
-      { startDate: '2026-12-18', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null },
+      { startDate: '2026-09-12', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null },
     ],
-    checkedAt: 1000,
-    isChecking: false,
-    isStale: false,
-    error: null,
   });
   assert.equal(view.headingText, 'Lantana Hills 2321');
-  assert.equal(view.rangeItems.length, 2);
-  assert.match(view.rangeItems[0].text, /reservation/i);
-  assert.match(view.rangeItems[1].text, /unspecified/i);
-  assert.match(view.rangeItems[1].text, /move-in allowed/i);
-  assert.equal(view.rangeItems[0].statusText, 'Reservation');
-  assert.equal(view.rangeItems[0].icon, 'calendar');
-  assert.equal(view.rangeItems[1].dateText, 'Dec 18, 2026 – unspecified end');
-  assert.equal(view.rangeItems[1].icon, 'check');
+  assert.equal(view.grid.cells[0].title, 'Sep 11, 2026 – Sep 11, 2026: Reservation');
+  assert.equal(view.grid.cells[1].title, 'Sep 12, 2026 – unspecified end: Move-in allowed');
 });
 
 test('price columns retain source labels and never show a median from incomplete evidence', () => {
@@ -82,7 +71,6 @@ test('a failed refresh is labeled an older check with the failure noted, without
     error: 'GateTimeoutError',
   });
   assert.match(view.checkTimeText, /older check/i);
-  assert.equal(view.rangeItems.length, 1);
   assert.ok(view.refreshFailedNote);
 });
 
@@ -252,7 +240,7 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.equal(view.standbyOnly.headline, 'Standby-only thru Sep 24');
   assert.equal(view.grid.leadingBlanks, 6, 'Sep 12, 2026 is a Saturday');
   assert.equal(view.grid.cells.length, 42);
-  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false });
+  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12, 2026 – Sep 24, 2026: Standby-only: too short for a standard stay' });
   assert.equal(view.grid.cells[3].isCheckIn, true);
   assert.equal(view.grid.cells[19].dayText, 'Oct 1');
   assert.match(view.grid.label, /standby-only/);
