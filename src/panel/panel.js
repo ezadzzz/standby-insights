@@ -21,6 +21,10 @@ const comparisonPrices = document.getElementById('comparison-prices');
 const calendarSummary = document.getElementById('calendar-summary');
 const refreshButton = document.getElementById('refresh-button');
 const announcer = document.getElementById('announcer');
+const sixWeeks = document.getElementById('six-weeks');
+const standbyOnlyHeadline = document.getElementById('standby-only-headline');
+const standbyOnlyDetail = document.getElementById('standby-only-detail');
+const calendarGrid = document.getElementById('calendar-grid');
 
 let tabId = null;
 let lastCheckedAt = null;
@@ -56,6 +60,23 @@ function render(state) {
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.refreshFailedNote ? `${view.checkTimeText}. ${view.refreshFailedNote}` : view.checkTimeText;
   calendarStatus.textContent = view.calendarStatusText;
+
+  sixWeeks.hidden = view.grid === null;
+  if (view.grid) {
+    standbyOnlyHeadline.textContent = view.standbyOnly.headline;
+    standbyOnlyHeadline.dataset.standbyOnly = String(view.standbyOnly.isStandbyOnly);
+    standbyOnlyDetail.textContent = view.standbyOnly.detail;
+    calendarGrid.setAttribute('aria-label', view.grid.label);
+    const blanks = Array.from({ length: view.grid.leadingBlanks }, () => document.createElement('span'));
+    calendarGrid.replaceChildren(...blanks, ...view.grid.cells.map((cell) => {
+      const day = document.createElement('span');
+      day.dataset.kind = cell.kind;
+      day.textContent = cell.dayText;
+      if (cell.isToday) day.classList.add('today');
+      if (cell.isCheckIn) day.classList.add('check-in');
+      return day;
+    }));
+  }
 
   referenceNote.textContent = view.referenceNote;
   calendarSummary.hidden = view.summaryItems.length === 0;

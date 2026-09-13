@@ -1,40 +1,93 @@
 /* Annotations sit under Landing's own card link and never overlay it. Status
-   is carried by words, so nothing here is the only signal of anything. */
+   is carried by words; the strip repeats them as a picture. The petrol ink is
+   deliberately unlike Landing's own cards, so nothing here reads as theirs. */
 .standby-evidence {
   margin: 4px 0 12px;
-  padding: 8px 10px;
-  border-left: 3px solid currentColor;
-  font-size: 13px;
-  line-height: 1.4;
+  padding: 10px;
+  border-top: 3px solid #44798a;
+  background: #08171c;
+  color: #edf5f4;
+  font: 13px/1.45 system-ui, sans-serif;
   /* Long statements wrap rather than stretching or clipping Landing's layout. */
   overflow-wrap: anywhere;
 }
 
-.standby-evidence-status,
-.standby-evidence-line,
-.standby-evidence-note {
-  margin: 0 0 4px;
+.standby-evidence p { margin: 0; }
+.standby-evidence p:empty { display: none; }
+.standby-evidence-status { margin-bottom: 4px; }
+.standby-evidence-headline { font-size: 14px; font-weight: 600; }
+/* Green is what a Standby member hunts for; the headline's words still say it. */
+.standby-evidence-headline[data-standby-only="true"] { color: #5dcaa5; }
+.standby-evidence-line { color: #a6c3c8; font-size: 12px; margin-top: 2px; }
+.standby-evidence-note { color: #a6c3c8; font-size: 12px; font-style: italic; margin-top: 4px; }
+
+.standby-strip {
+  position: relative;
+  display: flex;
+  height: 16px;
+  margin: 10px 0 3px;
+  forced-color-adjust: none;
+}
+/* Week dividers and today's edge, drawn over the segments. */
+.standby-strip::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, transparent calc(100% - 1px), #08171c 0) 0 0 / calc(100% / 6) 100%;
+  pointer-events: none;
+}
+.standby-strip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  background: #edf5f4;
+  z-index: 1;
+}
+.standby-strip-segment { flex-basis: 0; min-width: 0; }
+.standby-strip-segment[data-kind="standby-only"] { background: #1d9e75; }
+.standby-strip-segment[data-kind="reserved"],
+.standby-strip-segment[data-kind="blocked"] {
+  background: repeating-linear-gradient(135deg, #7c9aa2 0 2px, #132c36 2px 5px);
+}
+.standby-strip-segment[data-kind="move-in"] { box-shadow: inset 0 0 0 1px #44798a; }
+.standby-strip-segment[data-kind="not-returned"] { background: transparent; }
+.standby-strip-check-in {
+  position: absolute;
+  top: -7px;
+  width: 0;
+  height: 0;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: #edf5f4;
+  z-index: 1;
+}
+.standby-strip-scale {
+  display: flex;
+  justify-content: space-between;
+  color: #7c9aa2;
+  font-size: 11px;
 }
 
-.standby-evidence-status:empty,
-.standby-evidence-note:empty,
-.standby-evidence-line:empty {
-  display: none;
-}
-
-.standby-evidence-note {
-  font-style: italic;
-}
-
-.standby-evidence-button {
-  font: inherit;
+.standby-evidence .standby-evidence-button {
+  margin-top: 8px;
   padding: 4px 10px;
+  border: 1px solid #44798a;
+  border-radius: 0;
+  background: transparent;
+  color: #edf5f4;
+  font: 600 11px/1.5 system-ui, sans-serif;
+  letter-spacing: .1em;
+  text-transform: uppercase;
   cursor: pointer;
 }
+.standby-evidence .standby-evidence-button:hover { background: #132c36; }
 
 /* Never remove the browser's focus ring; keyboard users need to see it. */
 .standby-evidence-button:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid #a6c3c8;
   outline-offset: 2px;
 }
 

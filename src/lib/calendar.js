@@ -63,18 +63,20 @@ export function deriveCalendarEvidence(rawHome) {
   return { status: 'ready', ranges: validated.ranges };
 }
 
-function dayAfter(isoDate) {
+export function addDays(isoDate, days) {
   const d = new Date(`${isoDate}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + 1);
+  d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
 }
+
+const dayAfter = (isoDate) => addDays(isoDate, 1);
 
 function contains(range, isoDate) {
   return range.startDate <= isoDate && (range.endDate === null || isoDate <= range.endDate);
 }
 
 /** True only when ranges cover every day of [from, toExclusive) without a gap. */
-function coversInterval(rangeList, from, toExclusive) {
+export function coversInterval(rangeList, from, toExclusive) {
   if (from >= toExclusive) return false; // no interval to observe
   let cursor = from;
   for (const range of rangeList) {

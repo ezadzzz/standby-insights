@@ -54,9 +54,9 @@ export function createEvidenceController({
   }
 
   function summaryFor(ranges) {
-    if (!Array.isArray(ranges) || ranges.length === 0) return { referenceDate: null, summary: null };
+    if (!Array.isArray(ranges) || ranges.length === 0) return { referenceDate: null, today: null, summary: null };
     const referenceDate = referenceDateFor(checkIn, now);
-    return { referenceDate, summary: summarizeForReference(ranges, referenceDate) };
+    return { referenceDate, today: checkDate(now()), summary: summarizeForReference(ranges, referenceDate) };
   }
 
   /**

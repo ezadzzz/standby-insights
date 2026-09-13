@@ -86,7 +86,7 @@ components:
 
 A compact, ruled evidence sheet in petrol ink, with Archivo typography and neutral outline signposts. Flat surfaces and off-white text keep dense evidence readable without assigning a reassuring or alarming color to its meaning.
 
-This captures the approved September 12, 2026 panel implementation only. It does not prescribe the design of injected card annotations. The extension retains a distinct identity beside Landing.
+This captures the approved September 12, 2026 panel implementation. Card annotations share its petrol ink and the six-week view's color key (below) by a separate decision the same day. The extension retains a distinct identity beside Landing.
 
 **Key Characteristics:**
 
@@ -116,6 +116,8 @@ A dark petrol family supports pale blue-gray secondary text and off-white primar
 - **Focus Blue-Gray** (`focus`): keyboard outline; intentionally matches secondary text.
 
 **The Neutral Evidence Rule.** Status is stated in words; icons and color never replace those words or imply a condition rating.
+
+**The Standby-only Exception.** One color carries meaning: standby-only green (`#1d9e75` fill, `#5dcaa5` text) marks nights too short for a standard stay, always beside words that say so. Reservations and blocked days are a quiet hatch (`#2c5260` on `ink-3` in the panel grid), standard move-in is a `rule-strong` outline, and not-returned days are blank.
 
 ## Typography
 
@@ -180,6 +182,5 @@ Icons are decorative and hidden from assistive technology. Native Refresh remain
 
 ### Don't:
 
-- **Don't** apply this panel palette to injected card annotations without a separate design decision.
-- **Don't** use condition colors or icon-only evidence statuses.
+- **Don't** use condition colors beyond standby-only green, or icon-only evidence statuses.
 - **Don't** add decorative controls, photographs, rounded cards or shadows to this approved panel.

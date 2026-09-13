@@ -239,3 +239,29 @@ test('with no advertised offer, no quote caveat is raised', () => {
   assert.match(item.text, /no special offer advertised/i);
   assert.doesNotMatch(item.details.join(' '), /quoted price/i);
 });
+
+test('ready calendar: leads with the standby-only headline and a six-week grid marking today and the selected check-in', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', unitName: 'Lantana Hills 2321', checkedAt: 1000, isChecking: false, isStale: false, error: null,
+    today: '2026-09-12', referenceDate: '2026-09-15', checkIn: { status: 'selected', date: '2026-09-15' },
+    ranges: [
+      { startDate: '2026-09-12', endDate: '2026-09-24', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+      { startDate: '2026-09-25', endDate: '2026-10-30', moveInAllowed: false, isReservation: true, unbookableReason: 'reserved' },
+    ],
+  });
+  assert.equal(view.standbyOnly.headline, 'Standby-only thru Sep 24');
+  assert.equal(view.grid.leadingBlanks, 6, 'Sep 12, 2026 is a Saturday');
+  assert.equal(view.grid.cells.length, 42);
+  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false });
+  assert.equal(view.grid.cells[3].isCheckIn, true);
+  assert.equal(view.grid.cells[19].dayText, 'Oct 1');
+  assert.match(view.grid.label, /standby-only/);
+});
+
+test('the grid marks no check-in when the date is only the check date', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
+    ranges: [{ startDate: '2026-09-01', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null }],
+  });
+  assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
+});

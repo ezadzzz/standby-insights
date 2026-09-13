@@ -15,6 +15,8 @@ The supplied design records agreement on twelve product decisions. Its consolida
 ## User Stories
 
 1. As a Standby member, I want evidence on cards I encounter, so that I can evaluate units while browsing normally.
+1a. As a Standby member, I want each card to lead with any standby-only gap from my date and a six-week strip of reservations with today and my check-in marked, so that I can scan a results column for units standard members can't book.
+1b. As a member, I want the panel to show the same six weeks as a weekday calendar, so that I can see today, my check-in, and the reservations already on the books at a glance.
 2. As a member, I want Landing's order, links, and controls preserved, so that the extension does not disrupt my search.
 3. As a member, I want each annotation tied to the exact displayed unit, so that another unit's evidence cannot mislead me.
 4. As a member, I want one notice when some listings cannot be read, so that missing annotations are understandable.
@@ -58,7 +60,7 @@ The supplied design records agreement on twelve product decisions. Its consolida
 ### Product decisions carried forward
 
 - Desktop Chrome, rendered Standby results and Standby details, compact card evidence, and a user-opened side panel are the initial scope.
-- Selected check-in changes calendar emphasis; it establishes neither Standby availability nor a checkout boundary. Reservation, Reservation start, and Standard move-in range use the source project's glossary. Standby-only is not synonymous with a selected-date interval observation or a promise about a stay; do not import the web app's complete-scan classification workflow.
+- Selected check-in changes calendar emphasis; it establishes neither Standby availability nor a checkout boundary. Reservation, Reservation start, and Standard move-in range use the source project's glossary. Standby-only means a returned range whose unbookable reason is `less_than_minimum_nightly_stay` (amended 2026-09-12, see `CONTEXT.md`); it is not a promise about a stay. Do not import the web app's complete-scan classification workflow.
 - Comparisons use current advertised monthly prices, the same market and bedrooms, a median, complete coverage, at least five eligible other homes, and disclosed terms/counts.
 - Unit evidence refreshes on opening or detail entry. Comparisons load on first panel use for a market/bedroom combination and remain cached until Refresh. Refresh updates both sources. Missing evidence remains explicitly unavailable.
 - The first deliverable is a separate minimal Manifest V3 extension with bundled local assets and unpacked loading instructions. The existing web application continues independently.
@@ -83,7 +85,7 @@ The supplied design records agreement on twelve product decisions. Its consolida
 - Coalesce duplicate opening events. Scroll, focus, and panel closing do not refresh. On a new selection, show its identity immediately without previous-unit evidence. Refresh bypasses both caches; retained same-unit evidence remains labeled as an older check during refresh and after failure. Failures never advance successful-check time.
 - Start with at most four active requests and four starts per second per page, a 20-second timeout, selected-unit priority, teardown cancellation, and stale selection/refresh generation rejection. Rate limits pause background annotations and leave explicit recovery. No retries, scheduled polling, or service-worker keepalive.
 - Request only fixed public home endpoints and the fixed read-only public search tool. Validate arguments, encode slug segments, omit credentials, and reject unexpected redirects. Page messages cannot choose arbitrary destination URLs or MCP tools. No private API or proxy calls.
-- Card order is reservation summary, standard move-in observation, View evidence. Panel order is identity/date context; check time/Refresh; calendar summary and ranges; comparison with its own check time; minimum-stay/Flex; rating/review count; location scores. Each missing field has an independent unavailable state; zero reviews means unrated.
+- Card order (amended 2026-09-12) is standby-only headline, its detail (the reservation that shortens the gap, or the reservation summary when there is no gap), six-week strip, reference note, View evidence. The strip starts today and marks a selected check-in; green is standby-only, hatching is reserved or blocked, blank is not returned. The panel calendar section leads with the same headline and a six-week weekday grid above the range list. Panel order is identity/date context; check time/Refresh; calendar summary and ranges; comparison with its own check time; minimum-stay/Flex; rating/review count; location scores. Each missing field has an independent unavailable state; zero reviews means unrated.
 - Use native buttons, keyboard interaction, visible focus, meaningful labels, text statuses, wrapping layouts, and polite completion announcements. Background observation never opens the panel or moves focus.
 - Reuse the small reservation filter, Boolean move-in derivation, median, and applicable minimum-stay parsing from the source application after validation. Its fetch cache currently collapses missing ranges into an empty array and reuses cached reads, so that boundary must change. Do not copy protection conclusions, general-search comparison logic, demand marks, proxies, persistence, or unrelated working-tree changes.
 
@@ -107,7 +109,7 @@ Required behavioral cases:
 
 ## Out of Scope
 
-- Web-app changes; Queue; inventory trends or multi-day scans; complete Standby/general visibility scans; safety scores; Protected thru or guaranteed stay claims.
+- Web-app changes; Queue; inventory trends or multi-day scans; complete Standby/general visibility scans; safety scores; Protected thru or guaranteed stay claims (standby-only gaps are stated, never as protection).
 - Private API calls, proxies, backend services, accounts, credential/MFA handling, automatic booking, telemetry, persistent Landing-data storage, and scheduled polling.
 - Uninspected routes/locales, mobile or other-browser support, public store listing, publisher setup, and installation performed by this spec task.
 - Implementation code, dependency installation, repository creation, commits, and deployment during specification synthesis.
