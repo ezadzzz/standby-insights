@@ -64,6 +64,11 @@ export function createCardAnnotator({
     const container = doc.createElement('div');
     container.setAttribute(ANNOTATION_ATTRIBUTE, slug);
     container.className = 'standby-evidence';
+    container.setAttribute('role', 'group');
+    // Attribution is real text, so assistive technology hears the source too.
+    const tab = doc.createElement('span');
+    tab.className = 'standby-evidence-tab';
+    tab.textContent = 'Standby Insights';
 
     const status = doc.createElement('p');
     status.className = 'standby-evidence-status';
@@ -78,6 +83,10 @@ export function createCardAnnotator({
     strip.setAttribute('role', 'img');
     const scale = doc.createElement('p');
     scale.className = 'standby-strip-scale';
+    // The strip's label already speaks every mark; the key is for sighted readers.
+    const key = doc.createElement('p');
+    key.className = 'standby-strip-key';
+    key.setAttribute('aria-hidden', 'true');
     const note = doc.createElement('p');
     note.className = 'standby-evidence-note';
 
@@ -98,13 +107,14 @@ export function createCardAnnotator({
     // Card order the specification fixes: standby-only headline, its detail,
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
-    container.append(status, headline, note, detail, strip, scale, button);
-    return { container, status, headline, detail, strip, scale, note, slug };
+    container.append(tab, status, headline, note, detail, strip, scale, key, button);
+    return { container, status, headline, detail, strip, scale, key, note, button, slug };
   }
 
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
+    parts.key.hidden = strip === null;
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
@@ -127,6 +137,15 @@ export function createCardAnnotator({
     end.textContent = strip.endLabel;
     parts.scale.replaceChildren(start, end);
     parts.scale.setAttribute('aria-hidden', 'true');
+    parts.key.replaceChildren(...strip.key.map(({ kind, text }) => {
+      const item = doc.createElement('span');
+      const mark = doc.createElement('i');
+      mark.setAttribute('data-kind', kind);
+      const words = doc.createElement('span');
+      words.textContent = text;
+      item.append(mark, words);
+      return item;
+    }));
   }
 
   function paint(slug) {
@@ -150,6 +169,10 @@ export function createCardAnnotator({
       // An unreadable card carries no unit claim at all; it contributes to the
       // single page notice instead of stating anything of its own.
       parts.container.hidden = !view.readable;
+      // Every card has a View evidence button; the unit tells them apart by ear.
+      const unitName = store.get(slug)?.unitName;
+      parts.container.setAttribute('aria-label', unitName ? `Standby Insights for ${unitName}` : 'Standby Insights');
+      parts.button.setAttribute('aria-label', unitName ? `View evidence for ${unitName}` : 'View evidence');
       parts.status.textContent = view.statusText;
       parts.headline.textContent = view.headlineText;
       parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
