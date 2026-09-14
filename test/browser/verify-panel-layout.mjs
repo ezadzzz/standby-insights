@@ -33,8 +33,6 @@ const state = {
 try {
   await mkdir(new URL('../../.impeccable/review/', import.meta.url), { recursive: true });
   await page.goto('http://panel.test/src/panel/panel.html');
-  await page.evaluate(() => document.fonts.ready);
-  assert(await page.evaluate(() => document.fonts.check('14px Archivo')), 'local Archivo loaded');
   const variants = {
     ready: state,
     long: {...state, unitName:'LongUnitName'.repeat(12), isStale:true, error:'timeout'},
@@ -46,6 +44,7 @@ try {
     insufficient: {...state,comparison:{...state.comparison,status:'insufficient',count:4}},
     missingPrice: {...state,comparison:{...state.comparison,subjectPrice:null}},
     notReturned: {...state,ranges:state.ranges.slice(0,2)},
+    reserved: {...state,ranges:[{...state.ranges[0],isReservation:true,unbookableReason:'reserved'},...state.ranges.slice(1)],referenceDate:'2026-09-27',checkIn:{status:'selected',date:'2026-09-27'},summary:{referenceDate:'2026-09-27',intersectingReservation:{startDate:'2026-09-26',endDate:'2026-10-24'}}},
   };
   for (const width of [320,480,768,200]) {
     await page.setViewportSize({width,height:900});
@@ -79,8 +78,8 @@ try {
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
       }
-      if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement'].includes(variant)))) {
-        await page.screenshot({path:`.impeccable/review/panel-${variant}-${width}.png`,fullPage:true});
+      if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement','reserved','loading','mismatch'].includes(variant)))) {
+        await page.screenshot({path:`.impeccable/review/panel-note-build-${variant === 'ready' ? '' : variant + '-'}${width}.png`,fullPage:true});
       }
     }
   }
@@ -92,9 +91,8 @@ try {
   assert.equal(await page.locator('#announcer').getAttribute('aria-live'), 'polite');
   assert.equal(await page.locator('#announcer').textContent(), 'Refresh complete.');
   assert.equal(await page.locator('svg:not([aria-hidden="true"])').count(), 0);
-  assert(await page.locator('.brand-mark').evaluate(el => el.getBBox().width > 0), 'local SVG symbols rendered');
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');
   assert.deepEqual(errors, []);
-  console.log('PASS: 40 width/state combinations; local font and icons; full evidence and missing-data labels; not-returned days drawn and keyed; older-check label beside the check time; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
+  console.log('PASS: 40 width/state combinations; no icon or font assets; full evidence and missing-data labels; not-returned days drawn and keyed; older-check label beside the check time; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
 } finally { await browser.close(); }

@@ -3,53 +3,47 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="light" />
   <title>Standby evidence</title>
   <link rel="stylesheet" href="panel.css" />
 </head>
 <body>
-  <header class="masthead">
-    <svg class="brand-mark" aria-hidden="true"><use href="icons.svg#mark" /></svg>
-    <span>Standby Insights</span>
-  </header>
   <main>
-    <header class="unit-header">
-      <h1 id="unit-heading">Standby evidence</h1>
-      <button id="refresh-button" type="button">
-        <svg class="icon" aria-hidden="true"><use href="icons.svg#refresh" /></svg>
-        <span>Refresh</span>
-      </button>
-      <p id="check-time">Not checked yet</p>
-      <p id="identity-note" role="status"></p>
-    </header>
+    <div class="note">
+      <header class="unit-header">
+        <h1 id="unit-heading">Standby evidence</h1>
+        <button id="refresh-button" type="button">Refresh</button>
+        <p id="check-time">Not checked yet</p>
+        <p id="identity-note" role="status"></p>
+      </header>
 
-    <section id="calendar-section" aria-labelledby="calendar-heading">
-      <h2 id="calendar-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#calendar" /></svg>Calendar</h2>
-      <p id="calendar-status" role="status"></p>
-      <p id="reference-note"></p>
-      <div id="six-weeks" hidden>
-        <p id="standby-only-headline"></p>
-        <p id="standby-only-detail"></p>
-        <div class="weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
-        <div id="calendar-grid" role="img"></div>
-        <ul class="grid-legend" aria-hidden="true">
-          <li><i data-kind="standby-only"></i>Standby-only</li>
-          <li><i data-kind="reserved"></i>Reserved or move-in blocked</li>
-          <li><i data-kind="move-in"></i>Standard move-in</li>
-          <li><i data-kind="not-returned"></i>Not returned</li>
-          <li><i class="today-key"></i>Today</li>
-          <li><i class="check-in-key"></i>Your check-in</li>
-        </ul>
-        <p id="standby-only-explainer" class="supporting"></p>
-      </div>
-      <div id="calendar-summary" class="summary" hidden>
-        <svg class="icon" aria-hidden="true"><use href="icons.svg#info" /></svg>
-        <ul id="summary-list"></ul>
-      </div>
-    </section>
+      <section id="calendar-section" aria-labelledby="calendar-heading">
+        <h2 id="calendar-heading">Calendar</h2>
+        <p id="calendar-status" role="status"></p>
+        <p id="reference-note"></p>
+        <div id="six-weeks" hidden>
+          <p id="standby-only-headline"></p>
+          <p id="standby-only-detail"></p>
+          <div class="weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+          <div id="calendar-grid" role="img"></div>
+          <ul class="grid-legend" aria-hidden="true">
+            <li><i data-kind="standby-only"></i>Standby-only</li>
+            <li><i data-kind="reserved"></i>Reserved or move-in blocked</li>
+            <li><i data-kind="move-in"></i>Standard move-in</li>
+            <li><i data-kind="not-returned"></i>Not returned</li>
+            <li><i class="today-key"></i>Today</li>
+            <li><i class="check-in-key"></i>Your check-in</li>
+          </ul>
+          <p id="standby-only-explainer" class="supporting"></p>
+        </div>
+        <div id="calendar-summary" class="summary" hidden>
+          <ul id="summary-list"></ul>
+        </div>
+      </section>
+    </div>
 
     <section id="comparison-section" aria-labelledby="comparison-heading" hidden>
-      <h2 id="comparison-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#tag" /></svg>Advertised price comparison</h2>
+      <h2 id="comparison-heading">Advertised price comparison</h2>
       <dl id="comparison-prices" hidden></dl>
       <p id="comparison-status" role="status"></p>
       <p id="comparison-subject"></p>
@@ -59,11 +53,11 @@
     </section>
 
     <section id="facts-section" aria-labelledby="facts-heading" hidden>
-      <h2 id="facts-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#building" /></svg>Unit and building facts</h2>
+      <h2 id="facts-heading">Unit and building facts</h2>
       <dl id="facts-list" class="facts"></dl>
     </section>
     <section id="location-section" aria-labelledby="location-heading" hidden>
-      <h2 id="location-heading"><svg class="icon" aria-hidden="true"><use href="icons.svg#pin" /></svg>Location and reviews</h2>
+      <h2 id="location-heading">Location and reviews</h2>
       <dl id="location-list" class="facts"></dl>
     </section>
 

@@ -1,0 +1,306 @@
+<!doctype html>
+<!-- Development-only comp for issue #24. Illustrative data, not a live result.
+     Restyle of src/panel: panel.html's element ids, order and render.js wording are
+     kept; the only markup change is .note wrapping the unit header and calendar.
+     States: ?state=ready (default) | reserved | unavailable | loading -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <title>Standby evidence — note comp</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #ffffff;
+      --tab: #22343a;
+      --tab-on: #eef3f2;
+      --on: #2d3538;
+      --on-2: #5d686b;
+      --outline: #a7b0b2;
+      --mark: #8a9598;
+      --standby-only: #1d9e75;
+      --standby-only-text: #0f6e52;
+      --hatch: repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px);
+      --dots: radial-gradient(circle, #8a9598 .9px, transparent 1.3px) 0 0 / 4px 4px;
+      --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      --sans: system-ui, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); scrollbar-color: var(--outline) var(--paper); }
+    body {
+      margin: 0 auto;
+      max-width: 720px;
+      padding: 24px 16px;
+      background: var(--paper);
+      color: var(--on);
+      font: 14px/1.5 var(--sans);
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+    ::selection { color: var(--tab-on); background: var(--tab); }
+    p, h1, h2, ul, dl, dd { margin: 0; }
+    ul { list-style: none; padding: 0; }
+    button { font: inherit; }
+    .masthead { display: none; } /* the note's tab carries attribution */
+
+    /* The card, opened up: the answer a member screened for, under the tab that names the source. */
+    .note {
+      position: relative;
+      padding: 22px 16px 16px;
+      border: 1px dashed var(--outline);
+    }
+    .note::before {
+      content: "Standby Insights";
+      position: absolute;
+      left: 12px;
+      top: -10px;
+      padding: 1px 8px;
+      background: var(--tab);
+      color: var(--tab-on);
+      font: 700 10px/1.8 var(--mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .unit-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 2px 12px;
+    }
+    h1 { font: 600 19px/1.3 var(--mono); letter-spacing: -.01em; overflow-wrap: break-word; padding-top: 10px; }
+    #check-time, #identity-note { grid-column: 1 / -1; }
+    #check-time { color: var(--on-2); font: 12px/1.5 var(--mono); }
+    #identity-note:not(:empty) { margin-top: 8px; font-weight: 600; }
+    #refresh-button {
+      min-height: 44px;
+      padding: 0 2px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--on);
+      font: 500 12px/1 var(--mono);
+      cursor: pointer;
+    }
+    #refresh-button:hover { text-decoration: underline; text-underline-offset: 3px; }
+    #refresh-button:disabled { color: var(--on-2); cursor: wait; text-decoration: none; }
+    #refresh-button:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+
+    section { padding: 20px 0 22px; border-top: 1px dashed var(--outline); }
+    .note section { margin-top: 16px; padding: 16px 0 0; }
+    .note + section { margin-top: 12px; border-top: 0; }
+    h2 {
+      margin-bottom: 12px;
+      color: var(--on-2);
+      font: 700 11px/1.5 var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    #calendar-status:not(:empty) { font: 600 13px/1.45 var(--mono); margin-bottom: 8px; }
+    #reference-note:not(:empty) { color: var(--on-2); margin-bottom: 12px; }
+
+    #standby-only-headline { font: 600 16px/1.35 var(--mono); text-wrap: balance; }
+    #standby-only-headline[data-standby-only="true"] { color: var(--standby-only-text); }
+    #standby-only-headline[data-standby-only="true"]::before {
+      content: "";
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-right: 8px;
+      vertical-align: 1px;
+      background: var(--standby-only);
+      forced-color-adjust: none;
+    }
+    #standby-only-detail { color: var(--on-2); font: 12.5px/1.45 var(--mono); margin-top: 2px; }
+
+    .weekdays, #calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+    .weekdays { margin-top: 14px; color: var(--on-2); font: 11px/1.5 var(--mono); text-align: center; }
+    #calendar-grid { margin-top: 3px; forced-color-adjust: none; }
+    #calendar-grid span {
+      position: relative;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font: 12px/1.1 var(--mono);
+      text-align: center;
+      overflow-wrap: normal;
+      cursor: default;
+    }
+    [data-kind="standby-only"] { background: var(--standby-only); color: #04261b; font-weight: 700 !important; }
+    [data-kind="reserved"], [data-kind="blocked"] { background: var(--hatch); }
+    /* Numerals stay legible over hatch and dots. */
+    #calendar-grid [data-kind="reserved"], #calendar-grid [data-kind="blocked"], #calendar-grid [data-kind="not-returned"] { text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; }
+    [data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--mark); }
+    [data-kind="not-returned"] { background: var(--dots); color: var(--on-2); }
+    #calendar-grid .today { outline: 2px solid var(--on); outline-offset: 1px; z-index: 1; }
+    #calendar-grid .check-in::after { content: ""; position: absolute; top: 2px; right: 2px; border: 4px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
+    .grid-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; color: var(--on-2); font: 12px/1.5 var(--mono); }
+    .grid-legend li { display: flex; align-items: center; gap: 6px; }
+    .grid-legend i { display: inline-block; width: 14px; height: 10px; }
+    .grid-legend .today-key { outline: 2px solid var(--on); outline-offset: -2px; }
+    .grid-legend .check-in-key { width: 0; height: 0; border: 5px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
+    #standby-only-explainer { margin-top: 12px; }
+    .supporting, #comparison-check-time { color: var(--on-2); font-size: 13px; }
+
+    .summary { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--outline); }
+    .summary > .icon { display: none; }
+    #summary-list li:first-child { font-weight: 600; }
+    #summary-list li + li { margin-top: 4px; color: var(--on-2); }
+
+    #comparison-prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 14px; }
+    #comparison-prices > div { min-width: 0; }
+    #comparison-prices > div + div { border-left: 1px dashed var(--outline); padding-left: 16px; }
+    #comparison-prices dt, #comparison-prices dd:last-child { color: var(--on-2); font: 12px/1.45 var(--mono); }
+    .price-amount { font: 600 26px/1.2 var(--mono); letter-spacing: -.02em; margin: 2px 0; color: var(--on); }
+    .price-amount.unavailable { font-size: 15px; letter-spacing: normal; }
+    #comparison-status:not(:empty) { color: var(--on-2); font: 12px/1.45 var(--mono); margin-bottom: 10px; }
+    #comparison-subject:not(:empty) { margin-bottom: 10px; }
+    #comparison-terms:not(:empty) { margin-bottom: 6px; }
+    #comparison-check-time:not(:empty) { margin-top: 8px; font: 12px/1.45 var(--mono); }
+
+    .facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); border-bottom: 1px dashed #d3d8d9; }
+    .facts > div:last-child { border-bottom: 0; }
+    .facts dt { padding: 7px 12px 7px 0; color: var(--on-2); font: 12px/1.5 var(--mono); }
+    .facts dd { grid-column: 2; padding: 7px 0; font: 12.5px/1.5 var(--mono); }
+    .facts dd + dd { color: var(--on-2); font: 13px/1.45 var(--sans); padding-top: 0; }
+    .facts .icon { display: none; }
+
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    @media (max-width: 380px) {
+      body { padding-inline: 12px; }
+      .note { padding-inline: 12px; }
+      .facts > div { grid-template-columns: minmax(0, 1fr); padding-block: 6px; }
+      .facts dt { padding: 0 0 2px; }
+      .facts dd { grid-column: 1; padding: 0 0 2px; }
+      .price-amount { font-size: 22px; }
+    }
+    @media (max-width: 260px) {
+      #comparison-prices { grid-template-columns: minmax(0, 1fr); }
+      #comparison-prices > div + div { border-left: 0; border-top: 1px dashed var(--outline); padding: 12px 0 0; }
+    }
+    @media (forced-colors: active) { .note::before { border: 1px solid CanvasText; } }
+  </style>
+</head>
+<body>
+  <header class="masthead"><span>Standby Insights</span></header>
+  <main>
+    <div class="note">
+      <header class="unit-header">
+        <h1 id="unit-heading">Lantana Hills 2321</h1>
+        <button id="refresh-button" type="button">Refresh</button>
+        <p id="check-time">Checked Sep 13, 2026, 8:40 PM</p>
+        <p id="identity-note" role="status"></p>
+      </header>
+
+      <section id="calendar-section" aria-labelledby="calendar-heading">
+        <h2 id="calendar-heading">Calendar</h2>
+        <p id="calendar-status" role="status"></p>
+        <p id="reference-note"></p>
+        <div id="six-weeks">
+          <p id="standby-only-headline" data-standby-only="true">Standby-only Sep 20 – Sep 26</p>
+          <p id="standby-only-detail">Standard stays can't fit before the Sep 27 reservation</p>
+          <div class="weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+          <div id="calendar-grid" role="img" aria-label="Six weeks from Sep 13 (illustrative)"></div>
+          <ul class="grid-legend" aria-hidden="true">
+            <li><i data-kind="standby-only"></i>Standby-only</li>
+            <li><i data-kind="reserved"></i>Reserved or move-in blocked</li>
+            <li><i data-kind="move-in"></i>Standard move-in</li>
+            <li><i data-kind="not-returned"></i>Not returned</li>
+            <li><i class="today-key"></i>Today</li>
+            <li><i class="check-in-key"></i>Your check-in</li>
+          </ul>
+          <p id="standby-only-explainer" class="supporting">Standby-only nights are too few for a standard stay, so only Standby can book them. That lasts only while the reservation after them holds: if it moves or is cancelled, standard stays may be able to book those nights.</p>
+        </div>
+        <div id="calendar-summary" class="summary">
+          <ul id="summary-list">
+            <li>Next reservation starts Sep 27, 2026.</li>
+            <li>No standard move-in offered before that reservation.</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <section id="comparison-section" aria-labelledby="comparison-heading">
+      <h2 id="comparison-heading">Advertised price comparison</h2>
+      <dl id="comparison-prices">
+        <div><dt>This home</dt><dd class="price-amount">$2,144</dd><dd>per month</dd></div>
+        <div><dt>Median of 14 similar homes</dt><dd class="price-amount">$2,050</dd><dd>per month</dd></div>
+      </dl>
+      <p id="comparison-status" role="status">14 other homes · Same market and bedroom count.</p>
+      <p id="comparison-subject" hidden></p>
+      <p id="comparison-terms" class="supporting">Terms supplied with this price: 12-month commitment.</p>
+      <p id="comparison-disclosure" class="supporting">These are currently advertised monthly prices, which already reflect any discount a home is carrying. Underlying commitment and discount terms differ between homes. This is not a matched-date booking quote and not a prediction that this home’s price will change.</p>
+      <p id="comparison-check-time" class="check-time">Comparison checked Sep 13, 2026, 8:40 PM</p>
+    </section>
+
+    <section id="facts-section" aria-labelledby="facts-heading">
+      <h2 id="facts-heading">Unit and building facts</h2>
+      <dl id="facts-list" class="facts">
+        <div><dt>Minimum stay</dt><dd>30 nights</dd></div>
+        <div><dt>Flex</dt><dd>No special offer advertised on any of the 2 supplied Flex terms</dd><dd>3-month term · 90 committed nights · no special offer advertised</dd><dd>6-month term · 180 committed nights · no special offer advertised · early termination fee: one month rent</dd></div>
+      </dl>
+    </section>
+    <section id="location-section" aria-labelledby="location-heading">
+      <h2 id="location-heading">Location and reviews</h2>
+      <dl id="location-list" class="facts">
+        <div><dt>Rating</dt><dd>4.6 from 38 reviews</dd></div>
+        <div><dt>Walk score</dt><dd>41 (Car-Dependent)</dd></div>
+        <div><dt>Transit score</dt><dd>Unavailable</dd></div>
+        <div><dt>Bike score</dt><dd>48 (Somewhat Bikeable)</dd></div>
+      </dl>
+    </section>
+
+    <p id="announcer" role="status" aria-live="polite" class="visually-hidden"></p>
+  </main>
+  <script>
+    // Illustrative six weeks from Sun Sep 13, 2026, check-in Sep 20.
+    const plan = [['reserved', 7], ['standby-only', 7], ['reserved', 20], ['move-in', 5], ['not-returned', 3]];
+    const kinds = plan.flatMap(([kind, n]) => Array(n).fill(kind));
+    const grid = document.getElementById('calendar-grid');
+    kinds.forEach((kind, i) => {
+      const d = new Date(Date.UTC(2026, 8, 13 + i));
+      const span = document.createElement('span');
+      span.dataset.kind = kind;
+      span.textContent = i === 0 || d.getUTCDate() === 1 ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : d.getUTCDate();
+      if (i === 0) span.classList.add('today');
+      if (i === 7) span.classList.add('check-in');
+      grid.append(span);
+    });
+
+    const $ = (id) => document.getElementById(id);
+    const state = new URLSearchParams(location.search).get('state');
+    if (state === 'reserved') {
+      grid.children[7].dataset.kind = 'reserved';
+      [...grid.children].slice(8, 14).forEach((s) => { s.dataset.kind = 'reserved'; });
+      $('check-time').textContent = 'Checked Sep 13, 2026, 8:12 PM (showing an older check). The last refresh failed; showing the previous check.';
+      $('standby-only-headline').dataset.standbyOnly = 'false';
+      $('standby-only-headline').textContent = 'Reserved on your check-in, Sep 20';
+      $('standby-only-detail').textContent = 'No standby-only window detected';
+      $('standby-only-explainer').hidden = true;
+      $('summary-list').innerHTML = '<li>The reservation on this date runs Sep 13, 2026 to Oct 16, 2026. An end date shows only where it overlaps the calendar, not when a stay could start or end.</li><li>No standard move-in offered before that reservation.</li>';
+      $('comparison-prices').hidden = true;
+      $('comparison-status').textContent = 'Not enough comparable prices: 3 eligible other homes in this market and bedroom count, and at least 5 are needed.';
+      $('comparison-subject').hidden = false;
+      $('comparison-subject').textContent = 'This home: $2,144 per month.';
+    }
+    if (state === 'unavailable' || state === 'loading') {
+      $('six-weeks').hidden = true;
+      $('calendar-summary').hidden = true;
+      $('facts-section').hidden = true;
+      $('location-section').hidden = true;
+      $('comparison-section').hidden = true;
+    }
+    if (state === 'unavailable') {
+      $('identity-note').textContent = 'Evidence unavailable: could not confirm this is the exact displayed unit.';
+      $('calendar-status').textContent = 'Calendar unavailable';
+    }
+    if (state === 'loading') {
+      $('unit-heading').textContent = 'Standby evidence';
+      $('check-time').textContent = 'Checking…';
+      $('refresh-button').disabled = true;
+    }
+  </script>
+</body>
+</html>

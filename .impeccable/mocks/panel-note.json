@@ -1,0 +1,11 @@
+{
+  "approved": true,
+  "approvedAt": "2026-09-13",
+  "approval": "approved, close #24",
+  "issue": 24,
+  "createdAt": "2026-09-13",
+  "source": "Hand-built HTML comp panel-note.html, captured with Playwright at 320px and 480px (no image generation available).",
+  "captures": ["panel-note-ready-320.png", "panel-note-ready-480.png", "panel-note-reserved-320.png", "panel-note-unavailable-320.png", "panel-note-loading-320.png"],
+  "intent": "Converge the panel on the card's note language: white ground, dashed unfilled note under a dark STANDBY INSIGHTS tab around the unit header and calendar; prices, facts and location follow as quieter dashed-ruled sections. Monospace for tabs, labels, dates, prices and grid numerals; system sans for caveat prose. Petrol palette, Archivo and outline icons dropped. Wording, element order and states unchanged from render.js.",
+  "usage": "Development-only design reference. Illustrative data, not a live result. No raster from this comp ships in the panel."
+}
