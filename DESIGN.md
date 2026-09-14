@@ -185,7 +185,7 @@ Card annotations run one step smaller: 11.5px mono body, 12px headline, 11px act
 
 A single column, max 720px, centered, padded 24px vertical and 16px horizontal. The note sits first with 22px top padding (room under the tab) and 16px sides and bottom. Inside the note, the unit header is a two-column grid (name, then Refresh pinned right at auto width) with check time and identity note spanning both columns.
 
-Sections outside the note are separated by a 1px dashed top rule with 20px above content and 22px below; the first section after the note sits 12px down with no rule, since the note's own outline already separates it. Inside the note the calendar section takes a dashed rule with 16px margin and padding. The calendar heading is visually hidden (it remains the section's accessible name); the standby-only headline leads. When the calendar section has nothing to show (empty status, empty reference note, hidden grid and summary), `:has()` removes its rule, margin and padding so no empty ruled band appears.
+Sections outside the note are separated by a 1px dashed top rule with 20px above content and 22px below; the first section after the note sits 12px down with no rule, since the note's own outline already separates it. Inside the note the calendar section takes a dashed rule with 16px margin and padding. The calendar heading is visually hidden (it remains the section's accessible name); the standby-only headline leads. When the calendar section has nothing to show (before any check, or when identity is unconfirmed), the section is hidden outright so neither an empty ruled band nor an empty "Calendar" landmark appears.
 
 The six-week grid is 7 equal columns with 2px gaps, 32px minimum cell height, weekday initials 14px above it. Prices sit in two equal columns with 16px gap and a dashed vertical rule between them. Facts are label/value rows at a 1 : 1.6 ratio with 7px vertical padding and a light dashed divider.
 
@@ -231,6 +231,9 @@ The attribution in words. A dark slate block reading "Standby Insights", upperca
 
 ### Six-Week Grid (signature)
 Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved and blocked days are hatched; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label.
+
+### All Returned Ranges
+A native `<details>`, collapsed, closing the calendar section under a dashed rule. The summary reads "All returned ranges (N)" as a borderless mono text action (12px, 500, 44px target, hover underline, 2px focus outline) with no disclosure marker. Open, it lists every returned range chronologically in 12px mono, one per row on a light dashed divider, with full dates and status words. It is the keyboard and screen-reader path to ranges past the six-week grid and to the per-day detail the grid only offers on hover.
 
 ### Standby Strip (card)
 The grid condensed to a 10px horizontal bar of flex segments using the same state marks (dots at 3px pitch), with white week dividers every sixth, a 1.5px graphite today edge, and a downward graphite triangle for check-in.

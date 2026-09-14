@@ -1,0 +1,35 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "src/panel/panel.html"
+        ],
+        "createdAt": "2026-09-14T06:06:23.020Z",
+        "reason": "agent: <details> summary text is vertically centered in a 44px min-height row under the dashed rule, not flush against it"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "src/panel/panel.html"
+        ],
+        "createdAt": "2026-09-14T06:06:23.120Z",
+        "reason": "agent: scale is the documented DESIGN.md type system; pre-existing, not introduced by #26"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "src/panel/panel.html"
+        ],
+        "createdAt": "2026-09-14T06:06:23.236Z",
+        "reason": "PRODUCT.md (confirmed by member 2026-09-12): hatching marks reservations and blocked days; meaning-carrying texture, not decoration"
+      }
+    ]
+  }
+}

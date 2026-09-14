@@ -17,7 +17,7 @@
         <p id="identity-note" role="status"></p>
       </header>
 
-      <section id="calendar-section" aria-labelledby="calendar-heading">
+      <section id="calendar-section" aria-labelledby="calendar-heading" hidden>
         <h2 id="calendar-heading">Calendar</h2>
         <p id="calendar-status" role="status"></p>
         <p id="reference-note"></p>
@@ -39,6 +39,10 @@
         <div id="calendar-summary" class="summary" hidden>
           <ul id="summary-list"></ul>
         </div>
+        <details id="all-ranges" hidden>
+          <summary id="all-ranges-summary">All returned ranges</summary>
+          <ol id="all-ranges-list"></ol>
+        </details>
       </section>
     </div>
 

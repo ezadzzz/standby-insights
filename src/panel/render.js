@@ -169,7 +169,8 @@ function comparisonView(state) {
   view.termsNote = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note]
     .filter((line) => line)
     .join(' ');
-  view.disclosure = COMPARISON_DISCLOSURE;
+  // The disclosure qualifies price figures, so it appears only beside them.
+  view.disclosure = view.prices.length > 0 ? COMPARISON_DISCLOSURE : '';
 
   if (comparison.checkedAt !== null) {
     view.checkTimeText = `Comparison checked ${timeFormatter.format(new Date(comparison.checkedAt))}`;
@@ -266,9 +267,11 @@ export function describeState(state) {
     identityNote: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
+    calendarVisible: false,
     referenceNote: '',
     standbyOnly: null,
     grid: null,
+    allRanges: [],
     summaryItems: [],
     factItems: [],
     refreshFailedNote: null,
@@ -280,10 +283,19 @@ export function describeState(state) {
   }
 
   if (state.status === 'unavailable') {
-    view.calendarStatusText = 'Calendar unavailable';
+    view.calendarStatusText = state.isChecking
+      ? 'Calendar unavailable. Checking again…'
+      : 'Calendar unavailable. Use Refresh to check again.';
+  } else if (state.isChecking && !Array.isArray(state.ranges)) {
+    view.calendarStatusText = 'Checking the calendar…';
   }
 
   if (state.status === 'ready' && Array.isArray(state.ranges)) {
+    // The grid stops at six weeks; this list is where every returned range,
+    // and each day's detail, stays reachable by keyboard and screen reader.
+    view.allRanges = [...state.ranges]
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+      .map(rangeText);
     view.referenceNote = referenceNoteText(state);
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
     if (state.today && state.referenceDate) {
@@ -303,11 +315,18 @@ export function describeState(state) {
     if (state.isStale) view.checkTimeText += ' (showing an older check)';
   } else if (state.isChecking) {
     view.checkTimeText = 'Checking…';
+  } else if (state.error) {
+    view.checkTimeText = 'Check failed';
+  } else if (view.identityNote) {
+    view.checkTimeText = 'Checked, but this unit could not be confirmed';
   }
 
   if (state.isStale && state.error) {
     view.refreshFailedNote = 'The last refresh failed; showing the previous check.';
   }
+
+  view.calendarVisible = Boolean(view.calendarStatusText || view.referenceNote || view.grid
+    || view.summaryItems.length || view.allRanges.length);
 
   return view;
 }

@@ -25,9 +25,15 @@ const standbyOnlyHeadline = document.getElementById('standby-only-headline');
 const standbyOnlyDetail = document.getElementById('standby-only-detail');
 const standbyOnlyExplainer = document.getElementById('standby-only-explainer');
 const calendarGrid = document.getElementById('calendar-grid');
+const calendarSection = document.getElementById('calendar-section');
+const allRanges = document.getElementById('all-ranges');
+const allRangesSummary = document.getElementById('all-ranges-summary');
+const allRangesList = document.getElementById('all-ranges-list');
 
 let tabId = null;
-let lastCheckedAt = null;
+// 'requested' after the member presses Refresh, 'checking' once that check
+// starts; only its completion is announced, never the panel's first state.
+let refresh = null;
 
 function factRow(item) {
   const row = document.createElement('div');
@@ -48,6 +54,15 @@ function render(state) {
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.refreshFailedNote ? `${view.checkTimeText}. ${view.refreshFailedNote}` : view.checkTimeText;
   calendarStatus.textContent = view.calendarStatusText;
+  calendarSection.hidden = !view.calendarVisible;
+
+  allRanges.hidden = view.allRanges.length === 0;
+  allRangesSummary.textContent = `All returned ranges (${view.allRanges.length})`;
+  allRangesList.replaceChildren(...view.allRanges.map((text) => {
+    const li = document.createElement('li');
+    li.textContent = text;
+    return li;
+  }));
 
   sixWeeks.hidden = view.grid === null;
   if (view.grid) {
@@ -105,9 +120,10 @@ function render(state) {
   factsList.replaceChildren(...view.factItems.slice(0, 2).map(factRow));
   locationList.replaceChildren(...view.factItems.slice(2).map(factRow));
 
-  if (state.checkedAt !== null && state.checkedAt !== lastCheckedAt && !state.isChecking) {
-    lastCheckedAt = state.checkedAt;
-    announcer.textContent = 'Refresh complete.';
+  if (state.isChecking && refresh === 'requested') refresh = 'checking';
+  if (!state.isChecking && refresh === 'checking') {
+    refresh = null;
+    announcer.textContent = state.error ? 'Refresh failed.' : 'Refresh complete.';
   }
 }
 
@@ -121,7 +137,10 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 refreshButton.addEventListener('click', () => {
-  if (tabId !== null) chrome.tabs.sendMessage(tabId, { type: 'request-refresh' });
+  if (tabId === null) return;
+  refresh = 'requested';
+  announcer.textContent = '';
+  chrome.tabs.sendMessage(tabId, { type: 'request-refresh' });
 });
 
 chrome.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {

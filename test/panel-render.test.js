@@ -18,9 +18,56 @@ test('mismatched or ambiguous identity attaches no unit-specific claim, includin
   }
 });
 
-test('unavailable calendar: labeled unavailable, not an empty result', () => {
+test('unavailable calendar: labeled unavailable, not an empty result, with Refresh as the next step', () => {
   const view = describeState({ status: 'unavailable', identity: 'confirmed', unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null });
-  assert.equal(view.calendarStatusText, 'Calendar unavailable');
+  assert.match(view.calendarStatusText, /^Calendar unavailable\. .*Refresh/);
+  assert.equal(view.calendarVisible, true);
+});
+
+test('a failed first check says it failed, not that nothing was checked', () => {
+  const view = describeState({ status: 'unavailable', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: 'GateTimeoutError' });
+  assert.doesNotMatch(view.checkTimeText, /not checked yet/i);
+  assert.match(view.checkTimeText, /failed/i);
+});
+
+test('a mismatched check says the unit could not be confirmed, and renders no calendar section', () => {
+  for (const checkedAt of [null, 1000]) {
+    const view = describeState({ status: 'mismatch', identity: 'mismatch', unitName: null, ranges: null, checkedAt, isChecking: false, isStale: false, error: null });
+    assert.doesNotMatch(view.checkTimeText, /not checked yet/i);
+    assert.equal(view.calendarVisible, false);
+  }
+});
+
+test('loading says the calendar is being checked', () => {
+  const view = describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: true, isStale: false, error: null });
+  assert.match(view.calendarStatusText, /checking the calendar/i);
+  assert.equal(view.calendarVisible, true);
+  assert.equal(describeState({ status: 'idle', checkedAt: null }).calendarVisible, false, 'no calendar section before any check');
+});
+
+test('every returned range is listed chronologically with full dates and status words, including past the six weeks', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
+    ranges: [
+      { startDate: '2027-01-10', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null },
+      { startDate: '2026-09-12', endDate: '2026-09-24', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+      { startDate: '2026-09-25', endDate: '2027-01-09', moveInAllowed: false, isReservation: true, unbookableReason: 'reserved' },
+    ],
+  });
+  assert.deepEqual(view.allRanges, [
+    'Sep 12, 2026 – Sep 24, 2026: Standby-only: too short for a standard stay',
+    'Sep 25, 2026 – Jan 9, 2027: Reservation',
+    'Jan 10, 2027 – unspecified end: Move-in allowed',
+  ]);
+  assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
+});
+
+test('the price disclosure shows only beside shown prices', () => {
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
+  assert.match(describeState({ checkedAt: null, comparison }).comparison.disclosure, /not a prediction/);
+  for (const status of ['unavailable', 'insufficient']) {
+    assert.equal(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.disclosure, '');
+  }
 });
 
 test('ready calendar: each grid day names its whole returned range on hover, including an unspecified end', () => {
@@ -147,7 +194,7 @@ test('an unusable calendar still shows the facts from the same response', () => 
     minimumStay: 30, flexOptions: null, rating: { average: 4.8, count: 6 },
     scores: { walk: null, transit: null, bike: null },
   }, { status: 'unavailable', ranges: null }));
-  assert.equal(view.calendarStatusText, 'Calendar unavailable');
+  assert.match(view.calendarStatusText, /^Calendar unavailable/);
   assert.match(factText(view, 'Minimum stay'), /30 nights/);
   assert.match(factText(view, 'Rating'), /4\.8/);
 });
