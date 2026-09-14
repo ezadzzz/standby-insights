@@ -11,8 +11,10 @@ colors:
   mark: "#8a9598"
   standby-only: "#1d9e75"
   standby-only-text: "#0f6e52"
+  standby-only-numeral: "#04261b"
   hatch-stroke: "#b4bcbe"
   hatch-ground: "#f1f3f3"
+  divider-light: "#d3d8d9"
 typography:
   headline:
     fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
@@ -40,6 +42,11 @@ typography:
     fontFamily: "system-ui, Segoe UI, sans-serif"
     fontSize: "13px"
     fontWeight: 400
+    lineHeight: 1.45
+  status:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "13px"
+    fontWeight: 600
     lineHeight: 1.45
   title:
     fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
@@ -104,6 +111,7 @@ components:
     typography: "{typography.label}"
   grid-day-standby-only:
     backgroundColor: "{colors.standby-only}"
+    textColor: "{colors.standby-only-numeral}"
     typography: "{typography.data}"
     height: "32px"
   price-figure:
@@ -135,7 +143,7 @@ This system replaces the Scout / Picture Desk panel (petrol ink, Archivo display
 A cool-gray ink system on pure white, with one green that means exactly one thing.
 
 ### Primary
-- **Standby Green** (standby-only): the fill for standby-only days in the grid and card strip, the small square before a standby-only headline, and the legend key. Numerals on it are near-black green (#04261b) at weight 700.
+- **Standby Green** (standby-only): the fill for standby-only days in the grid and card strip, the small square before a standby-only headline, and the legend key. Numerals on it are Standby Numeral green (standby-only-numeral), near-black, at weight 700.
 - **Deep Standby Green** (standby-only-text): the headline text color when the answer is standby-only, so the green word stays legible at text sizes.
 
 ### Neutral
@@ -146,8 +154,8 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
 - **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
 - **Mark Gray** (mark): the inset outline of standard move-in days and the dots of not-returned days.
-- **Hatch pair** (hatch-stroke over hatch-ground): the 135-degree stripes (1.5px stroke, 4px repeat) for reserved and move-in-blocked days.
-- Fact rows inside a facts list use a lighter dashed divider (#d3d8d9) than section rules.
+- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved and move-in-blocked days. The card strip and its key draw the same stripes darker, Mark Gray over Paper, so a 10px bar still holds 3:1 against white.
+- **Light Divider** (divider-light): the dashed divider between fact rows and between rows of All returned ranges, one step lighter than section rules.
 
 ### Named Rules
 **The One Green Rule.** Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.
@@ -217,7 +225,7 @@ Borderless text actions, like a typed instruction.
 - **Shape:** square (0px), no border, transparent background.
 - **Refresh (panel):** 12px weight 500 mono in graphite, 2px side padding, 44px minimum target height.
 - **Hover / Focus:** underline with 3px offset on hover; focus-visible is a 2px solid graphite outline at 2px offset. Disabled goes to on-2 with a wait cursor and no underline.
-- **Card action:** the same treatment at 11px with 3px vertical padding.
+- **Card action:** the same treatment at 12px with 3px vertical padding and a "→ " prefix ("View evidence" only; the page notice's Resume has none).
 
 ### Cards / Containers
 - **Corner Style:** square (0px).
@@ -225,9 +233,11 @@ Borderless text actions, like a typed instruction.
 - **Shadow Strategy:** none (see Elevation & Depth).
 - **Border:** 1px dashed Dash Gray.
 - **Internal Padding:** 22px 16px 16px on the panel (12px sides at 380px); 13px 10px 8px on cards.
+- **Card note:** 16px above and 12px below under Landing's card link, never overlaying it. Status line, 13px headline, then on-2 detail lines; a qualifying note line is on-2 italic.
+- **Page notice:** the same note placed above Landing's results grid with no outer margin, 13px text with Resume sharing the line when there is room.
 
 ### Source Tab (signature)
-The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is generated content, not markup, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge.
+The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is generated content, not markup, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge. On cards it is a real element with tighter padding (1px 6px, 1.6 line height).
 
 ### Six-Week Grid (signature)
 Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved and blocked days are hatched; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label.
@@ -236,7 +246,7 @@ Seven columns of 32px day cells with 12px mono numerals. Standby-only days are g
 A native `<details>`, collapsed, closing the calendar section under a dashed rule. The summary reads "All returned ranges (N)" as a borderless mono text action (12px, 500, 44px target, hover underline, 2px focus outline) with no disclosure marker. Open, it lists every returned range chronologically in 12px mono, one per row on a light dashed divider, with full dates and status words. It is the keyboard and screen-reader path to ranges past the six-week grid and to the per-day detail the grid only offers on hover.
 
 ### Standby Strip (card)
-The grid condensed to a 10px horizontal bar of flex segments using the same state marks (dots at 3px pitch), with white week dividers every sixth, a 1.5px graphite today edge, and a downward graphite triangle for check-in.
+The grid condensed to a 10px horizontal bar of flex segments using the same state marks (darker hatch, dots at 3px pitch), with 1px white week dividers splitting it into six weeks, a 1.5px graphite today edge at the left extending 3px past the bar, and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every mark, so the strip reads without opening the panel.
 
 ### Standby-Only Headline
 Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.

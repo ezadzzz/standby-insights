@@ -1,3 +1,10 @@
+> **Superseded 2026-09-14 (#29).** This review signed off on the Scout / Picture
+> Desk panel (petrol surface, local font, outline icons), which the dashed-note
+> redesign replaced (#24, #33). Its verdict, contrast figures and test counts do
+> not describe the shipped panel or cards. The current system is recorded in
+> `DESIGN.md`; build captures are `panel-note-build-*.png` in this folder. No
+> finish review of the note build has been run. Kept as historical evidence.
+
 # Panel finish review — September 12, 2026
 
 Independent reviewer disposition: **ship**. No material fixes requested.
