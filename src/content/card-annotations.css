@@ -144,12 +144,19 @@
   outline-offset: 2px;
 }
 
+/* The page notice is the same note, sitting above Landing's results grid rather
+   than under a card. Landing's column gap already clears the tab, so the note
+   adds no outer margin; its words and Resume share a line when there is room. */
 .standby-evidence-notice {
-  margin: 8px 0;
-  color: #2d3538;
-  font: 12px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 16px;
+  margin: 0;
+  font-size: 12px;
 }
-
-.standby-evidence-notice p {
-  margin: 0 0 6px;
-}
+.standby-evidence-notice p { flex: 1 1 28ch; }
+.standby-evidence-notice .standby-evidence-button { margin: 0; }
+.standby-evidence-notice .standby-evidence-button[hidden] { display: none; }
+/* The arrow belongs to View evidence alone. */
+.standby-evidence-notice .standby-evidence-button::before { content: none; }

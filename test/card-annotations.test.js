@@ -22,6 +22,13 @@ class FakeElement {
 
   getAttribute(name) { return this.attributes.has(name) ? this.attributes.get(name) : null; }
 
+  get parentElement() { return this.parent; }
+
+  closest(selector) {
+    for (let el = this; el; el = el.parent) if (matches(el, selector)) return el;
+    return null;
+  }
+
   get textContent() {
     return this.ownText !== '' ? this.ownText : this.children.map((c) => c.textContent).join('');
   }
@@ -73,6 +80,7 @@ function matches(el, selector) {
     return el.tag === 'a' && el.getAttribute('data-testid') === 'pdp-home-card-link';
   }
   if (selector === '[data-standby-notice]') return el.getAttribute('data-standby-notice') !== null;
+  if (selector === '[data-testid="pdp-home-card-wrapper"]') return el.getAttribute('data-testid') === 'pdp-home-card-wrapper';
   throw new Error(`unsupported selector in fake DOM: ${selector}`);
 }
 
@@ -249,7 +257,37 @@ test('an unconfirmed card makes no claim and contributes to one page notice', ()
 
   assert.ok(h.annotations().every((el) => el.hidden), 'no unit claim is attached');
   assert.equal(h.notices().length, 1, 'two unreadable cards still produce one notice');
-  assert.match(h.notices()[0].textContent, /couldn't be read/);
+  assert.match(h.notices()[0].textContent, /^Standby Insights2 listings couldn't be read\./);
+});
+
+test('the page notice sits before Landing’s results grid, never inside a card', () => {
+  const h = harness();
+  // The live search markup: banner, then one grid of card wrappers.
+  const column = new FakeElement('div');
+  const banner = new FakeElement('div');
+  const grid = new FakeElement('div');
+  column.append(banner, grid);
+  h.doc.root.append(column);
+  for (const card of observedCards.slice(0, 2)) {
+    const wrapper = new FakeElement('div');
+    wrapper.setAttribute('data-testid', 'pdp-home-card-wrapper');
+    const inner = new FakeElement('div');
+    const anchor = new FakeElement('a');
+    anchor.setAttribute('data-testid', 'pdp-home-card-link');
+    anchor.setAttribute('href', card.href);
+    anchor.textContent = card.text;
+    inner.append(anchor);
+    wrapper.append(inner);
+    grid.append(wrapper);
+  }
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, identity: 'mismatch', status: 'mismatch', ranges: null });
+
+  const notice = h.notices()[0];
+  assert.deepEqual(column.children, [banner, notice, grid], 'between Landing’s banner and its grid');
+  assert.equal(notice.closest('[data-testid="pdp-home-card-wrapper"]'), null);
+  assert.equal(notice.children[0].textContent, 'Standby Insights', 'attributed in words like every card note');
+  assert.match(notice.textContent, /1 listing couldn't be read\./);
 });
 
 test('a card whose read failed counts as unreadable, not merely blank', () => {
@@ -279,6 +317,15 @@ test('a rate limit is stated on the page with an explicit way to resume', () => 
   assert.match(notice.textContent, /paused/i);
   const resume = notice.children.find((el) => el.tag === 'button');
   assert.ok(resume, 'recovery is offered, not left to a timer');
+  assert.equal(resume.hidden, false);
+
+  // A card read queued behind the pause is counted, and the repaint it causes
+  // keeps the same button, so a focused Resume is never yanked away.
+  const other = observedCards[1];
+  addCard(h.doc, other);
+  h.store.set(other.response.slug, { isChecking: true, checkedAt: null, isStale: false, ranges: null });
+  assert.match(notice.textContent, /paused\. 1 listing not read\./);
+  assert.equal(notice.children.find((el) => el.tag === 'button'), resume, 'the Resume button survives a repaint');
 
   resume.click();
   assert.equal(h.resumed.length, 1);

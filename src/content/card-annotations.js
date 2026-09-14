@@ -7,10 +7,13 @@ import { VIEW_DAYS } from '../lib/six-week-view.js';
 const CARD_LINK = 'a[data-testid="pdp-home-card-link"]';
 const ANNOTATION_ATTRIBUTE = 'data-standby-evidence';
 const NOTICE_ATTRIBUTE = 'data-standby-notice';
-const NOTICE_SELECTOR = `[${NOTICE_ATTRIBUTE}]`;
+// Observed on the live Austin Standby search, 2026-09-14: one results grid
+// whose children are these wrappers, each holding a card link.
+const CARD_WRAPPER = '[data-testid="pdp-home-card-wrapper"]';
 
-const UNREADABLE_NOTICE = "Some listings couldn't be read.";
 const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
+
+const listings = (n) => `${n} ${n === 1 ? 'listing' : 'listings'}`;
 
 /**
  * Annotates rendered Standby search cards as the member scrolls past them.
@@ -36,6 +39,7 @@ export function createCardAnnotator({
   const annotations = new Map(); // anchor -> { container, slug, ...parts }
   let observer = null;
   let unsubscribe = null;
+  let notice = null; // { container, text, resume }, built on first need
 
   function cardsInDocument() {
     return [...doc.querySelectorAll(CARD_LINK)];
@@ -198,35 +202,62 @@ export function createCardAnnotator({
    * the only place recovery is offered after a rate limit. Paused card reads
    * never resume on a timer: this is where the member asks for them.
    */
+  function buildNotice() {
+    const container = doc.createElement('div');
+    container.setAttribute(NOTICE_ATTRIBUTE, '');
+    container.setAttribute('role', 'status');
+    container.className = 'standby-evidence standby-evidence-notice';
+    const tab = doc.createElement('span');
+    tab.className = 'standby-evidence-tab';
+    tab.textContent = 'Standby Insights';
+    const text = doc.createElement('p');
+    const resume = doc.createElement('button');
+    resume.type = 'button';
+    resume.className = 'standby-evidence-button';
+    resume.textContent = 'Resume reading listings';
+    resume.addEventListener('click', () => onResume?.());
+    container.append(tab, text, resume);
+    return { container, text, resume };
+  }
+
+  /**
+   * Before Landing's results grid, not inside its first card: a sibling of the
+   * grid shifts no card out of row alignment and reads as nobody's listing.
+   * Without the observed card wrapper, it falls back to sitting before the link.
+   */
+  function placeNotice(container) {
+    const first = cardsInDocument()[0];
+    const grid = first?.closest(CARD_WRAPPER)?.parentElement;
+    (grid ?? first)?.insertAdjacentElement('beforebegin', container);
+  }
+
   function refreshNotice() {
-    const unreadable = cardsInDocument().filter(isUnreadable).length;
+    const cards = cardsInDocument();
+    const unreadable = cards.filter(isUnreadable).length;
     const paused = store.isBackgroundPaused;
 
-    let notice = doc.querySelector(NOTICE_SELECTOR);
     if (unreadable === 0 && !paused) {
-      notice?.remove();
+      notice?.container.remove();
       return;
     }
-    if (!notice) {
-      notice = doc.createElement('div');
-      notice.setAttribute(NOTICE_ATTRIBUTE, '');
-      notice.setAttribute('role', 'status');
-      notice.className = 'standby-evidence-notice';
-      cardsInDocument()[0]?.insertAdjacentElement('beforebegin', notice);
-    }
+    notice ??= buildNotice();
+    if (!doc.contains(notice.container)) placeNotice(notice.container);
 
-    const text = doc.createElement('p');
-    text.textContent = paused ? PAUSED_NOTICE : UNREADABLE_NOTICE;
-    notice.replaceChildren(text);
-
+    // Parts are updated in place, never rebuilt, so a focused Resume button
+    // keeps focus while later reads repaint the page.
     if (paused) {
-      const resume = doc.createElement('button');
-      resume.type = 'button';
-      resume.className = 'standby-evidence-button';
-      resume.textContent = 'Resume reading listings';
-      resume.addEventListener('click', () => onResume?.());
-      notice.append(resume);
+      const waiting = cards.filter((anchor) => {
+        const evidence = store.get(slugOf(anchor));
+        return evidence?.isChecking && evidence.checkedAt === null;
+      }).length;
+      const notRead = unreadable + waiting;
+      notice.text.textContent = notRead > 0
+        ? `${PAUSED_NOTICE} ${listings(notRead)} not read.`
+        : PAUSED_NOTICE;
+    } else {
+      notice.text.textContent = `${listings(unreadable)} couldn't be read.`;
     }
+    notice.resume.hidden = !paused;
   }
 
   /** Drops annotations whose card Landing has since replaced or removed. */
@@ -287,7 +318,7 @@ export function createCardAnnotator({
       unsubscribe?.();
       for (const parts of annotations.values()) parts.container.remove();
       annotations.clear();
-      doc.querySelector(NOTICE_SELECTOR)?.remove();
+      notice?.container.remove();
     },
   };
 }
