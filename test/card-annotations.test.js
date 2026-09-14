@@ -297,6 +297,25 @@ test('View evidence reports the card’s own unit, and does not follow the card 
   assert.deepEqual(h.viewed, [CARD.response.slug]);
 });
 
+test('each note is a labeled group whose attribution and View evidence name the unit', () => {
+  const h = harness({ checkIn: { status: 'selected', date: '2026-09-15' } });
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, unitName: 'Lantana Hills 2321' });
+
+  const note = h.annotations()[0];
+  assert.equal(note.getAttribute('role'), 'group');
+  assert.equal(note.getAttribute('aria-label'), 'Standby Insights for Lantana Hills 2321');
+  assert.equal(note.children[0].textContent, 'Standby Insights', 'the source tab is real text, not CSS content');
+  const button = note.children.find((el) => el.tag === 'button');
+  assert.equal(button.getAttribute('aria-label'), 'View evidence for Lantana Hills 2321');
+
+  const strip = note.children.find((el) => el.className === 'standby-strip');
+  assert.match(strip.getAttribute('aria-label'), /Your check-in, Sep 15, is marked$/);
+  const key = note.children.find((el) => el.className === 'standby-strip-key');
+  assert.match(key.textContent, /Standard move-in.*Not returned.*Your check-in/);
+});
+
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {
   const h = harness();
   const onScreen = addCard(h.doc, CARD);

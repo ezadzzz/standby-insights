@@ -67,6 +67,25 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   // The marker is the member's own date and needs no sentence; without one the
   // strip's statements run from its labeled Today edge (ADR 1).
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
-  view.strip = { segments: weeks.segments, label: weeks.label, checkInIndex, endLabel: formatDate(weeks.lastDate) };
+  const label = checkInIndex === null
+    ? weeks.label
+    : `${weeks.label}. Your check-in, ${formatDate(referenceDate)}, is marked`;
+  view.strip = { segments: weeks.segments, label, checkInIndex, endLabel: formatDate(weeks.lastDate), key: stripKey(weeks.segments, checkInIndex) };
   return view;
+}
+
+// The panel legend's words, so a mark means the same thing on both surfaces.
+const KEY_WORDS = [
+  ['standby-only', 'Standby-only'],
+  ['reserved', 'Reserved or move-in blocked'],
+  ['move-in', 'Standard move-in'],
+  ['not-returned', 'Not returned'],
+];
+
+/** Only the marks this strip actually draws, so the key stays one short line. */
+function stripKey(segments, checkInIndex) {
+  const drawn = new Set(segments.map((s) => (s.kind === 'blocked' ? 'reserved' : s.kind)));
+  const key = KEY_WORDS.filter(([kind]) => drawn.has(kind)).map(([kind, text]) => ({ kind, text }));
+  if (checkInIndex !== null) key.push({ kind: 'check-in', text: 'Your check-in' });
+  return key;
 }
