@@ -9,7 +9,7 @@
   padding: 13px 10px 8px;
   border: 1px dashed #a7b0b2;
   color: #2d3538;
-  font: 11.5px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font: 12px/1.45 ui-monospace, "Cascadia Mono", Consolas, monospace;
   /* Long statements wrap rather than stretching or clipping Landing's layout. */
   overflow-wrap: anywhere;
 }
@@ -20,7 +20,7 @@
   padding: 1px 6px;
   background: #22343a;
   color: #eef3f2;
-  font: 700 9px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font: 700 10px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
@@ -28,7 +28,7 @@
 .standby-evidence p { margin: 0; }
 .standby-evidence p:empty { display: none; }
 .standby-evidence-status { margin-bottom: 4px; }
-.standby-evidence-headline { font-size: 12px; font-weight: 600; }
+.standby-evidence-headline { font-size: 13px; font-weight: 600; }
 /* Green is what a Standby member hunts for; the headline's words still say it. */
 .standby-evidence-headline[data-standby-only="true"] { color: #0f6e52; }
 .standby-evidence-headline[data-standby-only="true"]::before {
@@ -103,7 +103,7 @@
   display: flex;
   justify-content: space-between;
   color: #5d686b;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 .standby-evidence .standby-strip-key {
   display: flex;
@@ -111,7 +111,7 @@
   gap: 2px 10px;
   margin-top: 5px;
   color: #5d686b;
-  font-size: 10.5px;
+  font-size: 11px;
   forced-color-adjust: none;
 }
 .standby-evidence .standby-strip-key[hidden] { display: none; }
@@ -132,7 +132,7 @@
   border-radius: 0;
   background: transparent;
   color: #2d3538;
-  font: 500 11px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font: 500 12px/1.5 ui-monospace, "Cascadia Mono", Consolas, monospace;
   cursor: pointer;
 }
 .standby-evidence-button::before { content: "→ "; }
@@ -153,7 +153,7 @@
   align-items: baseline;
   gap: 2px 16px;
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
 }
 .standby-evidence-notice p { flex: 1 1 28ch; }
 .standby-evidence-notice .standby-evidence-button { margin: 0; }
