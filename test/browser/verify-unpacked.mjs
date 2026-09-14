@@ -261,6 +261,10 @@ try {
     `${searchApi.length} reads for ${cards.anchorCount} cards`);
   record('unreadable-card notice appears at most once', (await searchPage.evaluate(() => document.querySelectorAll('[data-standby-notice]').length)) <= 1,
     cards.notice ?? 'no notice shown');
+  record('any page notice sits outside every Landing card', await searchPage.evaluate(() => {
+    const notice = document.querySelector('[data-standby-notice]');
+    return !notice || notice.closest('[data-testid="pdp-home-card-wrapper"]') === null;
+  }), cards.notice ?? 'no notice shown');
 
   const searchOwnErrors = searchErrors.filter((t) => /import statement|chrome-extension:|standby/i.test(t));
   record('no extension console errors on the search route', searchOwnErrors.length === 0,
