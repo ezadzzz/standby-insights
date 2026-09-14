@@ -99,7 +99,7 @@ h2 {
   background: var(--standby-only);
   forced-color-adjust: none;
 }
-#standby-only-detail { color: var(--on-2); font: 12.5px/1.45 var(--mono); margin-top: 2px; }
+#standby-only-detail { color: var(--on-2); font: 12px/1.45 var(--mono); margin-top: 2px; }
 
 .weekdays, #calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .weekdays { margin-top: 14px; color: var(--on-2); font: 11px/1.5 var(--mono); text-align: center; }
@@ -154,7 +154,7 @@ h2 {
 #comparison-prices > div + div { border-left: 1px dashed var(--outline); padding-left: 16px; }
 #comparison-prices dt, #comparison-prices dd:last-child { color: var(--on-2); font: 12px/1.45 var(--mono); }
 .price-amount { font: 600 26px/1.2 var(--mono); letter-spacing: -.02em; margin: 2px 0; color: var(--on); }
-.price-amount.unavailable { font-size: 15px; letter-spacing: normal; }
+.price-amount.unavailable { font-size: 16px; letter-spacing: normal; }
 #comparison-status:not(:empty) { color: var(--on-2); font: 12px/1.45 var(--mono); margin-bottom: 10px; }
 #comparison-subject:not(:empty) { margin-bottom: 10px; }
 #comparison-terms:not(:empty) { margin-bottom: 6px; }
@@ -163,7 +163,7 @@ h2 {
 .facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); border-bottom: 1px dashed #d3d8d9; }
 .facts > div:last-child { border-bottom: 0; }
 .facts dt { padding: 7px 12px 7px 0; color: var(--on-2); font: 12px/1.5 var(--mono); }
-.facts dd { grid-column: 2; padding: 7px 0; font: 12.5px/1.5 var(--mono); }
+.facts dd { grid-column: 2; padding: 7px 0; font: 13px/1.5 var(--mono); }
 .facts dd + dd { color: var(--on-2); font: 13px/1.45 var(--sans); padding-top: 0; }
 
 /* The calendar's label stays for assistive technology; visually the headline leads. */

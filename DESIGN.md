@@ -33,7 +33,7 @@ typography:
     lineHeight: 1.2
   price-unavailable:
     fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
-    fontSize: "15px"
+    fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.2
   supporting:
@@ -166,15 +166,15 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 
 ### Hierarchy
 - **Headline** (600, 19px, 1.3, -0.01em, mono): the unit name heading the note.
-- **Price** (600, 26px, 1.2, -0.02em, mono): advertised price figures; 22px at 380px and below; "Unavailable" drops to 15px with normal tracking.
+- **Price** (600, 26px, 1.2, -0.02em, mono): advertised price figures; 22px at 380px and below; "Unavailable" drops to 16px (the Title step) with normal tracking. 22px is the one step that exists only as a narrow-width price size.
 - **Title** (600, 16px, 1.35, mono, balanced wrap): the standby-only headline, the visual lead of the calendar.
 - **Status** (600, 13px, 1.45, mono): calendar status line when there is no grid to show.
 - **Body** (400, 14px, 1.5, sans, tabular numerals): base text, reference notes, summaries. Supporting prose steps down to 13px in on-2.
-- **Data** (400, 12 to 12.5px, 1.45 to 1.5, mono): check time, detail lines, fact labels and values, price labels, legend, grid numerals.
+- **Data** (400, 12px, 1.45 to 1.5, mono): check time, detail lines, fact labels, price labels, legend, grid numerals.
 - **Label** (700, 11px, 0.12em, uppercase, mono, on-2): section headings (h2) for prices, facts and location.
-- **Tab** (700, 10px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. On cards it scales to 9px.
+- **Tab** (700, 10px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. The card tab uses the same 10px.
 
-Card annotations run one step smaller: 11.5px mono body, 12px headline, 11px action.
+Both surfaces share one size ramp: 10 · 11 · 12 · 13 · 14 · 16 · 19 · 26px, plus 22px for narrow prices. Fact values sit at 13px mono, one step above their 12px labels. Card annotations use the lower steps: 12px mono body, 13px headline and page notice, 12px action, 11px strip scale and key, 10px tab. Nothing on a card goes above 13px, so the note never outweighs the listing.
 
 ### Named Rules
 **The Mono For Data Rule.** If a member might compare it across units (a date, a price, a count, a label, a numeral), it is monospace. Sans is reserved for caveat sentences such as fact notes and disclosures.
