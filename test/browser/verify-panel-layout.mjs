@@ -37,9 +37,9 @@ try {
     ready: state,
     long: {...state, unitName:'LongUnitName'.repeat(12), isStale:true, error:'timeout'},
     empty: {status:'idle', checkedAt:null},
-    unavailable: {status:'unavailable',checkedAt:null},
+    unavailable: {status:'unavailable',checkedAt:null,error:'GateTimeoutError'},
     mismatch: {status:'mismatch',checkedAt:null},
-    loading: {status:'loading',checkedAt:null,isChecking:true,comparison:{status:'loading'}},
+    loading: {status:'idle',checkedAt:null,isChecking:true,comparison:{status:'loading'}},
     disagreement: {...state,checkIn:{status:'disagreement'}},
     insufficient: {...state,comparison:{...state.comparison,status:'insufficient',count:4}},
     missingPrice: {...state,comparison:{...state.comparison,subjectPrice:null}},
@@ -54,6 +54,13 @@ try {
       assert(await page.locator('#refresh-button').isVisible());
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
+      assert.equal(await page.locator('#comparison-disclosure').evaluate(el => el.textContent !== ''), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
+      assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch'].includes(variant), `calendar section ${width}/${variant}`);
+      assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
+      if (variant === 'unavailable') assert.match(await page.locator('#calendar-status').innerText(), /Calendar unavailable\. .*Refresh/);
+      if (variant === 'loading') assert.match(await page.locator('#calendar-status').innerText(), /Checking the calendar/);
+      if (variant === 'mismatch') assert.match(await page.locator('#check-time').innerText(), /could not be confirmed/);
+      assert.equal(await page.locator('#announcer').textContent(), '', `no announcement without a member Refresh ${width}/${variant}`);
       if (variant === 'long') {
         assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
         assert.doesNotMatch(await page.locator('#standby-only-headline').innerText(), /older check/i);
@@ -77,6 +84,10 @@ try {
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12, 2026 – Sep 24, 2026: Standby-only/);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
+        const summary = page.locator('#all-ranges summary');
+        assert.equal(await summary.innerText(), 'All returned ranges (5)');
+        assert.equal(await page.locator('#all-ranges').evaluate(el => el.open), false, 'the range list starts collapsed');
+        assert.equal(await page.locator('#all-ranges-list li').last().isVisible(), false);
       }
       if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement','reserved','loading','mismatch'].includes(variant)))) {
         await page.screenshot({path:`.impeccable/review/panel-note-build-${variant === 'ready' ? '' : variant + '-'}${width}.png`,fullPage:true});
@@ -89,7 +100,20 @@ try {
   await page.keyboard.press('Enter');
   assert.deepEqual(await page.evaluate(() => window.sentMessages.at(-1)), {tabId:1,type:'request-refresh'});
   assert.equal(await page.locator('#announcer').getAttribute('aria-live'), 'polite');
+  assert.equal(await page.locator('#announcer').textContent(), '', 'nothing announced before the refresh has run');
+  await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
+  await page.evaluate(s => window.deliver({...s, checkedAt: s.checkedAt + 60000}), state);
   assert.equal(await page.locator('#announcer').textContent(), 'Refresh complete.');
+  await page.keyboard.press('Enter');
+  await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
+  await page.evaluate(s => window.deliver({...s, isStale:true, error:'GateTimeoutError'}), state);
+  assert.equal(await page.locator('#announcer').textContent(), 'Refresh failed.');
+  // Every returned range, including past the grid's six weeks, by keyboard.
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'all-ranges-summary');
+  await page.keyboard.press('Enter');
+  assert.equal(await page.locator('#all-ranges-list li').count(), 5);
+  assert.equal(await page.locator('#all-ranges-list li').last().innerText(), 'Nov 1, 2026 – unspecified end: Move-in allowed');
   assert.equal(await page.locator('svg:not([aria-hidden="true"])').count(), 0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');

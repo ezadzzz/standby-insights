@@ -353,7 +353,7 @@ test('the comparison shows while the calendar is unusable, and loading while it 
   await tick();
   await tick();
   const view = h.view();
-  assert.equal(view.calendarStatusText, 'Calendar unavailable');
+  assert.match(view.calendarStatusText, /^Calendar unavailable\./);
   assert.match(view.comparison.statusText, /Median advertised monthly price/);
 });
 

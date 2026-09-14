@@ -90,7 +90,7 @@ test('a no-reservation calendar describes the returned calendar and its finite c
 
 test('an unavailable calendar states no summary conclusions at all', async () => {
   const { view } = await loadedPanel(emptyRangesHome, { status: 'selected', date: '2026-09-15' });
-  assert.equal(view().calendarStatusText, 'Calendar unavailable');
+  assert.match(view().calendarStatusText, /^Calendar unavailable\./);
   assert.equal(view().summaryItems.length, 0);
 });
 
@@ -177,7 +177,7 @@ test('invalid, missing, and contradictory calendars state no conclusions a membe
   ];
   for (const home of invalidHomes) {
     const { view } = await loadedPanel(home, { status: 'selected', date: '2026-09-15' });
-    assert.equal(view().calendarStatusText, 'Calendar unavailable', home.slug);
+    assert.match(view().calendarStatusText, /^Calendar unavailable\./, home.slug);
     assert.equal(view().summaryItems.length, 0, home.slug);
     assert.equal(view().referenceNote, '', home.slug);
     assert.equal(view().grid, null, home.slug);
