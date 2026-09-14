@@ -29,22 +29,10 @@ const calendarGrid = document.getElementById('calendar-grid');
 let tabId = null;
 let lastCheckedAt = null;
 
-function icon(name) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'icon');
-  svg.setAttribute('aria-hidden', 'true');
-  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  use.setAttribute('href', `icons.svg#${name}`);
-  svg.append(use);
-  return svg;
-}
-
-const factIcons = { 'Minimum stay': 'calendar', Flex: 'tag', Rating: 'star', 'Walk score': 'walk', 'Transit score': 'transit', 'Bike score': 'bike' };
-
 function factRow(item) {
   const row = document.createElement('div');
   const dt = document.createElement('dt');
-  dt.append(icon(factIcons[item.label]), item.label);
+  dt.textContent = item.label;
   row.append(dt);
   for (const line of [item.text, ...item.details]) {
     const dd = document.createElement('dd');

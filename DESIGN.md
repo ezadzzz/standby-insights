@@ -1,204 +1,264 @@
 ---
-name: Standby Insights Panel
-description: Scout / Picture Desk — a ruled evidence sheet with neutral outline icons.
+name: Standby Insights
+description: The card, opened up. A dashed, unfilled note under a dark source tab, in monospace, on white.
 colors:
-  ink: "#08171c"
-  ink-2: "#0d2029"
-  ink-3: "#132c36"
-  rule: "#1b3641"
-  rule-strong: "#44798a"
-  on: "#edf5f4"
-  on-2: "#a6c3c8"
-  on-3: "#7c9aa2"
-  focus: "#a6c3c8"
+  paper: "#ffffff"
+  tab: "#22343a"
+  tab-on: "#eef3f2"
+  on: "#2d3538"
+  on-2: "#5d686b"
+  outline: "#a7b0b2"
+  mark: "#8a9598"
   standby-only: "#1d9e75"
-  standby-only-text: "#5dcaa5"
-  standby-only-text-light: "#0f6e52"
-  card-tab: "#22343a"
-  card-tab-on: "#eef3f2"
-  card-on: "#2d3538"
-  card-on-2: "#5d686b"
-  card-on-3: "#7d878a"
-  card-outline: "#a7b0b2"
-  card-hatch: "#b4bcbe"
-  card-hatch-ground: "#f1f3f3"
-  card-move-in: "#8a9598"
+  standby-only-text: "#0f6e52"
+  hatch-stroke: "#b4bcbe"
+  hatch-ground: "#f1f3f3"
 typography:
+  headline:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "19px"
+    fontWeight: 600
+    lineHeight: 1.3
+    letterSpacing: "-0.01em"
+  price:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "26px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.02em"
+  price-narrow:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: 1.2
+  price-unavailable:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: 1.2
+  supporting:
+    fontFamily: "system-ui, Segoe UI, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.45
+  title:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: 1.35
   body:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFamily: "system-ui, Segoe UI, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.5
-  headline:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "27px"
-    fontWeight: 700
-    lineHeight: 1.15
-    letterSpacing: "-.022em"
-  price:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "32px"
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-.02em"
-  masthead:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "15px"
-    fontWeight: 800
-    lineHeight: 1.5
-    letterSpacing: ".06em"
-  label:
-    fontFamily: "Archivo, system-ui, sans-serif"
+    fontFeature: "tnum"
+  data:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
     fontSize: "12px"
-    fontWeight: 700
-    lineHeight: 1.5
-    letterSpacing: ".12em"
-  supporting:
-    fontFamily: "Archivo, system-ui, sans-serif"
-    fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.5
-  action:
-    fontFamily: "Archivo, system-ui, sans-serif"
+  label:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
     fontSize: "11px"
     fontWeight: 700
     lineHeight: 1.5
-    letterSpacing: ".1em"
+    letterSpacing: "0.12em"
+  tab:
+    fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
+    fontSize: "10px"
+    fontWeight: 700
+    lineHeight: 1.8
+    letterSpacing: "0.1em"
 rounded:
-  square: "0"
+  none: "0px"
 spacing:
-  space-1: "4px"
-  space-2: "8px"
-  space-3: "12px"
-  space-4: "16px"
-  space-5: "20px"
-  space-6: "24px"
+  hair: "2px"
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
 components:
-  refresh:
-    backgroundColor: "transparent"
+  source-note:
+    backgroundColor: "{colors.paper}"
     textColor: "{colors.on}"
-    typography: "{typography.action}"
-    rounded: "{rounded.square}"
-    padding: "8px 12px"
-  refresh-hover:
-    backgroundColor: "{colors.ink-3}"
-  refresh-active:
-    backgroundColor: "{colors.ink-2}"
-  summary:
-    backgroundColor: "{colors.ink-2}"
+    rounded: "{rounded.none}"
+    padding: "22px 16px 16px"
+  source-tab:
+    backgroundColor: "{colors.tab}"
+    textColor: "{colors.tab-on}"
+    typography: "{typography.tab}"
+    rounded: "{rounded.none}"
+    padding: "1px 8px"
+  text-action:
+    backgroundColor: "{colors.paper}"
     textColor: "{colors.on}"
-    padding: "{spacing.space-3}"
+    typography: "{typography.data}"
+    rounded: "{rounded.none}"
+    padding: "0 2px"
+    height: "44px"
+  text-action-disabled:
+    textColor: "{colors.on-2}"
+  section-label:
+    textColor: "{colors.on-2}"
+    typography: "{typography.label}"
+  grid-day-standby-only:
+    backgroundColor: "{colors.standby-only}"
+    typography: "{typography.data}"
+    height: "32px"
+  price-figure:
+    textColor: "{colors.on}"
+    typography: "{typography.price}"
 ---
 
-# Design System: Standby Insights Panel
+# Design System: Standby Insights
 
 ## Overview
 
-**Creative North Star: "Scout / Picture Desk"**
+**Creative North Star: "The Card, Opened Up"**
 
-A compact, ruled evidence sheet in petrol ink, with Archivo typography and neutral outline signposts. Flat surfaces and off-white text keep dense evidence readable without assigning a reassuring or alarming color to its meaning.
+Standby Insights lives on someone else's page. On Landing's listing cards it appears as a small dashed note under a dark tab that names the source; in the side panel it is that same note, opened up to hold the full answer. The two surfaces are one system: white ground, a 1px dashed outline that is never filled, a dark square tab reading "Standby Insights", and monospace for everything that is data. Nothing Landing draws looks like this, so nothing here reads as theirs, and nothing here outweighs the listing itself.
 
-This captures the approved September 12, 2026 panel implementation. Card annotations share the six-week view's color key (below) but not the petrol ground; see Card annotations under Components. The extension retains a distinct identity beside Landing.
+Density is quiet and tabular. The note holds what a member screened for (unit, check time, the standby-only headline, a six-week grid). Everything after it (prices, facts, location) sits outside the note in sections separated by dashed rules, one step quieter. Status always lives in words; color, hatch, outline and dots repeat those words as a picture and never replace them.
+
+This system replaces the Scout / Picture Desk panel (petrol ink, Archivo display face, outline icons) shaped on 2026-09-12. That direction is superseded history only; its capture is `.impeccable/mocks/panel-scout-icons.png`.
 
 **Key Characteristics:**
-
-- Square controls and thin rules.
-- Neutral icons paired with explicit words.
-- Full evidence wording in a continuous, wrapping document.
-
-Authority: [panel source](src/panel/panel.css), [surface contract](.impeccable/surfaces/panel.md), and approved [D with outline icons](.impeccable/mocks/panel-scout-icons.png). Independent finish review: ship; no material fixes. Documentation was extracted directly; the design engine was unavailable.
+- Dashed, unfilled note under a dark square source tab, on both card and panel.
+- Monospace for tabs, labels, headings, dates, prices and grid numerals; system sans only for caveat prose.
+- One accent (standby-only green); every other state is a texture: hatch, outline, dots.
+- Square corners everywhere. No elevation, no icons, no web fonts.
+- Hierarchy by dashed rules and gray steps, not by boxes or fills.
 
 ## Colors
 
-A dark petrol family supports pale blue-gray secondary text and off-white primary text. Frontmatter preserves the source CSS token names and exact values.
+A cool-gray ink system on pure white, with one green that means exactly one thing.
 
 ### Primary
-
-- **Petrol Rule** (`rule-strong`): section boundaries, button outline and scrollbar thumb.
+- **Standby Green** (standby-only): the fill for standby-only days in the grid and card strip, the small square before a standby-only headline, and the legend key. Numerals on it are near-black green (#04261b) at weight 700.
+- **Deep Standby Green** (standby-only-text): the headline text color when the answer is standby-only, so the green word stays legible at text sizes.
 
 ### Neutral
+- **Paper** (paper): the ground of the panel and the halo behind grid numerals.
+- **Slate Tab** (tab): the source tab background and the text-selection background.
+- **Tab Mist** (tab-on): text on the tab and on selection.
+- **Graphite** (on): primary text, Refresh, focus outlines, today outline, check-in corner mark, and the not-returned numerals.
+- **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
+- **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
+- **Mark Gray** (mark): the inset outline of standard move-in days and the dots of not-returned days.
+- **Hatch pair** (hatch-stroke over hatch-ground): the 135-degree stripes (1.5px stroke, 4px repeat) for reserved and move-in-blocked days.
+- Fact rows inside a facts list use a lighter dashed divider (#d3d8d9) than section rules.
 
-- **Deep Petrol Ink** (`ink`): page canvas.
-- **Inset Petrol** (`ink-2`): summary field and pressed Refresh.
-- **Raised Petrol Tone** (`ink-3`): Refresh hover, without physical elevation.
-- **Quiet Rule** (`rule`): internal row dividers and summary outline.
-- **Off-White Ink** (`on`): principal text and brand mark.
-- **Pale Blue-Gray** (`on-2`): supporting text, labels and icons.
-- **Muted Blue-Gray** (`on-3`): declared disabled-button text treatment.
-- **Focus Blue-Gray** (`focus`): keyboard outline; intentionally matches secondary text.
+### Named Rules
+**The One Green Rule.** Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.
 
-**The Neutral Evidence Rule.** Status is stated in words; icons and color never replace those words or imply a condition rating.
+**The Texture Not Hue Rule.** Every non-standby-only state is drawn as a texture in grays: hatch for reserved or blocked, a 1px inset outline for standard move-in, dots for not returned. Missing data is dotted, never blank and never outlined like move-in.
 
-**The Standby-only Exception.** One color carries meaning: standby-only green (`#1d9e75` fill, `#5dcaa5` text) marks nights too short for a standard stay, always beside words that say so. Reservations and blocked days are a quiet hatch (`#2c5260` on `ink-3` in the panel grid), standard move-in is a `rule-strong` outline, and not-returned days are a dot texture (`#2c5260` dots in the panel grid, `card-move-in` dots on the card strip), keyed "Not returned" so missing days never read as open. An older check leaves the headline plain: the card states "Older check · checked {time}" directly under it, and the panel's check time says "(showing an older check)".
+**The Words First Rule.** A state is always named in text; the grid, strip and legend repeat it. The calendar grid is `role="img"` with a text alternative, and the legend is decorative.
 
 ## Typography
 
-**Display Font:** Archivo, with system-ui and sans-serif fallbacks.
-**Body Font:** The same family; no separate mono face.
+**Display Font:** none. There is no display face.
+**Body Font:** system-ui (with Segoe UI, sans-serif)
+**Label/Mono Font:** ui-monospace (with Cascadia Mono, Consolas, monospace)
 
-Archivo is bundled locally at `src/panel/fonts/Archivo.ttf`, declared as a variable face (weight 100–900, stretch 62%–125%) with swap display. No runtime font service is used. Tabular numerals align dates and prices.
+**Character:** A ledger voice. Monospace carries every fact a member compares; the system sans only appears for the sentences that qualify those facts. Both are system faces, because the extension makes no third-origin fetches. Body numerals are tabular.
 
 ### Hierarchy
+- **Headline** (600, 19px, 1.3, -0.01em, mono): the unit name heading the note.
+- **Price** (600, 26px, 1.2, -0.02em, mono): advertised price figures; 22px at 380px and below; "Unavailable" drops to 15px with normal tracking.
+- **Title** (600, 16px, 1.35, mono, balanced wrap): the standby-only headline, the visual lead of the calendar.
+- **Status** (600, 13px, 1.45, mono): calendar status line when there is no grid to show.
+- **Body** (400, 14px, 1.5, sans, tabular numerals): base text, reference notes, summaries. Supporting prose steps down to 13px in on-2.
+- **Data** (400, 12 to 12.5px, 1.45 to 1.5, mono): check time, detail lines, fact labels and values, price labels, legend, grid numerals.
+- **Label** (700, 11px, 0.12em, uppercase, mono, on-2): section headings (h2) for prices, facts and location.
+- **Tab** (700, 10px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. On cards it scales to 9px.
 
-Frontmatter records desktop values: headline for the unit, price for monetary amounts, masthead for identity, label for section headings, supporting for timestamps and caveats, action for Refresh, and body for evidence. Masthead, section labels and Refresh are uppercase; evidence remains sentence case.
+Card annotations run one step smaller: 11.5px mono body, 12px headline, 11px action.
 
-Reservation rows and the first summary line use weight 600. Later summary lines use secondary text. Unavailable price text uses 16px and normal tracking; it retains price weight and line height.
+### Named Rules
+**The Mono For Data Rule.** If a member might compare it across units (a date, a price, a count, a label, a numeral), it is monospace. Sans is reserved for caveat sentences such as fact notes and disclosures.
+
+**The System Faces Rule.** No web fonts, no bundled font files. The stacks above are the whole type inventory.
 
 ## Layout
 
-The document is centered with a 720px maximum width, 20px side padding and 24px bottom padding. Spacing follows the six-step 4px scale above. There are no independently scrolling content regions.
+A single column, max 720px, centered, padded 24px vertical and 16px horizontal. The note sits first with 22px top padding (room under the tab) and 16px sides and bottom. Inside the note, the unit header is a two-column grid (name, then Refresh pinned right at auto width) with check time and identity note spanning both columns.
 
-The masthead has 20px vertical padding. The unit header uses a flexible title column and an auto-width Refresh column, with 8px row and 12px column gaps and 24px vertical padding. Check time and identity text span both columns. Sections use 20px top and 24px bottom padding.
+Sections outside the note are separated by a 1px dashed top rule with 20px above content and 22px below; the first section after the note sits 12px down with no rule, since the note's own outline already separates it. Inside the note the calendar section takes a dashed rule with 16px margin and padding. The calendar heading is visually hidden (it remains the section's accessible name); the standby-only headline leads. When the calendar section has nothing to show (empty status, empty reference note, hidden grid and summary), `:has()` removes its rule, margin and padding so no empty ruled band appears.
 
-Calendar rows divide dates and status into 1.15:1 columns with a 12px gap. Prices use equal columns; the second has a strong vertical rule, 16px left margin and 20px left padding. Fact rows use 1:1.6 columns and a quiet vertical divider.
+The six-week grid is 7 equal columns with 2px gaps, 32px minimum cell height, weekday initials 14px above it. Prices sit in two equal columns with 16px gap and a dashed vertical rule between them. Facts are label/value rows at a 1 : 1.6 ratio with 7px vertical padding and a light dashed divider.
 
-At **380px and below**, side padding becomes 16px, the title becomes 24px, the button moves below the title, calendar rows stack with a 4px gap, and facts stack with values indented 26px. Price figures become 27px; the more specific unavailable style stays 16px. At **260px and below**, prices also stack with a 16px gap and a quiet horizontal rule. Text wraps rather than clipping.
+Spacing steps are 2, 4, 8, 12, 16 and 24px, with a few optical offsets (10, 14, 20, 22px) around headings and rules.
+
+Responsive behavior:
+- **380px and below:** body and note side padding tighten to 12px; fact rows stack label over value; price figures drop to 22px.
+- **260px and below:** the two price columns stack, and the vertical dashed rule becomes a horizontal one with 12px above.
 
 ## Elevation & Depth
 
-No shadows. The summary's inset tone and thin outline distinguish it from the canvas; rules group the remaining content. Hover changes the button's tone only.
+Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only by the note's dashed outline, the tab overlapping that outline by half its height, and gray-step text. Two shadow properties exist as drawing tools, not depth: a 1px inset box-shadow draws the move-in outline, and a white text-shadow halo keeps numerals legible over hatch and dots.
+
+### Shadow Vocabulary
+- **Move-in outline** (`box-shadow: inset 0 0 0 1px #8a9598`): standard move-in days in the grid, strip and legend.
+- **Numeral halo** (`text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff`): grid numerals on reserved, blocked and not-returned days. Not-returned numerals also stay in graphite.
+
+### Named Rules
+**The Flat Paper Rule.** Nothing lifts off the page. A box-shadow or text-shadow is allowed only when it draws a mark or protects legibility, never when it suggests elevation.
 
 ## Shapes
 
-Controls and containers are square. Section and internal dividers are 1px. Outline SVGs use currentColor, no fill, 1.7 stroke width, square line caps and miter joins. Standard icons are 20px, the brand mark 26px, calendar status icons 17px and fact icons 18px. Some symbols contain circles; square form language does not prohibit circular icon geometry.
+Square. Every corner is 0 radius, including buttons (radius explicitly reset to 0). The recurring silhouette is the dashed rectangle with a dark rectangular tab breaking its top edge at the left (12px in, 10px above on the panel; 8px in, 9px above on cards). Rules are always 1px dashed; the only solid lines are focus outlines, the today outline (2px graphite, 1px offset), and the check-in mark, a small graphite corner triangle (4px borders, top right of the day).
 
 ## Components
 
-### Refresh
+### Buttons
+Borderless text actions, like a typed instruction.
+- **Shape:** square (0px), no border, transparent background.
+- **Refresh (panel):** 12px weight 500 mono in graphite, 2px side padding, 44px minimum target height.
+- **Hover / Focus:** underline with 3px offset on hover; focus-visible is a 2px solid graphite outline at 2px offset. Disabled goes to on-2 with a wait cursor and no underline.
+- **Card action:** the same treatment at 11px with 3px vertical padding.
 
-The sole panel action: outlined, transparent, square, with a 44px minimum height and the frontmatter padding. Hover and active colors are recorded above. Background transitions use 150ms ease-out; reduced-motion preference removes that transition. Keyboard focus uses a 2px focus outline offset 3px. A disabled style exists (muted text, wait cursor); current rendering does not toggle the button disabled.
+### Cards / Containers
+- **Corner Style:** square (0px).
+- **Background:** none; the paper shows through. Notes are never filled.
+- **Shadow Strategy:** none (see Elevation & Depth).
+- **Border:** 1px dashed Dash Gray.
+- **Internal Padding:** 22px 16px 16px on the panel (12px sides at 380px); 13px 10px 8px on cards.
 
-### Calendar summary and chronological rows
+### Source Tab (signature)
+The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is generated content, not markup, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge.
 
-An information icon introduces the inset summary, with 12px padding and gap, 16px top and 8px bottom margins. Empty summaries are hidden. Rows retain complete dates and status words, with neutral calendar, check or blocked icons and a bottom divider.
+### Six-Week Grid (signature)
+Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved and blocked days are hatched; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label.
 
-### Advertised prices
+### Standby Strip (card)
+The grid condensed to a 10px horizontal bar of flex segments using the same state marks (dots at 3px pitch), with white week dividers every sixth, a 1.5px graphite today edge, and a downward graphite triangle for check-in.
 
-A semantic description list pairs each amount with its own label and monthly unit. The paired display appears only when comparison prices exist. Unavailable subject prices remain explicitly labeled; terms, comparison scope, source disclosure and older-check text stay visible as supplied.
+### Standby-Only Headline
+Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.
 
-### Facts
+### Price Comparison
+Two columns of mono label, large mono figure and mono caveat, split by a dashed vertical rule; stacks at 260px.
 
-Ruled description lists pair Minimum stay and Flex with their values, followed by Rating and walk, transit and bike scores in a separate section. Additional detail lines use supporting typography; unavailable facts retain their labels.
-
-### Card annotations
-
-Approved 2026-09-12 (mock "Option E, tabbed margin note") to replace the petrol slab, which outweighed Landing's cards. Source: [card-annotations.css](src/content/card-annotations.css).
-
-An unfilled note on Landing's white page: 1px dashed `card-outline` border, square, with system monospace text (`ui-monospace`; nothing fetched). A dark `card-tab` label reading "Standby Insights" sits across the top border, so attribution is carried by words, not by a heavy block. Headline 12px/600 in `card-on`; supporting lines 11.5px in `card-on-2`. A standby-only headline turns `standby-only-text-light` and gains a 7px `standby-only` square beside its words. The strip is 10px tall with a 1.5px Today edge; reservations use a `card-hatch` hatch on `card-hatch-ground`. View evidence is a borderless monospace text action prefixed with an arrow, underlined on hover, with a 2px `card-on` focus outline.
-
-### Accessibility and states
-
-Icons are decorative and hidden from assistive technology. Native Refresh remains keyboard operable. Status regions and a polite refresh-completion announcer accompany visible text. Forced-colors mode sets icon color to CanvasText. Loading, date disagreement, unavailable evidence and stale checks use the existing full wording, with no invented status colors.
+### Facts List
+Mono label and mono value on a dashed-divided row; any second value line is a 13px sans caveat in on-2. Stacks at 380px.
 
 ## Do's and Don'ts
 
 ### Do:
-
-- **Do** preserve full labels, source caveats and unavailable or older-check wording.
-- **Do** keep the panel in normal document flow and let narrow layouts stack.
-- **Do** retain local fonts, local SVG assets and visible keyboard focus.
+- **Do** open every Standby Insights surface with the dashed note and the dark "Standby Insights" tab, so attribution is in words.
+- **Do** set dates, prices, labels and grid numerals in the mono stack; use system sans only for caveat sentences.
+- **Do** reserve Standby Green for standby-only days and answers, and draw every other state as hatch, inset outline or dots.
+- **Do** name each state in text and let the grid, strip and legend repeat it.
+- **Do** separate secondary sections with 1px dashed rules in Dash Gray, and drop a rule when its section renders nothing.
+- **Do** keep text actions borderless mono with a 44px target, a hover underline and a 2px solid focus outline.
+- **Do** keep numerals legible over textures with the white halo, and stack fact rows at 380px and prices at 260px.
 
 ### Don't:
-
-- **Don't** use condition colors beyond standby-only green, or icon-only evidence statuses.
-- **Don't** add decorative controls, photographs, rounded cards or shadows to this approved panel.
+- **Don't** fill the note, round a corner, or add an elevation shadow; inset outlines and legibility halos are the only shadows.
+- **Don't** use green for brand, links, buttons or success.
+- **Don't** load web fonts or bundled font files; the system stacks are the inventory.
+- **Don't** add icons or icon glyphs; marks are the textures, squares, outlines and corner triangles already in the grid. One exception, confirmed by the member 2026-09-14: the card's text action keeps its "→ " prefix before "View evidence".
+- **Don't** leave a visible empty ruled band where a section has no content.
+- **Don't** return to the Scout / Picture Desk petrol, Archivo and outline-icon vocabulary.

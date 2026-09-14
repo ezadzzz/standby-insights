@@ -1,23 +1,26 @@
 # Panel
 
-Mode: Operate. Scope: `src/panel`. The user approved Scout / Picture Desk with A's outline iconography on September 12, 2026.
+Mode: Operate. Scope: `src/panel`. Redesign shaped 2026-09-13 for issue #24; replaces the September 12 Scout / Picture Desk direction.
 
-Design readiness: Ready to Implement
-Consensus provenance: The user selected and approved the Scout/icon mockup in this task before implementation; the approved comp and approval record are retained under `../mocks/`.
-Gate skipped: No. The approved extension specification supplies the behavior contract; this surface brief records the approved visual change.
+Design readiness: Ready to Implement (comp approved 2026-09-13)
+Consensus provenance: The member confirmed the shaped brief on 2026-09-13 in this task. Comp: `../mocks/panel-note.html` with captures `../mocks/panel-note-*.png`; sidecar `../mocks/panel-note.json` records the approval.
+Superseded: Scout / Picture Desk (`../mocks/panel-scout-icons.png`) stays as historical evidence.
 
-## Direction contract
+## Job
 
-THESIS: A narrow ruled evidence sheet, with neutral icon signposts and full source caveats. Calendar leads; price comparison and facts follow.
+A Standby member screens units on their cards for standby-only nights in their time frame. The panel is the "more details" view they open with View evidence: it confirms the same answer first, then carries prices and facts as secondary material.
 
-OWN-WORLD: Scout's petrol ink, Archivo, square outline controls, thin rules, pale blue-gray icons and off-white text. No condition colors imported from Scout.
+## Direction
 
-STORY: Confirm the unit and check time, read reservation evidence against the labeled reference date, compare advertised prices, inspect terms and building facts. Refresh remains the sole action.
+THESIS: The card, opened up. The panel speaks the card's note language so the two surfaces read as one product.
 
-FIRST VIEWPORT: Compact square-mark masthead, large unit title and outlined Refresh, check time underneath. Calendar label and reference precede an inset summary and chronological date/status rows. Paired prices and ruled fact groups follow. At narrow widths rows stack in reading order; nothing clips or becomes a separate scroll area.
+OWN-WORLD: White ground. A dashed, unfilled note under a dark tab reading "Standby Insights" holds the unit name, check time, standby-only headline and six-week grid. Monospace for tabs, labels, dates, prices and grid numerals; system sans for long caveat sentences. Square, no shadows, no icons. Card color key: green only for standby-only, hatch for reservations and blocked days, outline for standard move-in, dots for not returned.
 
-FORM: User-selected D with icons; approved comp `../mocks/panel-scout-icons.png`. Engine unavailable, so no generated seed key or engine phase checks. Code implementation follows this approved raster's layout with semantic HTML, local Archivo, and inline SVG.
+STORY: Confirm unit and check time, read the standby-only answer and grid, then scan prices, facts and location in quieter dashed-ruled sections. Refresh is a borderless monospace text action with a 44px target.
 
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+## Boundaries
 
-The mockup's illustrative prices are not live claims. Preserve full existing evidence wording and terms, including date disagreement, unavailable values and older-check labels. The UI includes no mockup caption, unused menu, photographs, persistence or new requests.
+- Restyle only: `render.js` wording, element order and states are unchanged. The only markup change is a wrapper around the unit header and calendar section. Critique P1s ship as their own issues.
+- Card annotations are unchanged.
+- Binding: attribution in words, no third-origin fetches (system faces only), no storage, forbidden vocabulary, readable at 320px and narrower; rows stack at 380px, prices at 260px.
+- On approval, implementation is separate work and DESIGN.md is rewritten from the built panel.

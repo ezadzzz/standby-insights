@@ -1,237 +1,140 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-12T04:11:16.536Z",
-  "title": "Design System: Standby Insights Panel",
+  "generatedAt": "2026-09-14T00:00:00.000Z",
+  "title": "Design System: Standby Insights",
   "extensions": {
     "colorMeta": {
-      "ink": {
-        "role": "neutral",
-        "displayName": "Deep Petrol Ink",
-        "canonical": "#08171c",
-        "tonalRamp": [
-          "oklch(15% 0.02301 221.60)",
-          "oklch(26% 0.02301 221.60)",
-          "oklch(38% 0.02301 221.60)",
-          "oklch(49% 0.02301 221.60)",
-          "oklch(61% 0.02301 221.60)",
-          "oklch(72% 0.02301 221.60)",
-          "oklch(84% 0.02301 221.60)",
-          "oklch(95% 0.02301 221.60)"
-        ]
-      },
-      "ink-2": {
-        "role": "neutral",
-        "displayName": "Inset Petrol",
-        "canonical": "#0d2029",
-        "tonalRamp": [
-          "oklch(15% 0.03034 230.51)",
-          "oklch(26% 0.03034 230.51)",
-          "oklch(38% 0.03034 230.51)",
-          "oklch(49% 0.03034 230.51)",
-          "oklch(61% 0.03034 230.51)",
-          "oklch(72% 0.03034 230.51)",
-          "oklch(84% 0.03034 230.51)",
-          "oklch(95% 0.03034 230.51)"
-        ]
-      },
-      "ink-3": {
-        "role": "neutral",
-        "displayName": "Raised Petrol Tone",
-        "canonical": "#132c36",
-        "tonalRamp": [
-          "oklch(15% 0.03598 226.39)",
-          "oklch(26% 0.03598 226.39)",
-          "oklch(38% 0.03598 226.39)",
-          "oklch(49% 0.03598 226.39)",
-          "oklch(61% 0.03598 226.39)",
-          "oklch(72% 0.03598 226.39)",
-          "oklch(84% 0.03598 226.39)",
-          "oklch(95% 0.03598 226.39)"
-        ]
-      },
-      "rule": {
-        "role": "neutral",
-        "displayName": "Quiet Rule",
-        "canonical": "#1b3641",
-        "tonalRamp": [
-          "oklch(15% 0.03834 226.45)",
-          "oklch(26% 0.03834 226.45)",
-          "oklch(38% 0.03834 226.45)",
-          "oklch(49% 0.03834 226.45)",
-          "oklch(61% 0.03834 226.45)",
-          "oklch(72% 0.03834 226.45)",
-          "oklch(84% 0.03834 226.45)",
-          "oklch(95% 0.03834 226.45)"
-        ]
-      },
-      "rule-strong": {
-        "role": "primary",
-        "displayName": "Petrol Rule",
-        "canonical": "#44798a",
-        "tonalRamp": [
-          "oklch(15% 0.06231 220.78)",
-          "oklch(26% 0.06231 220.78)",
-          "oklch(38% 0.06231 220.78)",
-          "oklch(49% 0.06231 220.78)",
-          "oklch(61% 0.06231 220.78)",
-          "oklch(72% 0.06231 220.78)",
-          "oklch(84% 0.06231 220.78)",
-          "oklch(95% 0.06231 220.78)"
-        ]
-      },
-      "on": {
-        "role": "neutral",
-        "displayName": "Off-White Ink",
-        "canonical": "#edf5f4",
-        "tonalRamp": [
-          "oklch(15% 0.00858 188.11)",
-          "oklch(26% 0.00858 188.11)",
-          "oklch(38% 0.00858 188.11)",
-          "oklch(49% 0.00858 188.11)",
-          "oklch(61% 0.00858 188.11)",
-          "oklch(72% 0.00858 188.11)",
-          "oklch(84% 0.00858 188.11)",
-          "oklch(95% 0.00858 188.11)"
-        ]
-      },
-      "on-2": {
-        "role": "neutral",
-        "displayName": "Pale Blue-Gray",
-        "canonical": "#a6c3c8",
-        "tonalRamp": [
-          "oklch(15% 0.03211 209.16)",
-          "oklch(26% 0.03211 209.16)",
-          "oklch(38% 0.03211 209.16)",
-          "oklch(49% 0.03211 209.16)",
-          "oklch(61% 0.03211 209.16)",
-          "oklch(72% 0.03211 209.16)",
-          "oklch(84% 0.03211 209.16)",
-          "oklch(95% 0.03211 209.16)"
-        ]
-      },
-      "on-3": {
-        "role": "neutral",
-        "displayName": "Muted Blue-Gray",
-        "canonical": "#7c9aa2",
-        "tonalRamp": [
-          "oklch(15% 0.03547 215.76)",
-          "oklch(26% 0.03547 215.76)",
-          "oklch(38% 0.03547 215.76)",
-          "oklch(49% 0.03547 215.76)",
-          "oklch(61% 0.03547 215.76)",
-          "oklch(72% 0.03547 215.76)",
-          "oklch(84% 0.03547 215.76)",
-          "oklch(95% 0.03547 215.76)"
-        ]
-      },
-      "focus": {
-        "role": "neutral",
-        "displayName": "Focus Blue-Gray",
-        "canonical": "#a6c3c8",
-        "tonalRamp": [
-          "oklch(15% 0.03211 209.16)",
-          "oklch(26% 0.03211 209.16)",
-          "oklch(38% 0.03211 209.16)",
-          "oklch(49% 0.03211 209.16)",
-          "oklch(61% 0.03211 209.16)",
-          "oklch(72% 0.03211 209.16)",
-          "oklch(84% 0.03211 209.16)",
-          "oklch(95% 0.03211 209.16)"
-        ]
-      }
+      "standby-only": { "role": "primary", "displayName": "Standby Green", "canonical": "#1d9e75", "tonalRamp": ["#04261b", "#0a4533", "#0f6e52", "#1d9e75", "#4cb892", "#86d1b5", "#bfe6d7", "#e8f6f0"] },
+      "standby-only-text": { "role": "primary", "displayName": "Deep Standby Green", "canonical": "#0f6e52", "tonalRamp": ["#04261b", "#0a4533", "#0f6e52", "#1d9e75", "#4cb892", "#86d1b5", "#bfe6d7", "#e8f6f0"] },
+      "paper": { "role": "neutral", "displayName": "Paper", "canonical": "#ffffff", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#a7b0b2", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "tab": { "role": "neutral", "displayName": "Slate Tab", "canonical": "#22343a", "tonalRamp": ["#111b1e", "#22343a", "#3a4f56", "#566c73", "#7a8e94", "#a3b3b7", "#cdd8da", "#eef3f2"] },
+      "tab-on": { "role": "neutral", "displayName": "Tab Mist", "canonical": "#eef3f2", "tonalRamp": ["#111b1e", "#22343a", "#3a4f56", "#566c73", "#7a8e94", "#a3b3b7", "#cdd8da", "#eef3f2"] },
+      "on": { "role": "neutral", "displayName": "Graphite", "canonical": "#2d3538", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#a7b0b2", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "on-2": { "role": "neutral", "displayName": "Weathered Gray", "canonical": "#5d686b", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#a7b0b2", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "outline": { "role": "neutral", "displayName": "Dash Gray", "canonical": "#a7b0b2", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#a7b0b2", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "mark": { "role": "neutral", "displayName": "Mark Gray", "canonical": "#8a9598", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#a7b0b2", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "hatch-stroke": { "role": "neutral", "displayName": "Hatch Stroke", "canonical": "#b4bcbe", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#b4bcbe", "#d3d8d9", "#f1f3f3", "#ffffff"] },
+      "hatch-ground": { "role": "neutral", "displayName": "Hatch Ground", "canonical": "#f1f3f3", "tonalRamp": ["#1c2224", "#2d3538", "#5d686b", "#8a9598", "#b4bcbe", "#d3d8d9", "#f1f3f3", "#ffffff"] }
     },
     "typographyMeta": {
-      "headline": {
-        "displayName": "Unit title",
-        "purpose": "Exact unit heading; 24px at 380px and below."
-      },
-      "price": {
-        "displayName": "Advertised amount",
-        "purpose": "Paired monthly amounts; 27px at 380px and below, with unavailable text held at 16px."
-      }
+      "headline": { "displayName": "Headline", "purpose": "Unit name heading the note." },
+      "price": { "displayName": "Price", "purpose": "Advertised price figures; 22px at 380px and below." },
+      "title": { "displayName": "Title", "purpose": "Standby-only headline, the calendar's visual lead." },
+      "body": { "displayName": "Body", "purpose": "Base text and caveat prose in system sans with tabular numerals." },
+      "data": { "displayName": "Data", "purpose": "Dates, check time, fact rows, legend and grid numerals." },
+      "label": { "displayName": "Label", "purpose": "Uppercase section headings for prices, facts and location." },
+      "tab": { "displayName": "Tab", "purpose": "The Standby Insights source tab only (9px on cards)." }
     },
-    "shadows": [],
-    "motion": [
-      {
-        "name": "refresh-background",
-        "value": "background-color 150ms ease-out",
-        "purpose": "Refresh hover and pressed tone; disabled under prefers-reduced-motion: reduce."
-      }
+    "shadows": [
+      { "name": "move-in-outline", "value": "inset 0 0 0 1px #8a9598", "purpose": "Draws standard move-in days; a mark, not elevation." },
+      { "name": "numeral-halo", "value": "0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff", "purpose": "text-shadow keeping grid numerals legible over hatch and dots." }
     ],
+    "textures": [
+      { "name": "hatch", "value": "repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px)", "purpose": "Reserved and move-in-blocked days." },
+      { "name": "dots", "value": "radial-gradient(circle, #8a9598 .9px, transparent 1.3px) 0 0 / 4px 4px", "purpose": "Not-returned days in the panel grid (3px pitch on the card strip)." }
+    ],
+    "focus": [
+      { "name": "focus-outline", "value": "outline: 2px solid #2d3538; outline-offset: 2px", "purpose": "All text actions." },
+      { "name": "today-outline", "value": "outline: 2px solid #2d3538; outline-offset: 1px", "purpose": "Today's grid cell." }
+    ],
+    "motion": [],
     "breakpoints": [
-      {
-        "name": "stack-rows-max",
-        "value": "380px"
-      },
-      {
-        "name": "stack-prices-max",
-        "value": "260px"
-      }
+      { "name": "narrow", "value": "380px", "purpose": "Max-width: 12px gutters, fact rows stack, price figures 22px." },
+      { "name": "tiny", "value": "260px", "purpose": "Max-width: price columns stack with a horizontal dashed rule." }
     ]
   },
   "components": [
     {
-      "name": "Refresh",
+      "name": "Source Note",
+      "kind": "card",
+      "refersTo": "source-note",
+      "description": "Dashed unfilled note under the dark Standby Insights tab; the signature container on panel and cards.",
+      "html": "<div class=\"ds-note\"><p class=\"ds-note-title\">Unit 4B, Harbor House</p><p class=\"ds-note-meta\">Checked Sep 14, 9:02 AM</p></div>",
+      "css": ".ds-note { position: relative; padding: 22px 16px 16px; border: 1px dashed #a7b0b2; background: transparent; color: #2d3538; font: 14px/1.5 system-ui, 'Segoe UI', sans-serif; } .ds-note::before { content: 'Standby Insights'; position: absolute; left: 12px; top: -10px; padding: 1px 8px; background: #22343a; color: #eef3f2; font: 700 10px/1.8 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .1em; text-transform: uppercase; } .ds-note-title { margin: 0; padding-top: 10px; font: 600 19px/1.3 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: -.01em; } .ds-note-meta { margin: 0; color: #5d686b; font: 12px/1.5 ui-monospace, 'Cascadia Mono', Consolas, monospace; }"
+    },
+    {
+      "name": "Text Action",
       "kind": "button",
-      "refersTo": "refresh",
-      "description": "The sole action; hover, pressed, focus and declared disabled styling. Current renderer does not set disabled.",
-      "html": "<div class=\"ds-example\"><button class=\"ds-refresh\" type=\"button\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M20 7a9 9 0 1 0 1 9 M20 2v6h-6\"/></svg><span>Refresh</span></button></div>",
-      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-refresh { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--rule-strong, #44798a); border-radius:0; color:var(--on, #edf5f4); background:transparent; font:700 11px/1.5 Archivo,system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:background-color 150ms ease-out; } .ds-refresh:hover { background:var(--ink-3, #132c36); } .ds-refresh:active { background:var(--ink-2, #0d2029); } .ds-refresh:disabled { color:var(--on-3, #7c9aa2); cursor:wait; } .ds-refresh:focus-visible { outline:2px solid var(--focus, #a6c3c8); outline-offset:3px; } @media(prefers-reduced-motion:reduce) { .ds-refresh { transition:none; } }"
+      "refersTo": "text-action",
+      "description": "Borderless mono action (Refresh) with a 44px target.",
+      "html": "<button class=\"ds-text-action\" type=\"button\">Refresh</button>",
+      "css": ".ds-text-action { min-height: 44px; padding: 0 2px; border: 0; border-radius: 0; background: transparent; color: #2d3538; font: 500 12px/1 ui-monospace, 'Cascadia Mono', Consolas, monospace; cursor: pointer; } .ds-text-action:hover { text-decoration: underline; text-underline-offset: 3px; } .ds-text-action:focus-visible { outline: 2px solid #2d3538; outline-offset: 2px; } .ds-text-action:disabled { color: #5d686b; cursor: wait; text-decoration: none; }"
     },
     {
-      "name": "Calendar summary",
+      "name": "Standby-Only Headline",
       "kind": "custom",
-      "refersTo": "summary",
-      "description": "Inset evidence summary with full text; illustrative date only, not a live claim.",
-      "html": "<div class=\"ds-example\"><div class=\"ds-summary\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 10v7 M12 6v1\"/></svg><ul class=\"ds-summary-list\"><li>Next reservation starts Oct 1, 2026.</li><li>No standard move-in offered before that reservation.</li></ul></div></div>",
-      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-summary { display:flex; align-items:flex-start; gap:12px; margin:16px 0 8px; padding:12px; border:1px solid var(--rule, #1b3641); background:var(--ink-2, #0d2029); } .ds-summary > .ds-icon { margin-top:2px; } .ds-summary-list { min-width:0; list-style:none; margin:0; padding:0; } .ds-summary-list li:first-child { font-weight:600; } .ds-summary-list li + li { margin-top:4px; color:var(--on-2, #a6c3c8); }"
+      "refersTo": "grid-day-standby-only",
+      "description": "Mono answer line that turns deep green behind a green square when standby-only.",
+      "html": "<p class=\"ds-headline\" data-standby-only=\"true\">3 standby-only nights in your window</p><p class=\"ds-headline-detail\">Sep 18 to Sep 21</p>",
+      "css": ".ds-headline { margin: 0; color: #2d3538; font: 600 16px/1.35 ui-monospace, 'Cascadia Mono', Consolas, monospace; text-wrap: balance; } .ds-headline[data-standby-only='true'] { color: #0f6e52; } .ds-headline[data-standby-only='true']::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 8px; vertical-align: 1px; background: #1d9e75; } .ds-headline-detail { margin: 2px 0 0; color: #5d686b; font: 12.5px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace; }"
     },
     {
-      "name": "Calendar range",
+      "name": "Six-Week Grid Days",
       "kind": "custom",
-      "description": "Chronological date/status row; illustrative date range only. Reservation emphasis is weight, not color.",
-      "html": "<ol class=\"ds-example ds-ranges\"><li class=\"ds-reservation\"><span>Oct 1, 2026 – Oct 15, 2026</span><span class=\"ds-range-status\"><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 5h18v16H3z M7 2v6 M17 2v6 M3 10h18 M7 14h2 M13 14h2 M7 18h2 M13 18h2\"/></svg>Reservation</span></li></ol>",
-      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-ranges { list-style:none; margin:12px 0 0; padding:0; } .ds-ranges li { display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(0, 1fr); gap:12px; align-items:start; padding:12px 0; border-bottom:1px solid var(--rule, #1b3641); } .ds-reservation { font-weight:600; } .ds-range-status { display:flex; align-items:flex-start; gap:8px; } .ds-range-status .ds-icon { width:17px; height:17px; margin-top:2px; } @media(max-width:380px) { .ds-ranges li { grid-template-columns:minmax(0, 1fr); gap:4px; } }"
+      "refersTo": "grid-day-standby-only",
+      "description": "Day cells: green standby-only, hatch reserved, inset outline move-in, dots not returned, outlined today, corner-marked check-in.",
+      "html": "<div class=\"ds-grid\"><span class=\"ds-day\" data-kind=\"move-in\">14</span><span class=\"ds-day ds-today\" data-kind=\"reserved\">15</span><span class=\"ds-day ds-check-in\" data-kind=\"standby-only\">16</span><span class=\"ds-day\" data-kind=\"standby-only\">17</span><span class=\"ds-day\" data-kind=\"not-returned\">18</span><span class=\"ds-day\" data-kind=\"blocked\">19</span><span class=\"ds-day\" data-kind=\"move-in\">20</span></div>",
+      "css": ".ds-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; forced-color-adjust: none; } .ds-day { position: relative; min-height: 32px; display: flex; align-items: center; justify-content: center; color: #2d3538; font: 12px/1.1 ui-monospace, 'Cascadia Mono', Consolas, monospace; } .ds-day[data-kind='standby-only'] { background: #1d9e75; color: #04261b; font-weight: 700; } .ds-day[data-kind='reserved'], .ds-day[data-kind='blocked'] { background: repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px); text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; } .ds-day[data-kind='move-in'] { box-shadow: inset 0 0 0 1px #8a9598; } .ds-day[data-kind='not-returned'] { background: radial-gradient(circle, #8a9598 .9px, transparent 1.3px) 0 0 / 4px 4px; text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; } .ds-today { outline: 2px solid #2d3538; outline-offset: 1px; z-index: 1; } .ds-check-in::after { content: ''; position: absolute; top: 2px; right: 2px; border: 4px solid transparent; border-top-color: #2d3538; border-right-color: #2d3538; }"
     },
     {
-      "name": "Advertised price pair",
-      "kind": "custom",
-      "description": "Paired labeled values, including unavailable subject treatment. Example median is illustrative, not live evidence; production keeps its disclosure below.",
-      "html": "<dl class=\"ds-example ds-prices\"><div><dt>This home</dt><dd class=\"ds-amount ds-unavailable\">Unavailable</dd><dd></dd></div><div><dt>Peer median</dt><dd class=\"ds-amount\">$2,400</dd><dd>per month</dd></div></dl>",
-      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-prices { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0 0 16px; } .ds-prices > div { min-width:0; } .ds-prices > div + div { border-left:1px solid var(--rule-strong, #44798a); padding-left:20px; margin-left:16px; } .ds-prices dd { margin:0; } .ds-prices .ds-amount { font-size:32px; font-weight:700; line-height:1.2; letter-spacing:-.02em; margin:4px 0; } .ds-prices .ds-amount.ds-unavailable { font-size:16px; letter-spacing:normal; } @media(max-width:380px) { .ds-prices .ds-amount { font-size:27px; } } @media(max-width:260px) { .ds-prices { grid-template-columns:minmax(0,1fr); gap:16px; } .ds-prices > div + div { border-left:0; border-top:1px solid var(--rule, #1b3641); margin-left:0; padding:12px 0 0; } }"
+      "name": "Dashed Section",
+      "kind": "card",
+      "refersTo": "section-label",
+      "description": "Secondary section outside the note: dashed top rule and uppercase mono label.",
+      "html": "<section class=\"ds-section\"><h2 class=\"ds-section-label\">Unit and building facts</h2><p class=\"ds-section-body\">Second floor, walk-up.</p></section>",
+      "css": ".ds-section { padding: 20px 0 22px; border-top: 1px dashed #a7b0b2; } .ds-section-label { margin: 0 0 12px; color: #5d686b; font: 700 11px/1.5 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: .12em; text-transform: uppercase; } .ds-section-body { margin: 0; color: #2d3538; font: 14px/1.5 system-ui, 'Segoe UI', sans-serif; }"
     },
     {
-      "name": "Labeled fact",
+      "name": "Price Comparison",
       "kind": "custom",
-      "description": "A semantic fact row retains its label when evidence is unavailable.",
-      "html": "<dl class=\"ds-example ds-facts\"><div><dt><svg class=\"ds-icon\" aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M3 5h18v16H3z M7 2v6 M17 2v6 M3 10h18 M7 14h2 M13 14h2 M7 18h2 M13 18h2\"/></svg>Minimum stay</dt><dd>Unavailable</dd></div></dl>",
-      "css": ".ds-example { font: 14px/1.5 Archivo, system-ui, sans-serif; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; color: var(--on, #edf5f4); background: var(--ink, #08171c); } .ds-icon { width:20px; height:20px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:square; stroke-linejoin:miter; color:var(--on-2, #a6c3c8); } @media (forced-colors:active) { .ds-icon { color:CanvasText; } } .ds-facts { margin:0; } .ds-facts > div { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr); border-bottom:1px solid var(--rule, #1b3641); } .ds-facts dt { display:flex; align-items:flex-start; gap:8px; padding:8px 12px 8px 0; color:var(--on-2, #a6c3c8); } .ds-facts dd { margin:0; grid-column:2; border-left:1px solid var(--rule, #1b3641); padding:8px 0 8px 12px; } .ds-facts dd + dd { color:var(--on-2, #a6c3c8); font-size:13px; padding-top:0; } .ds-facts .ds-icon { width:18px; height:18px; margin-top:2px; } @media(max-width:380px) { .ds-facts > div { grid-template-columns:minmax(0,1fr); padding-block:8px; } .ds-facts dt { padding-top:0; padding-bottom:4px; } .ds-facts dd { grid-column:1; border:0; padding:0 0 4px 26px; } }"
+      "refersTo": "price-figure",
+      "description": "Two mono price columns split by a dashed vertical rule.",
+      "html": "<dl class=\"ds-prices\"><div><dt>Standby</dt><dd class=\"ds-price\">$1,840</dd><dd>per month</dd></div><div><dt>Standard</dt><dd class=\"ds-price\">$2,310</dd><dd>per month</dd></div></dl>",
+      "css": ".ds-prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; } .ds-prices > div + div { border-left: 1px dashed #a7b0b2; padding-left: 16px; } .ds-prices dt, .ds-prices dd { margin: 0; color: #5d686b; font: 12px/1.45 ui-monospace, 'Cascadia Mono', Consolas, monospace; } .ds-prices dd.ds-price { margin: 2px 0; color: #2d3538; font: 600 26px/1.2 ui-monospace, 'Cascadia Mono', Consolas, monospace; letter-spacing: -.02em; }"
+    },
+    {
+      "name": "Facts Row",
+      "kind": "custom",
+      "refersTo": "section-label",
+      "description": "Mono label and value on a light dashed divider, with an optional sans caveat.",
+      "html": "<dl class=\"ds-facts\"><div><dt>Laundry</dt><dd>In unit</dd><dd>Per listing, not verified</dd></div><div><dt>Parking</dt><dd>Garage, extra fee</dd></div></dl>",
+      "css": ".ds-facts { margin: 0; } .ds-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); border-bottom: 1px dashed #d3d8d9; } .ds-facts > div:last-child { border-bottom: 0; } .ds-facts dt { padding: 7px 12px 7px 0; color: #5d686b; font: 12px/1.5 ui-monospace, 'Cascadia Mono', Consolas, monospace; } .ds-facts dd { grid-column: 2; margin: 0; padding: 7px 0; color: #2d3538; font: 12.5px/1.5 ui-monospace, 'Cascadia Mono', Consolas, monospace; } .ds-facts dd + dd { padding-top: 0; color: #5d686b; font: 13px/1.45 system-ui, 'Segoe UI', sans-serif; }"
     }
   ],
   "narrative": {
-    "northStar": "Scout / Picture Desk",
-    "overview": "A compact, ruled evidence sheet in petrol ink, with Archivo typography and neutral outline signposts. Flat surfaces and off-white text keep dense evidence readable without assigning a reassuring or alarming color to its meaning.\n\nThis captures the approved September 12, 2026 panel implementation only. It does not prescribe the design of injected card annotations. The extension retains a distinct identity beside Landing.",
+    "northStar": "The Card, Opened Up",
+    "overview": "Standby Insights lives on someone else's page. On Landing's listing cards it appears as a small dashed note under a dark tab that names the source; in the side panel it is that same note, opened up to hold the full answer. The two surfaces are one system: white ground, a 1px dashed outline that is never filled, a dark square tab reading \"Standby Insights\", and monospace for everything that is data. Nothing Landing draws looks like this, so nothing here reads as theirs, and nothing here outweighs the listing itself.\n\nDensity is quiet and tabular. The note holds what a member screened for (unit, check time, the standby-only headline, a six-week grid). Everything after it (prices, facts, location) sits outside the note in sections separated by dashed rules, one step quieter. Status always lives in words; color, hatch, outline and dots repeat those words as a picture and never replace them.\n\nThis system replaces the Scout / Picture Desk panel (petrol ink, Archivo display face, outline icons) shaped on 2026-09-12. That direction is superseded history only; its capture is `.impeccable/mocks/panel-scout-icons.png`.",
     "keyCharacteristics": [
-      "Square controls and thin rules.",
-      "Neutral icons paired with explicit words.",
-      "Full evidence wording in a continuous, wrapping document."
+      "Dashed, unfilled note under a dark square source tab, on both card and panel.",
+      "Monospace for tabs, labels, headings, dates, prices and grid numerals; system sans only for caveat prose.",
+      "One accent (standby-only green); every other state is a texture: hatch, outline, dots.",
+      "Square corners everywhere. No elevation, no icons, no web fonts.",
+      "Hierarchy by dashed rules and gray steps, not by boxes or fills."
     ],
     "rules": [
-      {
-        "name": "The Neutral Evidence Rule",
-        "body": "Status is stated in words; icons and color never replace those words or imply a condition rating.",
-        "section": "colors"
-      }
+      { "name": "The One Green Rule", "body": "Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.", "section": "colors" },
+      { "name": "The Texture Not Hue Rule", "body": "Every non-standby-only state is drawn as a texture in grays: hatch for reserved or blocked, a 1px inset outline for standard move-in, dots for not returned. Missing data is dotted, never blank and never outlined like move-in.", "section": "colors" },
+      { "name": "The Words First Rule", "body": "A state is always named in text; the grid, strip and legend repeat it. The calendar grid is `role=\"img\"` with a text alternative, and the legend is decorative.", "section": "colors" },
+      { "name": "The Mono For Data Rule", "body": "If a member might compare it across units (a date, a price, a count, a label, a numeral), it is monospace. Sans is reserved for caveat sentences such as fact notes and disclosures.", "section": "typography" },
+      { "name": "The System Faces Rule", "body": "No web fonts, no bundled font files. The stacks above are the whole type inventory.", "section": "typography" },
+      { "name": "The Flat Paper Rule", "body": "Nothing lifts off the page. A box-shadow or text-shadow is allowed only when it draws a mark or protects legibility, never when it suggests elevation.", "section": "elevation" }
     ],
     "dos": [
-      "Do preserve full labels, source caveats and unavailable or older-check wording.",
-      "Do keep the panel in normal document flow and let narrow layouts stack.",
-      "Do retain local fonts, local SVG assets and visible keyboard focus."
+      "Do open every Standby Insights surface with the dashed note and the dark \"Standby Insights\" tab, so attribution is in words.",
+      "Do set dates, prices, labels and grid numerals in the mono stack; use system sans only for caveat sentences.",
+      "Do reserve Standby Green for standby-only days and answers, and draw every other state as hatch, inset outline or dots.",
+      "Do name each state in text and let the grid, strip and legend repeat it.",
+      "Do separate secondary sections with 1px dashed rules in Dash Gray, and drop a rule when its section renders nothing.",
+      "Do keep text actions borderless mono with a 44px target, a hover underline and a 2px solid focus outline.",
+      "Do keep numerals legible over textures with the white halo, and stack fact rows at 380px and prices at 260px."
     ],
     "donts": [
-      "Don't apply this panel palette to injected card annotations without a separate design decision.",
-      "Don't use condition colors or icon-only evidence statuses.",
-      "Don't add decorative controls, photographs, rounded cards or shadows to this approved panel."
+      "Don't fill the note, round a corner, or add an elevation shadow; inset outlines and legibility halos are the only shadows.",
+      "Don't use green for brand, links, buttons or success.",
+      "Don't load web fonts or bundled font files; the system stacks are the inventory.",
+      "Don't add icons or icon glyphs; marks are the textures, squares, outlines and corner triangles already in the grid.",
+      "Don't leave a visible empty ruled band where a section has no content.",
+      "Don't return to the Scout / Picture Desk petrol, Archivo and outline-icon vocabulary."
     ]
   }
 }
