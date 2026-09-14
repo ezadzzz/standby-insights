@@ -1,6 +1,7 @@
-import { sixWeekView, describeStandbyOnly } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline } from '../lib/six-week-view.js';
 
-const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+// Card dates match the headline's "Sep 24" form: no year, as on the strip.
+const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const checkTimeFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 
 function formatDate(isoDate) {
@@ -8,17 +9,12 @@ function formatDate(isoDate) {
 }
 
 /**
- * The reservation line. A reservation's end date appears for overlap only —
- * never as a date the unit becomes the member's, and never as a stay boundary.
- * An absence is always phrased as what the returned calendar shows, because
- * that is all it is evidence of.
+ * The reservation line under a headline that doesn't already carry one. An
+ * absence is always phrased as what the returned calendar shows, because that
+ * is all it is evidence of.
  */
-function reservationLine(summary, referenceDate) {
-  const { intersectingReservation: current, nextReservation: next } = summary;
-  if (current) {
-    const end = current.endDate ? `through ${formatDate(current.endDate)}` : 'with an unspecified end';
-    return `Reserved on ${formatDate(referenceDate)}, ${end} (shown for overlap only)`;
-  }
+function reservationLine(summary) {
+  const { nextReservation: next } = summary;
   if (next) return `Next reservation ${formatDate(next.startDate)}`;
   if (summary.noReservationsInCalendar) return 'No reservation shown in the returned calendar';
   return 'No reservation shown from this date in the returned calendar';
@@ -64,10 +60,10 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   }
 
   const weeks = sixWeekView(evidence.ranges, today, referenceDate);
-  const statement = describeStandbyOnly(weeks);
+  const statement = describeHeadline(weeks, summary, checkIn);
   view.headlineText = statement.headline;
   view.isStandbyOnly = statement.isStandbyOnly;
-  view.detailText = statement.isStandbyOnly ? statement.detail : reservationLine(summary, referenceDate);
+  view.detailText = statement.detail || reservationLine(summary);
   // The marker is the member's own date and needs no sentence; without one the
   // strip's statements run from its labeled Today edge (ADR 1).
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;

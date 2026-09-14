@@ -44,14 +44,19 @@ test('routes and hrefs outside the supported families are not locators', () => {
 
 // --- what one card says -----------------------------------------------------
 
-test('a reservation covering the reference date is stated with its end for overlap only', () => {
-  const view = cardFor([
-    { start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: false, unbookable_reason: 'reserved' },
-  ]);
-  assert.equal(view.readable, true);
-  assert.match(view.detailText, /Reserved on Sep 15, 2026/);
-  assert.match(view.detailText, /through Sep 30, 2026/);
-  assert.doesNotMatch(view.detailText, /available|free|safe|until you/i);
+test('a reservation on the reference date leads the card, and the standby-only negative drops to the detail', () => {
+  const raw = [
+    { start_date: '2026-09-01', end_date: '2026-10-30', move_in_allowed: false, unbookable_reason: 'reserved' },
+  ];
+  const today = cardFor(raw);
+  assert.equal(today.readable, true);
+  assert.equal(today.headlineText, 'Reserved today, Sep 15', 'the check date is labeled, not presented as the member’s');
+  assert.equal(today.detailText, 'No standby-only window detected');
+
+  const selected = cardFor(raw, { referenceDate: '2026-09-20', checkIn: { status: 'selected', date: '2026-09-20' } });
+  assert.equal(selected.headlineText, 'Reserved on your check-in, Sep 20');
+  // No end date and no glossary caveat on a card: the strip shows the overlap.
+  assert.doesNotMatch(`${selected.headlineText} ${selected.detailText}`, /Oct 30|overlap|available|free|safe|until you/i);
 });
 
 test('an upcoming reservation is named by its start date', () => {
@@ -59,7 +64,7 @@ test('an upcoming reservation is named by its start date', () => {
     { start_date: '2026-09-01', end_date: '2026-09-20', move_in_allowed: true },
     { start_date: '2026-09-21', end_date: '2026-10-05', move_in_allowed: false, unbookable_reason: 'reserved' },
   ]);
-  assert.match(view.detailText, /Next reservation Sep 21, 2026/);
+  assert.match(view.detailText, /^Next reservation Sep 21$/);
 });
 
 test('a calendar with no reservation says only what the returned calendar shows', () => {

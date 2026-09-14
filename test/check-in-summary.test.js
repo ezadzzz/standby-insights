@@ -40,9 +40,9 @@ test('a selected check-in spanned by a reservation: the in-progress reservation 
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-10-01' });
   assert.equal(view().referenceNote, '', 'the member’s own date is marked on the grid, not restated');
   assert.equal(view().grid.cells.find((cell) => cell.isCheckIn).dayText, 'Oct 1');
-  assert.match(summaryText(view()), /reservation is in progress/i);
-  assert.match(summaryText(view()), /Oct 24, 2026/);
-  assert.match(summaryText(view()), /overlap/i);
+  assert.equal(view().standbyOnly.headline, 'Reserved on your check-in, Oct 1');
+  assert.match(summaryText(view()), /reservation on this date runs Sep 26, 2026 to Oct 24, 2026/);
+  assert.match(summaryText(view()), /not when a stay could start or end/);
   assert.match(summaryText(view()), /Next reservation starts Nov 2, 2026/);
   assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reservation/); // each day names its whole range on hover
 });
@@ -63,7 +63,10 @@ test('no readable selected date: facts are labeled against the check date, not a
   assert.match(view().referenceNote, /no selected check-in/i);
   assert.match(view().referenceNote, /check date/i);
   assert.match(view().referenceNote, /Sep 11, 2026/);
-  assert.match(summaryText(view()), /reservation is in progress/i);
+  // A standby-only gap later in the view still leads over today's reservation.
+  assert.equal(view().standbyOnly.headline, 'Standby-only Sep 12 – Sep 24');
+  assert.match(view().standbyOnly.explainer, /only while the reservation after them holds/);
+  assert.match(summaryText(view()), /reservation on this date is for Sep 11, 2026 only/);
 });
 
 test('a URL/control date disagreement suspends personalized emphasis but keeps check-date facts', async () => {
@@ -72,7 +75,7 @@ test('a URL/control date disagreement suspends personalized emphasis but keeps c
   assert.doesNotMatch(view().referenceNote, /your selected check-in/i);
   assert.match(view().referenceNote, /check date, Sep 11, 2026/);
   // The reference is the check date, so dated facts survive the disagreement.
-  assert.match(summaryText(view()), /reservation is in progress/i);
+  assert.match(summaryText(view()), /reservation on this date/);
   assert.equal(view().grid.cells.some((cell) => cell.isCheckIn), false);
 });
 
