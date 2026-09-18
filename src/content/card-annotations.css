@@ -53,7 +53,8 @@
 }
 /* The display rules above would otherwise override the hidden attribute. */
 .standby-strip[hidden],
-.standby-evidence .standby-strip-scale[hidden] { display: none; }
+.standby-evidence .standby-strip-scale[hidden],
+.standby-evidence .standby-strip-key[hidden] { display: none; }
 /* Week dividers and today's edge, drawn over the segments. */
 .standby-strip::after {
   content: "";
@@ -114,7 +115,6 @@
   font-size: 11px;
   forced-color-adjust: none;
 }
-.standby-evidence .standby-strip-key[hidden] { display: none; }
 .standby-strip-key > span { display: inline-flex; align-items: center; gap: 4px; }
 .standby-strip-key i { display: inline-block; width: 10px; height: 7px; }
 .standby-strip-key i[data-kind="check-in"] {
