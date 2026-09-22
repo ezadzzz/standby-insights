@@ -26,6 +26,7 @@ const standbyOnlyHeadline = document.getElementById('standby-only-headline');
 const standbyOnlyDetail = document.getElementById('standby-only-detail');
 const standbyOnlyExplainer = document.getElementById('standby-only-explainer');
 const calendarGrid = document.getElementById('calendar-grid');
+const gridLegend = document.getElementById('grid-legend');
 const calendarSection = document.getElementById('calendar-section');
 const allRanges = document.getElementById('all-ranges');
 const allRangesSummary = document.getElementById('all-ranges-summary');
@@ -85,6 +86,13 @@ function render(state) {
       if (cell.isToday) day.classList.add('today');
       if (cell.isCheckIn) day.classList.add('check-in');
       return day;
+    }));
+    gridLegend.replaceChildren(...view.grid.key.map(({ kind, text }) => {
+      const item = document.createElement('li');
+      const mark = document.createElement('i');
+      mark.dataset.kind = kind;
+      item.append(mark, document.createTextNode(text));
+      return item;
     }));
   }
 

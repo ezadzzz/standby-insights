@@ -315,15 +315,26 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.match(view.grid.label, /standby-only/);
   assert.match(view.grid.label, /Your check-in, Sep 15, 2026, is marked$/);
   assert.equal(view.referenceNote, 'Your check-in: Sep 15, 2026.');
+  assert.deepEqual(view.grid.key.map((k) => k.text), ['Standby-only', 'Reserved', 'Today', 'Your check-in']);
 });
 
-test('the grid marks no check-in when the date is only the check date', () => {
+test('the grid marks no check-in when the date is only the check date, and the legend drops that key too', () => {
   const view = describeState({
     status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
     ranges: [{ startDate: '2026-09-01', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null }],
   });
   assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
   assert.doesNotMatch(view.grid.label, /check-in/i);
+  assert.deepEqual(view.grid.key.map((k) => k.kind), ['move-in', 'today']);
+});
+
+test('the legend lists only marks the grid draws, so a single-kind calendar keys just that kind plus Today', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
+    ranges: [{ startDate: '2026-09-01', endDate: '2026-10-30', moveInAllowed: false, isReservation: false, unbookableReason: null }],
+  });
+  assert.deepEqual(view.grid.key.map((k) => k.kind), ['blocked', 'today']);
+  assert.deepEqual(view.grid.key.map((k) => k.text), ['Move-in blocked', 'Today']);
 });
 
 test('an older check leaves the six-week headline plain, and not-returned days are their own kind', () => {
