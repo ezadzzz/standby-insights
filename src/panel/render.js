@@ -69,6 +69,11 @@ function summaryItemsFor(summary, omitNext) {
   return items;
 }
 
+const MARK_EXPLANATIONS = {
+  blocked: 'Move-in blocked means Landing\'s calendar marks the night unavailable for a reason other than a reservation or a standby-only gap.',
+  'not-returned': 'No calendar data means Landing\'s calendar doesn\'t say anything about that night — not that it\'s open.',
+};
+
 /**
  * The six-week calendar grid: the same days as a card's strip, laid out by
  * weekday so today and the member's check-in can be found at a glance. The
@@ -76,6 +81,7 @@ function summaryItemsFor(summary, omitNext) {
  */
 function calendarGrid(weeks, today, checkIn) {
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
+  const drawn = new Set(weeks.days.map((d) => d.kind));
   const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   return {
     // Same sentence as the card strip's label, so both surfaces say it alike.
@@ -88,6 +94,11 @@ function calendarGrid(weeks, today, checkIn) {
       { kind: 'today', text: 'Today' },
       ...(checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }]),
     ]),
+    // Like the legend, explains only the marks the grid draws.
+    marksExplainer: Object.entries(MARK_EXPLANATIONS)
+      .filter(([kind]) => drawn.has(kind))
+      .map(([, text]) => text)
+      .join(' '),
     cells: weeks.days.map((day, index) => {
       const date = new Date(`${day.date}T00:00:00Z`);
       return {

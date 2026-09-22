@@ -47,6 +47,15 @@
         ],
         "createdAt": "2026-09-22T22:33:59.577Z",
         "reason": "system color keyword CanvasText in existing forced-colors rule, carried over unchanged from the ::before rule this issue converted to real text (issue #46)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "rgb(0, 0, 0)",
+        "files": [
+          "src/panel/panel.html"
+        ],
+        "createdAt": "2026-09-22T22:54:41.618Z",
+        "reason": "agent: default border-top-color of the note tab, which has no border outside forced-colors mode; no color is drawn"
       }
     ]
   }

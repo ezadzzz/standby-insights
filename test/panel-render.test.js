@@ -380,6 +380,19 @@ test('the legend lists only marks the grid draws, so a single-kind calendar keys
   assert.deepEqual(view.grid.key.map((k) => k.text), ['Move-in blocked', 'Today']);
 });
 
+test('the marks explainer explains only marks the grid draws', () => {
+  const at = (ranges) => describeState({
+    status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null }, ranges,
+  }).grid.marksExplainer;
+  assert.equal(at([{ startDate: '2026-09-01', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null }]), '');
+  const blocked = at([{ startDate: '2026-09-01', endDate: null, moveInAllowed: false, isReservation: false, unbookableReason: null }]);
+  assert.match(blocked, /^Move-in blocked means/);
+  assert.doesNotMatch(blocked, /No calendar data/);
+  const missing = at([{ startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: true, isReservation: false, unbookableReason: null }]);
+  assert.match(missing, /^No calendar data means/);
+  assert.doesNotMatch(missing, /Move-in blocked/);
+});
+
 test('an older check leaves the six-week headline plain, and not-returned days are their own kind', () => {
   const state = {
     status: 'ready', identity: 'confirmed', unitName: null, checkedAt: 1000, isChecking: false, error: null,
