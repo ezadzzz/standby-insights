@@ -3,6 +3,7 @@ import { describeState } from './render.js';
 const heading = document.getElementById('unit-heading');
 const identityNote = document.getElementById('identity-note');
 const checkTime = document.getElementById('check-time');
+const refreshStatus = document.getElementById('refresh-status');
 const calendarStatus = document.getElementById('calendar-status');
 const referenceNote = document.getElementById('reference-note');
 const summaryList = document.getElementById('summary-list');
@@ -52,8 +53,11 @@ function render(state) {
   const view = describeState(state);
   heading.textContent = view.headingText;
   identityNote.textContent = view.identityNote;
-  checkTime.textContent = view.refreshFailedNote ? `${view.checkTimeText}. ${view.refreshFailedNote}` : view.checkTimeText;
+  checkTime.textContent = view.checkTimeText;
+  refreshStatus.textContent = view.refreshFailedNote ?? '';
   calendarStatus.textContent = view.calendarStatusText;
+  refreshButton.disabled = state.isChecking;
+  refreshButton.textContent = state.isChecking ? 'Checking…' : 'Refresh';
   calendarSection.hidden = !view.calendarVisible;
 
   allRanges.hidden = view.allRanges.length === 0;

@@ -24,10 +24,30 @@ test('unavailable calendar: labeled unavailable, not an empty result, with Refre
   assert.equal(view.calendarVisible, true);
 });
 
-test('a failed first check says it failed, not that nothing was checked', () => {
+test('a failed first check says it failed, not that nothing was checked, and names a cause and next step', () => {
   const view = describeState({ status: 'unavailable', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: 'GateTimeoutError' });
   assert.doesNotMatch(view.checkTimeText, /not checked yet/i);
   assert.match(view.checkTimeText, /failed/i);
+  assert.match(view.checkTimeText, /network request did not complete/i);
+  assert.match(view.checkTimeText, /refresh/i);
+});
+
+test('a rate-limited check names that specific cause, not a generic network failure', () => {
+  const view = describeState({ status: 'unavailable', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: 'RateLimitedError' });
+  assert.match(view.checkTimeText, /asked this extension to slow down/i);
+});
+
+test('an unconfirmed unit names its cause and offers Refresh as the next step', () => {
+  const view = describeState({ status: 'mismatch', identity: 'mismatch', unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null });
+  assert.match(view.identityNote, /could not confirm/i);
+  assert.match(view.identityNote, /refresh/i);
+});
+
+test('a mismatched or ambiguous check keeps the last confirmed unit name in the heading', () => {
+  for (const identity of ['mismatch', 'ambiguous']) {
+    const view = describeState({ status: identity, identity, unitName: 'Lantana Hills 2321', ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null });
+    assert.equal(view.headingText, 'Lantana Hills 2321');
+  }
 });
 
 test('a mismatched check says the unit could not be confirmed, and renders no calendar section', () => {
@@ -118,7 +138,9 @@ test('a failed refresh is labeled an older check with the failure noted, without
     error: 'GateTimeoutError',
   });
   assert.match(view.checkTimeText, /older check/i);
-  assert.ok(view.refreshFailedNote);
+  assert.match(view.refreshFailedNote, /last refresh failed/i);
+  assert.match(view.refreshFailedNote, /network request did not complete/i);
+  assert.match(view.refreshFailedNote, /refresh/i);
 });
 
 const factsState = (facts, overrides = {}) => ({

@@ -96,6 +96,16 @@ function calendarGrid(weeks, today, checkIn) {
 
 const UNAVAILABLE = 'Unavailable';
 
+/**
+ * A failure's cause in member words, distinct from a calendar the response
+ * simply did not carry. Rate limiting is named on its own because it is a
+ * known, temporary condition, not an unexplained network failure.
+ */
+function failureCauseText(error) {
+  if (error === 'RateLimitedError') return 'Landing asked this extension to slow down';
+  return 'the network request did not complete';
+}
+
 // Said once, in the panel only. The last clause is the part a member can't
 // see on the calendar: the gap is a consequence of the reservation after it.
 const STANDBY_ONLY_EXPLAINER = 'Standby-only nights are too few for a standard stay, so only Standby can book them. That lasts only while the reservation after them holds: if it moves or is cancelled, standard stays may be able to book those nights.';
@@ -282,7 +292,7 @@ export function describeState(state) {
   };
 
   if (state.status === 'mismatch' || state.status === 'ambiguous') {
-    view.identityNote = 'Evidence unavailable: could not confirm this is the exact displayed unit.';
+    view.identityNote = 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
   }
 
   if (state.status === 'unavailable') {
@@ -319,13 +329,13 @@ export function describeState(state) {
   } else if (state.isChecking) {
     view.checkTimeText = 'Checking…';
   } else if (state.error) {
-    view.checkTimeText = 'Check failed';
+    view.checkTimeText = `Check failed: ${failureCauseText(state.error)}. Refresh to try again.`;
   } else if (view.identityNote) {
     view.checkTimeText = 'Checked, but this unit could not be confirmed';
   }
 
   if (state.isStale && state.error) {
-    view.refreshFailedNote = 'The last refresh failed; showing the previous check.';
+    view.refreshFailedNote = `The last refresh failed: ${failureCauseText(state.error)}. Refresh to try again; showing the previous check.`;
   }
 
   view.calendarVisible = Boolean(view.calendarStatusText || view.referenceNote || view.grid

@@ -52,6 +52,8 @@ try {
       await page.evaluate(s => window.deliver(s), current);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow ${width}/${variant}`);
       assert(await page.locator('#refresh-button').isVisible());
+      assert.equal(await page.locator('#refresh-button').isDisabled(), Boolean(current.isChecking), `refresh disabled while checking ${width}/${variant}`);
+      assert.equal(await page.locator('#refresh-button').innerText(), current.isChecking ? 'Checking…' : 'Refresh', `refresh label ${width}/${variant}`);
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
       assert.equal(await page.locator('#comparison-disclosure').evaluate(el => el.textContent !== ''), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
@@ -62,7 +64,8 @@ try {
       if (variant === 'mismatch') assert.match(await page.locator('#check-time').innerText(), /could not be confirmed/);
       assert.equal(await page.locator('#announcer').textContent(), '', `no announcement without a member Refresh ${width}/${variant}`);
       if (variant === 'long') {
-        assert.match(await page.locator('#check-time').innerText(), /older check.*last refresh failed/);
+        assert.match(await page.locator('#check-time').innerText(), /older check/);
+        assert.match(await page.locator('#refresh-status').innerText(), /last refresh failed.*network request did not complete.*refresh/i);
         assert.doesNotMatch(await page.locator('#standby-only-headline').innerText(), /older check/i);
       }
       if (variant === 'notReturned') {
@@ -102,12 +105,19 @@ try {
   assert.equal(await page.locator('#announcer').getAttribute('aria-live'), 'polite');
   assert.equal(await page.locator('#announcer').textContent(), '', 'nothing announced before the refresh has run');
   await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
+  assert.equal(await page.locator('#refresh-button').isDisabled(), true, 'refresh disabled while a check runs');
+  assert.equal(await page.locator('#refresh-button').innerText(), 'Checking…');
   await page.evaluate(s => window.deliver({...s, checkedAt: s.checkedAt + 60000}), state);
   assert.equal(await page.locator('#announcer').textContent(), 'Refresh complete.');
+  assert.equal(await page.locator('#refresh-button').isDisabled(), false, 'refresh re-enabled once the check completes');
+  assert.equal(await page.locator('#refresh-status').textContent(), '', 'no failure line after a successful refresh');
+  await page.locator('#refresh-button').focus(); // disabling the button during the check moved focus away
   await page.keyboard.press('Enter');
   await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
   await page.evaluate(s => window.deliver({...s, isStale:true, error:'GateTimeoutError'}), state);
   assert.equal(await page.locator('#announcer').textContent(), 'Refresh failed.');
+  assert.match(await page.locator('#refresh-status').innerText(), /last refresh failed/i);
+  assert.doesNotMatch(await page.locator('#check-time').innerText(), /last refresh failed/i, 'the failure is its own line, not folded into the check time');
   // Every returned range, including past the grid's six weeks, by keyboard.
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'all-ranges-summary');

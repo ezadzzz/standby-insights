@@ -58,9 +58,9 @@ button { font: inherit; }
   gap: 2px 12px;
 }
 h1 { font: 600 19px/1.3 var(--mono); letter-spacing: -.01em; overflow-wrap: break-word; padding-top: 10px; }
-#check-time, #identity-note { grid-column: 1 / -1; }
+#check-time, #refresh-status, #identity-note { grid-column: 1 / -1; }
 #check-time { color: var(--on-2); font: 12px/1.5 var(--mono); }
-#identity-note:not(:empty) { margin-top: 8px; font-weight: 600; }
+#refresh-status:not(:empty), #identity-note:not(:empty) { margin-top: 8px; font-weight: 600; }
 #refresh-button {
   min-height: 44px;
   padding: 0 2px;

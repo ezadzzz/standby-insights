@@ -116,6 +116,26 @@ test('a failed read keeps the previous evidence, labeled an older check', async 
   assert.equal(evidence.checkedAt, firstCheck, 'a failed read never advances the check time');
 });
 
+test('a unit name confirmed once survives a later unconfirmed re-check', async () => {
+  const home = validClosedCalendarHome;
+  const { store, calls } = harness();
+
+  store.read(home.slug, { visibleIdentity: identityFor(home) });
+  await tick();
+  calls[0].resolve(home);
+  await tick();
+  assert.equal(store.get(home.slug).unitName, home.name);
+
+  store.read(home.slug, { visibleIdentity: { ...identityFor(home), visibleHeadingText: 'Some other unit' }, force: true });
+  await tick();
+  calls[1].resolve(home);
+  await tick();
+
+  const evidence = store.get(home.slug);
+  assert.equal(evidence.identity, 'mismatch');
+  assert.equal(evidence.unitName, home.name, 'the name a prior confirmed check established is not erased');
+});
+
 test('teardown stops a pending read from landing', async () => {
   const home = validClosedCalendarHome;
   const { store, calls } = harness();
