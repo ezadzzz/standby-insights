@@ -146,6 +146,7 @@ function termsText(price) {
 
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
+const COMPARISON_CAVEAT = 'Advertised prices, not a quote for your dates.';
 const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, which already reflect any discount a home is carrying. Underlying commitment and discount terms differ between homes. This is not a matched-date booking quote and not a prediction that this home’s price will change.';
 
 /**
@@ -155,7 +156,7 @@ const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, wh
  */
 function comparisonView(state) {
   const comparison = state.comparison;
-  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
+  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', caveat: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
   if (!comparison || comparison.status === 'idle') return view;
 
   view.visible = true;
@@ -187,7 +188,9 @@ function comparisonView(state) {
   view.termsNote = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note]
     .filter((line) => line)
     .join(' ');
-  // The disclosure qualifies price figures, so it appears only beside them.
+  // Both qualify price figures, so they appear only beside them. The caveat
+  // stays in view; the full disclosure sits one click behind it.
+  view.caveat = view.prices.length > 0 ? COMPARISON_CAVEAT : '';
   view.disclosure = view.prices.length > 0 ? COMPARISON_DISCLOSURE : '';
 
   if (comparison.checkedAt !== null) {

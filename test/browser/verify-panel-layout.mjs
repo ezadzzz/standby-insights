@@ -56,7 +56,8 @@ try {
       assert.equal(await page.locator('#refresh-button').innerText(), current.isChecking ? 'Checking…' : 'Refresh', `refresh label ${width}/${variant}`);
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
-      assert.equal(await page.locator('#comparison-disclosure').evaluate(el => el.textContent !== ''), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
+      assert.equal(await page.locator('#comparison-caveat').isVisible(), current.comparison?.status === 'ready', `caveat ${width}/${variant}`);
+      assert.equal(await page.locator('#price-disclosure').isVisible(), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
       assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch'].includes(variant), `calendar section ${width}/${variant}`);
       assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
       if (variant === 'unavailable') assert.match(await page.locator('#calendar-status').innerText(), /Calendar unavailable\. .*Refresh/);
@@ -86,7 +87,8 @@ try {
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12, 2026 – Sep 24, 2026: Standby-only/);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
-        assert.match(await page.locator('#comparison-disclosure').innerText(), /not a prediction/);
+        assert.equal(await page.locator('#price-disclosure').evaluate(el => el.open), false, 'the full disclosure starts collapsed');
+        assert.match(await page.locator('#comparison-disclosure').textContent(), /not a prediction/);
         const summary = page.locator('#all-ranges summary');
         assert.equal(await summary.innerText(), 'All returned ranges (5)');
         assert.equal(await page.locator('#all-ranges').evaluate(el => el.open), false, 'the range list starts collapsed');

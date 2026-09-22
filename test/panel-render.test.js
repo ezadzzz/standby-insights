@@ -82,11 +82,15 @@ test('every returned range is listed chronologically with full dates and status 
   assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
 });
 
-test('the price disclosure shows only beside shown prices', () => {
+test('the price caveat and disclosure show only beside shown prices', () => {
   const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
-  assert.match(describeState({ checkedAt: null, comparison }).comparison.disclosure, /not a prediction/);
+  const ready = describeState({ checkedAt: null, comparison }).comparison;
+  assert.equal(ready.caveat, 'Advertised prices, not a quote for your dates.');
+  assert.match(ready.disclosure, /not a prediction/);
   for (const status of ['unavailable', 'insufficient']) {
-    assert.equal(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.disclosure, '');
+    const view = describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison;
+    assert.equal(view.caveat, '');
+    assert.equal(view.disclosure, '');
   }
 });
 
