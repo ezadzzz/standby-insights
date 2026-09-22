@@ -28,6 +28,7 @@ const sixWeeks = document.getElementById('six-weeks');
 const standbyOnlyHeadline = document.getElementById('standby-only-headline');
 const standbyOnlyDetail = document.getElementById('standby-only-detail');
 const standbyOnlyExplainer = document.getElementById('standby-only-explainer');
+const marksExplainer = document.getElementById('marks-explainer');
 const calendarGrid = document.getElementById('calendar-grid');
 const gridLegend = document.getElementById('grid-legend');
 const calendarSection = document.getElementById('calendar-section');
@@ -80,6 +81,10 @@ function render(state) {
     standbyOnlyDetail.textContent = view.standbyOnly.detail;
     standbyOnlyExplainer.textContent = view.standbyOnly.explainer;
     standbyOnlyExplainer.hidden = !view.standbyOnly.explainer;
+    marksExplainer.textContent = view.grid.marksExplainer;
+    marksExplainer.hidden = !view.grid.marksExplainer;
+    // Nothing to explain means no disclosure, not an empty one.
+    marksExplainer.parentElement.hidden = marksExplainer.hidden && standbyOnlyExplainer.hidden;
     calendarGrid.setAttribute('aria-label', view.grid.label);
     const blanks = Array.from({ length: view.grid.leadingBlanks }, () => document.createElement('span'));
     calendarGrid.replaceChildren(...blanks, ...view.grid.cells.map((cell) => {
