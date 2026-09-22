@@ -29,8 +29,8 @@ function referenceNoteText(state) {
   if (state.checkIn?.status === 'disagreement') {
     return `The date on this page and the date in its address disagree, so no date is treated as selected. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
   }
-  // The member's own date is marked on the grid and needs no sentence.
-  if (state.checkIn?.status === 'selected') return '';
+  // Stated in words as well as marked, so the mark is never the only carrier.
+  if (state.checkIn?.status === 'selected') return `Your check-in: ${formatDate(state.referenceDate)}.`;
   return `No selected check-in date was read. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
 }
 
@@ -76,7 +76,10 @@ function calendarGrid(weeks, today, checkIn) {
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
   const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   return {
-    label: weeks.label,
+    // Same sentence as the card strip's label, so both surfaces say it alike.
+    label: checkInIndex === null
+      ? weeks.label
+      : `${weeks.label}. Your check-in, ${formatDate(weeks.days[checkInIndex].date)}, is marked`,
     leadingBlanks: new Date(`${today}T00:00:00Z`).getUTCDay(),
     cells: weeks.days.map((day, index) => {
       const date = new Date(`${day.date}T00:00:00Z`);

@@ -38,13 +38,21 @@ const summaryText = (view) => view.summaryItems.join(' | ');
 
 test('a selected check-in spanned by a reservation: the in-progress reservation is stated with its end shown for overlap only', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-10-01' });
-  assert.equal(view().referenceNote, '', 'the member’s own date is marked on the grid, not restated');
+  assert.equal(view().referenceNote, 'Your check-in: Oct 1, 2026.', 'stated in words, not only marked');
+  assert.match(view().grid.label, /\. Your check-in, Oct 1, 2026, is marked$/);
   assert.equal(view().grid.cells.find((cell) => cell.isCheckIn).dayText, 'Oct 1');
   assert.equal(view().standbyOnly.headline, 'Reserved on your check-in, Oct 1');
   assert.match(summaryText(view()), /reservation on this date runs Sep 26, 2026 to Oct 24, 2026/);
   assert.match(summaryText(view()), /not when a stay could start or end/);
   assert.match(summaryText(view()), /Next reservation starts Nov 2, 2026/);
   assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reserved/); // each day names its whole range on hover
+});
+
+test('a selected check-in past the six weeks shown is stated in words and not claimed as marked', async () => {
+  const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-11-02' });
+  assert.equal(view().referenceNote, 'Your check-in: Nov 2, 2026.');
+  assert.equal(view().grid.cells.some((cell) => cell.isCheckIn), false);
+  assert.doesNotMatch(view().grid.label, /check-in/i);
 });
 
 test('no reservation before the next one, with continuous coverage: the standard move-in observation is shown', async () => {
