@@ -51,10 +51,26 @@ bumped. The gap exists only while the reservation after it holds.
 **Six-week view** — the 42 days from today drawn as a strip on each card and a
 weekday grid in the panel. Standby-only is green, reservations and other blocked
 days are hatched, standard move-in is outlined, and a day no range covers is
-dotted and keyed as *not returned* — drawn as missing, never left looking open. The member's selected check-in is marked; a check
+dotted and keyed to the member as **"No calendar data"** — drawn as missing,
+never left looking open. The member's selected check-in is marked; a check
 date is not. Statements are made from the reference date forward, and "No
-standby-only window detected" requires coverage through the view's last day;
-otherwise the view says the returned calendar doesn't cover it.
+standby-only nights in the next six weeks" requires coverage through the
+view's last day; otherwise the view says the returned calendar doesn't cover
+it.
+
+**Member-facing words** — the spec's internal terms stay in code and this
+glossary; the words a member actually reads are plainer and fixed across
+every surface (card key, panel legend, panel grid, all-ranges list, ARIA
+labels):
+
+- *Move-in blocked* — Landing's calendar marks the night unavailable for a
+  reason other than a reservation or a standby-only gap. Explained once,
+  statically, beside the panel legend.
+- *No calendar data* (spec: **not returned**) — Landing's calendar says
+  nothing about that night; it is not evidence the night is open. Explained
+  once, statically, beside the panel legend.
+- *Standby-only*, *Reserved*, *Standard move-in* — unchanged from the spec
+  terms; already plain enough for a member who never read it.
 
 **Standard move-in** — a range that allows move-in. Its absence is only stated
 under coverage (below).

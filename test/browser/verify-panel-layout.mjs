@@ -72,7 +72,7 @@ try {
         const missing = page.locator('#calendar-grid [data-kind="not-returned"]');
         assert(await missing.count() > 0, 'uncovered days are not-returned');
         assert.notEqual(await missing.first().evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'not-returned days are drawn');
-        assert.match(await page.locator('.grid-legend').innerText(), /Not returned/);
+        assert.match(await page.locator('.grid-legend').innerText(), /No calendar data/);
       }
       if (variant === 'disagreement') {
         assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
@@ -123,7 +123,7 @@ try {
   assert.equal(await page.evaluate(() => document.activeElement.id), 'all-ranges-summary');
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#all-ranges-list li').count(), 5);
-  assert.equal(await page.locator('#all-ranges-list li').last().innerText(), 'Nov 1, 2026 – unspecified end: Move-in allowed');
+  assert.equal(await page.locator('#all-ranges-list li').last().innerText(), 'Nov 1, 2026 – unspecified end: Standard move-in allowed');
   assert.equal(await page.locator('svg:not([aria-hidden="true"])').count(), 0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');

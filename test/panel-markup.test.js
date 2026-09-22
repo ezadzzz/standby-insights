@@ -20,7 +20,7 @@ test('the reference note precedes the six-week headline and grid it qualifies', 
 
 test('the panel legend keys not-returned days', async () => {
   const html = await read('src/panel/panel.html');
-  assert.match(html, /<li><i data-kind="not-returned"><\/i>Not returned<\/li>/);
+  assert.match(html, /<li><i data-kind="not-returned"><\/i>No calendar data<\/li>/);
 });
 
 test('a failed refresh gets its own announced status line, separate from the check-time line', async () => {

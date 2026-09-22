@@ -77,7 +77,7 @@ test('every returned range is listed chronologically with full dates and status 
   assert.deepEqual(view.allRanges, [
     'Sep 12, 2026 – Sep 24, 2026: Standby-only: too short for a standard stay',
     'Sep 25, 2026 – Jan 9, 2027: Reserved',
-    'Jan 10, 2027 – unspecified end: Move-in allowed',
+    'Jan 10, 2027 – unspecified end: Standard move-in allowed',
   ]);
   assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
 });
@@ -101,7 +101,7 @@ test('ready calendar: each grid day names its whole returned range on hover, inc
   });
   assert.equal(view.headingText, 'Lantana Hills 2321');
   assert.equal(view.grid.cells[0].title, 'Sep 11, 2026 – Sep 11, 2026: Reserved');
-  assert.equal(view.grid.cells[1].title, 'Sep 12, 2026 – unspecified end: Move-in allowed');
+  assert.equal(view.grid.cells[1].title, 'Sep 12, 2026 – unspecified end: Standard move-in allowed');
 });
 
 test('price columns retain source labels and never show a median from incomplete evidence', () => {
@@ -338,5 +338,5 @@ test('an older check leaves the six-week headline plain, and not-returned days a
   assert.match(stale.checkTimeText, /older check/i);
   const missing = fresh.grid.cells[10];
   assert.equal(missing.kind, 'not-returned');
-  assert.equal(missing.title, 'Not in the returned calendar');
+  assert.equal(missing.title, 'No calendar data for this day');
 });

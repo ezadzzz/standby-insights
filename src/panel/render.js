@@ -13,7 +13,7 @@ function rangeText(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
   const dateText = `${formatDate(range.startDate)} – ${end}`;
   const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
-  let statusText = range.moveInAllowed ? 'Move-in allowed' : 'Move-in blocked';
+  let statusText = range.moveInAllowed ? 'Standard move-in allowed' : 'Move-in blocked';
   if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
   if (range.isReservation) statusText = 'Reserved';
   return `${dateText}: ${statusText}`;
@@ -88,7 +88,7 @@ function calendarGrid(weeks, today, checkIn) {
         kind: day.kind,
         isToday: index === 0,
         isCheckIn: index === checkInIndex,
-        title: day.range ? rangeText(day.range) : 'Not in the returned calendar',
+        title: day.range ? rangeText(day.range) : 'No calendar data for this day',
       };
     }),
   };

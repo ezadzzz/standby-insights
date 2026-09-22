@@ -360,7 +360,7 @@ test('each note is a labeled group whose attribution and View evidence name the 
   const strip = note.children.find((el) => el.className === 'standby-strip');
   assert.match(strip.getAttribute('aria-label'), /Your check-in, Sep 15, is marked$/);
   const key = note.children.find((el) => el.className === 'standby-strip-key');
-  assert.match(key.textContent, /Standard move-in.*Not returned.*Your check-in/);
+  assert.match(key.textContent, /Standard move-in.*No calendar data.*Your check-in/);
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {
