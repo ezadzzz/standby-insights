@@ -79,9 +79,13 @@
 .standby-strip [data-kind="standby-only"],
 .standby-strip-key [data-kind="standby-only"] { background: #1d9e75; }
 .standby-strip [data-kind="reserved"],
-.standby-strip [data-kind="blocked"],
 .standby-strip-key [data-kind="reserved"] {
   background: repeating-linear-gradient(135deg, #8a9598 0 1.5px, #fff 1.5px 4px);
+}
+/* Rules, not hatch: hatch means a reservation and nothing else. */
+.standby-strip [data-kind="blocked"],
+.standby-strip-key [data-kind="blocked"] {
+  background: repeating-linear-gradient(to bottom, #8a9598 0 1.5px, #fff 1.5px 4px);
 }
 .standby-strip [data-kind="move-in"],
 .standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }

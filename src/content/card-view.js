@@ -11,13 +11,14 @@ function formatDate(isoDate) {
 /**
  * The reservation line under a headline that doesn't already carry one. An
  * absence is always phrased as what the returned calendar shows, because that
- * is all it is evidence of.
+ * is all it is evidence of, and names its date, because the strip may hatch a
+ * reservation that ends before it.
  */
-function reservationLine(summary) {
+function reservationLine(summary, referenceDate) {
   const { nextReservation: next } = summary;
   if (next) return `Next reservation ${formatDate(next.startDate)}`;
   if (summary.noReservationsInCalendar) return 'No reservation shown in the returned calendar';
-  return 'No reservation shown from this date in the returned calendar';
+  return `No reservation shown from ${formatDate(referenceDate)} in the returned calendar`;
 }
 
 /**
@@ -63,7 +64,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   const statement = describeHeadline(weeks, summary, checkIn);
   view.headlineText = statement.headline;
   view.isStandbyOnly = statement.isStandbyOnly;
-  view.detailText = statement.detail || reservationLine(summary);
+  view.detailText = statement.detail || reservationLine(summary, referenceDate);
   // The marker is the member's own date and needs no sentence; without one the
   // strip's statements run from its labeled Today edge (ADR 1).
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
@@ -77,14 +78,15 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
 // The panel legend's words, so a mark means the same thing on both surfaces.
 const KEY_WORDS = [
   ['standby-only', 'Standby-only'],
-  ['reserved', 'Reserved or move-in blocked'],
+  ['reserved', 'Reserved'],
+  ['blocked', 'Move-in blocked'],
   ['move-in', 'Standard move-in'],
   ['not-returned', 'Not returned'],
 ];
 
 /** Only the marks this strip actually draws, so the key stays one short line. */
 function stripKey(segments, checkInIndex) {
-  const drawn = new Set(segments.map((s) => (s.kind === 'blocked' ? 'reserved' : s.kind)));
+  const drawn = new Set(segments.map((s) => s.kind));
   const key = KEY_WORDS.filter(([kind]) => drawn.has(kind)).map(([kind, text]) => ({ kind, text }));
   if (checkInIndex !== null) key.push({ kind: 'check-in', text: 'Your check-in' });
   return key;
