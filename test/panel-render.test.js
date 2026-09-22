@@ -291,6 +291,8 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.equal(view.grid.cells[3].isCheckIn, true);
   assert.equal(view.grid.cells[19].dayText, 'Oct 1');
   assert.match(view.grid.label, /standby-only/);
+  assert.match(view.grid.label, /Your check-in, Sep 15, 2026, is marked$/);
+  assert.equal(view.referenceNote, 'Your check-in: Sep 15, 2026.');
 });
 
 test('the grid marks no check-in when the date is only the check date', () => {
@@ -299,6 +301,7 @@ test('the grid marks no check-in when the date is only the check date', () => {
     ranges: [{ startDate: '2026-09-01', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null }],
   });
   assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
+  assert.doesNotMatch(view.grid.label, /check-in/i);
 });
 
 test('an older check leaves the six-week headline plain, and not-returned days are their own kind', () => {
