@@ -51,7 +51,7 @@ test('a reservation on the reference date leads the card, and the standby-only n
   const today = cardFor(raw);
   assert.equal(today.readable, true);
   assert.equal(today.headlineText, 'Reserved today, Sep 15', 'the check date is labeled, not presented as the member’s');
-  assert.equal(today.detailText, 'No standby-only window detected');
+  assert.equal(today.detailText, 'No standby-only nights in the next six weeks');
 
   const selected = cardFor(raw, { referenceDate: '2026-09-20', checkIn: { status: 'selected', date: '2026-09-20' } });
   assert.equal(selected.headlineText, 'Reserved on your check-in, Sep 20');
@@ -106,7 +106,7 @@ test('the strip key names, in the panel legend’s words, only the marks this st
     { start_date: '2026-09-25', end_date: '2026-10-05', move_in_allowed: false, unbookable_reason: 'reserved' },
   ];
   const keyText = (view) => view.strip.key.map((k) => k.text);
-  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Reserved', 'Not returned']);
+  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Reserved', 'No calendar data']);
   const selected = cardFor(raw, { referenceDate: '2026-09-20', checkIn: { status: 'selected', date: '2026-09-20' } });
   assert.equal(keyText(selected).at(-1), 'Your check-in');
 });
@@ -188,7 +188,7 @@ test('a card whose page and address disagree marks no check-in', () => {
     checkIn: { status: 'disagreement', date: null },
   });
   assert.equal(view.strip.checkInIndex, null);
-  assert.equal(view.headlineText, 'No standby-only window detected');
+  assert.equal(view.headlineText, 'No standby-only nights in the next six weeks');
 });
 
 test('an older check leaves the headline plain and names its check time in the note', () => {

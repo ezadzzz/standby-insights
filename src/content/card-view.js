@@ -81,7 +81,7 @@ const KEY_WORDS = [
   ['reserved', 'Reserved'],
   ['blocked', 'Move-in blocked'],
   ['move-in', 'Standard move-in'],
-  ['not-returned', 'Not returned'],
+  ['not-returned', 'No calendar data'],
 ];
 
 /** Only the marks this strip actually draws, so the key stays one short line. */

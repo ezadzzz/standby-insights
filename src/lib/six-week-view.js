@@ -13,7 +13,7 @@ const KIND_WORDS = {
   reserved: 'reserved',
   blocked: 'move-in blocked',
   'move-in': 'standard move-in allowed',
-  'not-returned': 'not in the returned calendar',
+  'not-returned': 'no calendar data',
 };
 
 /**
@@ -117,7 +117,7 @@ export function describeStandbyOnly(view) {
   return {
     isStandbyOnly: false,
     headline: view.covered
-      ? 'No standby-only window detected'
+      ? 'No standby-only nights in the next six weeks'
       : `The returned calendar doesn't cover every night through ${short(view.lastDate)}`,
     detail: '',
   };
