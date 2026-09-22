@@ -99,7 +99,9 @@ export function createUnitEvidenceStore({ fetchHome, now = () => Date.now(), gat
           slug,
           status: calendar.status,
           identity,
-          unitName: confirmed ? responseIdentity.unitName : null,
+          // An unconfirmed re-check never erases a unit name a prior confirmed
+          // check already established; there is simply nothing new to report.
+          unitName: confirmed ? responseIdentity.unitName : (held?.unitName ?? null),
           ranges: calendar.ranges ?? null,
           // Facts stand on their own: an unusable calendar never withholds them,
           // and an unreadable fact never invalidates the calendar.

@@ -23,6 +23,12 @@ test('the panel legend keys not-returned days', async () => {
   assert.match(html, /<li><i data-kind="not-returned"><\/i>Not returned<\/li>/);
 });
 
+test('a failed refresh gets its own announced status line, separate from the check-time line', async () => {
+  const html = await read('src/panel/panel.html');
+  assert.match(html, /<p id="refresh-status" role="status"><\/p>/);
+  assert(html.indexOf('id="check-time"') < html.indexOf('id="refresh-status"'));
+});
+
 test('not-returned days are drawn, not left blank, on both surfaces', async () => {
   const panel = declarationsFor(await read('src/panel/panel.css'), '#calendar-grid [data-kind="not-returned"]');
   const card = declarationsFor(await read('src/content/card-annotations.css'), '.standby-strip-segment[data-kind="not-returned"]');
