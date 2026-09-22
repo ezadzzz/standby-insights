@@ -13,9 +13,9 @@ function rangeText(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
   const dateText = `${formatDate(range.startDate)} – ${end}`;
   const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
-  let statusText = range.moveInAllowed ? 'Move-in allowed' : 'Move-in not allowed';
+  let statusText = range.moveInAllowed ? 'Move-in allowed' : 'Move-in blocked';
   if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
-  if (range.isReservation) statusText = 'Reservation';
+  if (range.isReservation) statusText = 'Reserved';
   return `${dateText}: ${statusText}`;
 }
 

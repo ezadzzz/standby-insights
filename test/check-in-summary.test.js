@@ -44,7 +44,7 @@ test('a selected check-in spanned by a reservation: the in-progress reservation 
   assert.match(summaryText(view()), /reservation on this date runs Sep 26, 2026 to Oct 24, 2026/);
   assert.match(summaryText(view()), /not when a stay could start or end/);
   assert.match(summaryText(view()), /Next reservation starts Nov 2, 2026/);
-  assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reservation/); // each day names its whole range on hover
+  assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reserved/); // each day names its whole range on hover
 });
 
 test('no reservation before the next one, with continuous coverage: the standard move-in observation is shown', async () => {

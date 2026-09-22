@@ -106,9 +106,30 @@ test('the strip key names, in the panel legend’s words, only the marks this st
     { start_date: '2026-09-25', end_date: '2026-10-05', move_in_allowed: false, unbookable_reason: 'reserved' },
   ];
   const keyText = (view) => view.strip.key.map((k) => k.text);
-  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Reserved or move-in blocked', 'Not returned']);
+  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Reserved', 'Not returned']);
   const selected = cardFor(raw, { referenceDate: '2026-09-20', checkIn: { status: 'selected', date: '2026-09-20' } });
   assert.equal(keyText(selected).at(-1), 'Your check-in');
+});
+
+test('move-in-blocked days are keyed apart from reservations, so hatch means a reservation', () => {
+  const raw = [
+    { start_date: '2026-09-01', end_date: '2026-10-30', move_in_allowed: false },
+  ];
+  const view = cardFor(raw);
+  assert.match(view.detailText, /^No reservation shown/);
+  assert.deepEqual(view.strip.key.map((k) => k.kind), ['blocked']);
+  assert.deepEqual(view.strip.key.map((k) => k.text), ['Move-in blocked']);
+});
+
+test('a card with a reservation before the check-in names the date its absence runs from', () => {
+  const raw = [
+    { start_date: '2026-09-01', end_date: '2026-09-17', move_in_allowed: true },
+    { start_date: '2026-09-18', end_date: '2026-09-20', move_in_allowed: false, unbookable_reason: 'reserved' },
+    { start_date: '2026-09-21', end_date: '2026-12-30', move_in_allowed: true },
+  ];
+  const view = cardFor(raw, { referenceDate: '2026-10-01', checkIn: { status: 'selected', date: '2026-10-01' } });
+  assert.ok(view.strip.key.some((k) => k.kind === 'reserved'), 'the Sep 18 reservation is still drawn');
+  assert.equal(view.detailText, 'No reservation shown from Oct 1 in the returned calendar');
 });
 
 test('the strip’s end label uses the headline’s date form', () => {

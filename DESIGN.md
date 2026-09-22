@@ -154,13 +154,13 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
 - **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
 - **Mark Gray** (mark): the inset outline of standard move-in days and the dots of not-returned days.
-- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved and move-in-blocked days. The card strip and its key draw the same stripes darker, Mark Gray over Paper, so a 10px bar still holds 3:1 against white.
+- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved days, and the same pair drawn as horizontal rules for move-in-blocked days. The card strip and its key draw both darker, Mark Gray over Paper, so a 10px bar still holds 3:1 against white.
 - **Light Divider** (divider-light): the dashed divider between fact rows and between rows of All returned ranges, one step lighter than section rules.
 
 ### Named Rules
 **The One Green Rule.** Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.
 
-**The Texture Not Hue Rule.** Every non-standby-only state is drawn as a texture in grays: hatch for reserved or blocked, a 1px inset outline for standard move-in, dots for not returned. Missing data is dotted, never blank and never outlined like move-in.
+**The Texture Not Hue Rule.** Every non-standby-only state is drawn as a texture in grays: hatch for reserved, horizontal rules for move-in blocked, a 1px inset outline for standard move-in, dots for not returned. Missing data is dotted, never blank and never outlined like move-in. Hatch means a reservation and nothing else, so a blocked day is never hatched.
 
 **The Words First Rule.** A state is always named in text; the grid, strip and legend repeat it. The calendar grid is `role="img"` with a text alternative, and the legend is decorative.
 
@@ -209,7 +209,7 @@ Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only 
 
 ### Shadow Vocabulary
 - **Move-in outline** (`box-shadow: inset 0 0 0 1px #8a9598`): standard move-in days in the grid, strip and legend.
-- **Numeral halo** (`text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff`): grid numerals on reserved, blocked and not-returned days. Not-returned numerals also stay in graphite.
+- **Numeral halo** (`text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff`): grid numerals on reserved, move-in-blocked and not-returned days. Not-returned numerals also stay in graphite.
 
 ### Named Rules
 **The Flat Paper Rule.** Nothing lifts off the page. A box-shadow or text-shadow is allowed only when it draws a mark or protects legibility, never when it suggests elevation.
@@ -240,13 +240,13 @@ Borderless text actions, like a typed instruction.
 The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is generated content, not markup, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge. On cards it is a real element with tighter padding (1px 6px, 1.6 line height).
 
 ### Six-Week Grid (signature)
-Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved and blocked days are hatched; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label.
+Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved days are hatched; move-in-blocked days carry horizontal rules; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label.
 
 ### All Returned Ranges
 A native `<details>`, collapsed, closing the calendar section under a dashed rule. The summary reads "All returned ranges (N)" as a borderless mono text action (12px, 500, 44px target, hover underline, 2px focus outline) with no disclosure marker. Open, it lists every returned range chronologically in 12px mono, one per row on a light dashed divider, with full dates and status words. It is the keyboard and screen-reader path to ranges past the six-week grid and to the per-day detail the grid only offers on hover.
 
 ### Standby Strip (card)
-The grid condensed to a 10px horizontal bar of flex segments using the same state marks (darker hatch, dots at 3px pitch), with 1px white week dividers splitting it into six weeks, a 1.5px graphite today edge at the left extending 3px past the bar, and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every mark, so the strip reads without opening the panel.
+The grid condensed to a 10px horizontal bar of flex segments using the same state marks (darker hatch and rules, dots at 3px pitch), with 1px white week dividers splitting it into six weeks, a 1.5px graphite today edge at the left extending 3px past the bar, and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every mark, so the strip reads without opening the panel.
 
 ### Standby-Only Headline
 Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.
@@ -262,7 +262,7 @@ Mono label and mono value on a dashed-divided row; any second value line is a 13
 ### Do:
 - **Do** open every Standby Insights surface with the dashed note and the dark "Standby Insights" tab, so attribution is in words.
 - **Do** set dates, prices, labels and grid numerals in the mono stack; use system sans only for caveat sentences.
-- **Do** reserve Standby Green for standby-only days and answers, and draw every other state as hatch, inset outline or dots.
+- **Do** reserve Standby Green for standby-only days and answers, and draw every other state as hatch, rules, inset outline or dots.
 - **Do** name each state in text and let the grid, strip and legend repeat it.
 - **Do** separate secondary sections with 1px dashed rules in Dash Gray, and drop a rule when its section renders nothing.
 - **Do** keep text actions borderless mono with a 44px target, a hover underline and a 2px solid focus outline.
