@@ -101,8 +101,9 @@ export function createCardAnnotator({
     button.className = 'standby-evidence-button';
     button.textContent = 'View evidence';
     button.addEventListener('click', (event) => {
-      // The card sits inside Landing's own link; opening evidence must not
-      // also navigate to the listing.
+      // The container sits beside Landing's card link, not inside it, but the
+      // wrapper around both may carry its own click handler; stop the click
+      // from reaching it so opening evidence never also navigates the card.
       event.preventDefault();
       event.stopPropagation();
       onViewEvidence?.(slug);

@@ -55,6 +55,7 @@ function factRow(item) {
 function render(state) {
   const view = describeState(state);
   heading.textContent = view.headingText;
+  heading.title = view.headingText;
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.checkTimeText;
   refreshStatus.textContent = view.refreshFailedNote ?? '';
