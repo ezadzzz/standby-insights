@@ -1,4 +1,4 @@
-import { sixWeekView, describeHeadline } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline, drawnKey } from '../lib/six-week-view.js';
 
 // Card dates match the headline's "Sep 24" form: no year, as on the strip.
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -71,23 +71,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   const label = checkInIndex === null
     ? weeks.label
     : `${weeks.label}. Your check-in, ${formatDate(referenceDate)}, is marked`;
-  view.strip = { segments: weeks.segments, label, checkInIndex, endLabel: formatDate(weeks.lastDate), key: stripKey(weeks.segments, checkInIndex) };
+  const extras = checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }];
+  view.strip = { segments: weeks.segments, label, checkInIndex, endLabel: formatDate(weeks.lastDate), key: drawnKey(weeks.segments.map((s) => s.kind), extras) };
   return view;
-}
-
-// The panel legend's words, so a mark means the same thing on both surfaces.
-const KEY_WORDS = [
-  ['standby-only', 'Standby-only'],
-  ['reserved', 'Reserved'],
-  ['blocked', 'Move-in blocked'],
-  ['move-in', 'Standard move-in'],
-  ['not-returned', 'No calendar data'],
-];
-
-/** Only the marks this strip actually draws, so the key stays one short line. */
-function stripKey(segments, checkInIndex) {
-  const drawn = new Set(segments.map((s) => s.kind));
-  const key = KEY_WORDS.filter(([kind]) => drawn.has(kind)).map(([kind, text]) => ({ kind, text }));
-  if (checkInIndex !== null) key.push({ kind: 'check-in', text: 'Your check-in' });
-  return key;
 }

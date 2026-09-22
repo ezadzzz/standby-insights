@@ -1,5 +1,5 @@
 import { MINIMUM_PEERS } from '../lib/comparison.js';
-import { sixWeekView, describeHeadline } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline, drawnKey } from '../lib/six-week-view.js';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -81,6 +81,11 @@ function calendarGrid(weeks, today, checkIn) {
       ? weeks.label
       : `${weeks.label}. Your check-in, ${formatDate(weeks.days[checkInIndex].date)}, is marked`,
     leadingBlanks: new Date(`${today}T00:00:00Z`).getUTCDay(),
+    // Today is always drawn (index 0); the check-in mark only when selected.
+    key: drawnKey(weeks.days.map((d) => d.kind), [
+      { kind: 'today', text: 'Today' },
+      ...(checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }]),
+    ]),
     cells: weeks.days.map((day, index) => {
       const date = new Date(`${day.date}T00:00:00Z`);
       return {

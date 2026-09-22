@@ -18,9 +18,9 @@ test('the reference note precedes the six-week headline and grid it qualifies', 
   assert(html.indexOf('id="reference-note"') < html.indexOf('id="six-weeks"'));
 });
 
-test('the panel legend keys not-returned days', async () => {
+test('the panel legend is built from the drawn marks, not listed statically', async () => {
   const html = await read('src/panel/panel.html');
-  assert.match(html, /<li><i data-kind="not-returned"><\/i>No calendar data<\/li>/);
+  assert.match(html, /<ul id="grid-legend" class="grid-legend" aria-hidden="true"><\/ul>/);
 });
 
 test('a failed refresh gets its own announced status line, separate from the check-time line', async () => {

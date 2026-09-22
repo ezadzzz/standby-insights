@@ -1,6 +1,22 @@
 import { addDays, coversInterval } from './calendar.js';
 
 export const VIEW_DAYS = 42;
+
+// The panel legend's words, so a mark means the same thing on both surfaces.
+export const KEY_WORDS = [
+  ['standby-only', 'Standby-only'],
+  ['reserved', 'Reserved'],
+  ['blocked', 'Move-in blocked'],
+  ['move-in', 'Standard move-in'],
+  ['not-returned', 'No calendar data'],
+];
+
+/** Only the marks actually drawn among `kinds`, plus any always-shown `extras`. */
+export function drawnKey(kinds, extras = []) {
+  const drawn = new Set(kinds);
+  return [...KEY_WORDS.filter(([kind]) => drawn.has(kind)).map(([kind, text]) => ({ kind, text })), ...extras];
+}
+
 const STANDBY_ONLY_REASON = 'less_than_minimum_nightly_stay';
 const DAY_MS = 86_400_000;
 
