@@ -42,11 +42,11 @@ button { font: inherit; }
 .note-tab {
   position: absolute;
   left: 12px;
-  top: -10px;
+  top: -11px;
   padding: 1px 8px;
   background: var(--tab);
   color: var(--tab-on);
-  font: 700 10px/1.8 var(--mono);
+  font: 700 11px/1.8 var(--mono);
   letter-spacing: .1em;
   text-transform: uppercase;
 }

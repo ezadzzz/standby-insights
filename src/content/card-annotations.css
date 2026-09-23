@@ -16,11 +16,11 @@
 .standby-evidence-tab {
   position: absolute;
   left: 8px;
-  top: -9px;
+  top: -10px;
   padding: 1px 6px;
   background: #22343a;
   color: #eef3f2;
-  font: 700 10px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font: 700 11px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
   letter-spacing: .1em;
   text-transform: uppercase;
 }

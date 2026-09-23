@@ -72,7 +72,7 @@ typography:
     letterSpacing: "0.12em"
   tab:
     fontFamily: "ui-monospace, Cascadia Mono, Consolas, monospace"
-    fontSize: "10px"
+    fontSize: "11px"
     fontWeight: 700
     lineHeight: 1.8
     letterSpacing: "0.1em"
@@ -180,9 +180,9 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Body** (400, 14px, 1.5, sans, tabular numerals): base text. Supporting prose and the calendar summary under the grid step down to 13px, so nothing below the headline outweighs it.
 - **Data** (400, 12px, 1.45 to 1.5, mono): check time, the check-in reference note, detail lines, fact labels, price labels, legend, grid numerals.
 - **Label** (700, 11px, 0.12em, uppercase, mono, on-2): section headings (h2) for prices, facts and location.
-- **Tab** (700, 10px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. The card tab uses the same 10px.
+- **Tab** (700, 11px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. The card tab uses the same 11px.
 
-Both surfaces share one size ramp: 10 · 11 · 12 · 13 · 14 · 16 · 19 · 26px, plus 22px for narrow prices. Fact values sit at 13px mono, one step above their 12px labels. Card annotations use the lower steps: 12px mono body, 13px headline and page notice, 12px action, 11px strip scale and key, 10px tab. Nothing on a card goes above 13px, so the note never outweighs the listing.
+Both surfaces share one size ramp: 11 · 12 · 13 · 14 · 16 · 19 · 26px, plus 22px for narrow prices. Fact values sit at 13px mono, one step above their 12px labels. Card annotations use the lower steps: 12px mono body, 13px headline and page notice, 12px action, 11px strip scale, key and tab. Nothing on a card goes above 13px, so the note never outweighs the listing.
 
 ### Named Rules
 **The Mono For Data Rule.** If a member might compare it across units (a date, a price, a count, a label, a numeral), it is monospace. Sans is reserved for caveat sentences such as fact notes and disclosures.
@@ -216,7 +216,7 @@ Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only 
 
 ## Shapes
 
-Square. Every corner is 0 radius, including buttons (radius explicitly reset to 0). The recurring silhouette is the dashed rectangle with a dark rectangular tab breaking its top edge at the left (12px in, 10px above on the panel; 8px in, 9px above on cards). Rules are always 1px dashed; the only solid lines are focus outlines, the today outline (2px graphite, 1px offset), and the check-in mark, a small graphite corner triangle (4px borders, top right of the day).
+Square. Every corner is 0 radius, including buttons (radius explicitly reset to 0). The recurring silhouette is the dashed rectangle with a dark rectangular tab breaking its top edge at the left (12px in, 11px above on the panel; 8px in, 10px above on cards). Rules are always 1px dashed; the only solid lines are focus outlines, the today outline (2px graphite, 1px offset), and the check-in mark, a small graphite corner triangle (4px borders, top right of the day).
 
 ## Components
 
