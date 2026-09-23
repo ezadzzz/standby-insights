@@ -132,6 +132,7 @@ export function describeStandbyOnly(view) {
   // A negative conclusion needs every night it describes; a gap withholds it.
   return {
     isStandbyOnly: false,
+    noGap: view.covered,
     headline: view.covered
       ? 'No standby-only nights in the next six weeks'
       : `The returned calendar doesn't cover every night through ${short(view.lastDate)}`,

@@ -27,7 +27,7 @@ function reservationLine(summary, referenceDate) {
  *
  * The headline is what a Standby member scans a results column for: whether
  * a standby-only gap is open from their date. Without one, the reservation
- * line carries the card's reservation fact instead.
+ * line leads and the standby-only negative is the quieter detail.
  *
  * `readable` false means no unit-specific claim may be attached at all — the
  * card contributes to the single "Some listings couldn't be read" notice
@@ -62,9 +62,16 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
 
   const weeks = sixWeekView(evidence.ranges, today, referenceDate);
   const statement = describeHeadline(weeks, summary, checkIn);
-  view.headlineText = statement.headline;
   view.isStandbyOnly = statement.isStandbyOnly;
-  view.detailText = statement.detail || reservationLine(summary, referenceDate);
+  if (statement.noGap) {
+    // Down a results column the negative repeats on every card; the reservation
+    // fact is what differs, so it leads and the negative drops to the detail.
+    view.headlineText = reservationLine(summary, referenceDate);
+    view.detailText = statement.headline;
+  } else {
+    view.headlineText = statement.headline;
+    view.detailText = statement.detail || reservationLine(summary, referenceDate);
+  }
   // The marker is the member's own date and needs no sentence; without one the
   // strip's statements run from its labeled Today edge (ADR 1).
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;

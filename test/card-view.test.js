@@ -63,14 +63,16 @@ test('an upcoming reservation is named by its start date', () => {
   const view = cardFor([
     { start_date: '2026-09-01', end_date: '2026-09-20', move_in_allowed: true },
     { start_date: '2026-09-21', end_date: '2026-10-05', move_in_allowed: false, unbookable_reason: 'reserved' },
+    { start_date: '2026-10-06', end_date: '2027-09-01', move_in_allowed: true },
   ]);
-  assert.match(view.detailText, /^Next reservation Sep 21$/);
+  assert.equal(view.headlineText, 'Next reservation Sep 21');
+  assert.equal(view.detailText, 'No standby-only nights in the next six weeks');
 });
 
 test('a calendar with no reservation says only what the returned calendar shows', () => {
   const view = cardFor([{ start_date: '2026-09-01', end_date: '2027-09-01', move_in_allowed: true }]);
-  assert.match(view.detailText, /No reservation shown in the returned calendar/);
-  assert.doesNotMatch(view.detailText, /no reservations\b(?! shown)/i);
+  assert.match(view.headlineText, /No reservation shown in the returned calendar/);
+  assert.doesNotMatch(view.headlineText, /no reservations\b(?! shown)/i);
 });
 
 test('a standby-only gap leads the card in words, with the reservation that shortens it', () => {
@@ -116,7 +118,7 @@ test('move-in-blocked days are keyed apart from reservations, so hatch means a r
     { start_date: '2026-09-01', end_date: '2026-10-30', move_in_allowed: false },
   ];
   const view = cardFor(raw);
-  assert.match(view.detailText, /^No reservation shown/);
+  assert.match(view.headlineText, /^No reservation shown/);
   assert.deepEqual(view.strip.key.map((k) => k.kind), ['blocked']);
   assert.deepEqual(view.strip.key.map((k) => k.text), ['Move-in blocked']);
 });
@@ -129,7 +131,7 @@ test('a card with a reservation before the check-in names the date its absence r
   ];
   const view = cardFor(raw, { referenceDate: '2026-10-01', checkIn: { status: 'selected', date: '2026-10-01' } });
   assert.ok(view.strip.key.some((k) => k.kind === 'reserved'), 'the Sep 18 reservation is still drawn');
-  assert.equal(view.detailText, 'No reservation shown from Oct 1 in the returned calendar');
+  assert.equal(view.headlineText, 'No reservation shown from Oct 1 in the returned calendar');
 });
 
 test('the strip’s end label uses the headline’s date form', () => {
@@ -188,7 +190,7 @@ test('a card whose page and address disagree marks no check-in', () => {
     checkIn: { status: 'disagreement', date: null },
   });
   assert.equal(view.strip.checkInIndex, null);
-  assert.equal(view.headlineText, 'No standby-only nights in the next six weeks');
+  assert.equal(view.detailText, 'No standby-only nights in the next six weeks');
 });
 
 test('an older check leaves the headline plain and names its check time in the note', () => {
