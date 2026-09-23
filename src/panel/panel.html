@@ -29,8 +29,11 @@
           <div class="weekdays" aria-hidden="true"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
           <div id="calendar-grid" role="img"></div>
           <ul id="grid-legend" class="grid-legend" aria-hidden="true"></ul>
-          <p id="marks-explainer" class="supporting">Move-in blocked means Landing's calendar marks the night unavailable for a reason other than a reservation or a standby-only gap. No calendar data means Landing's calendar doesn't say anything about that night — not that it's open.</p>
-          <p id="standby-only-explainer" class="supporting"></p>
+          <details id="marks-disclosure">
+            <summary>About these marks</summary>
+            <p id="marks-explainer" class="supporting">Move-in blocked means Landing's calendar marks the night unavailable for a reason other than a reservation or a standby-only gap. No calendar data means Landing's calendar doesn't say anything about that night — not that it's open.</p>
+            <p id="standby-only-explainer" class="supporting"></p>
+          </details>
         </div>
         <div id="calendar-summary" class="summary" hidden>
           <ul id="summary-list"></ul>

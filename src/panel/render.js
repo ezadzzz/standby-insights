@@ -35,7 +35,7 @@ function referenceNoteText(state) {
 }
 
 /** Visible reservation and standard move-in statements for the reference date. */
-function summaryItemsFor(summary) {
+function summaryItemsFor(summary, omitNext) {
   const items = [];
   const { intersectingReservation: current, nextReservation: next } = summary;
 
@@ -46,7 +46,7 @@ function summaryItemsFor(summary) {
     if (current.endDate === current.startDate) runs = `is for ${formatDate(current.startDate)} only`;
     items.push(`The reservation on this date ${runs}. An end date shows only where it overlaps the calendar, not when a stay could start or end.`);
   }
-  if (next) {
+  if (next && !omitNext) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
   }
   if (summary.noStandardMoveInBeforeNext) {
@@ -318,13 +318,17 @@ export function describeState(state) {
       .sort((a, b) => a.startDate.localeCompare(b.startDate))
       .map(rangeText);
     view.referenceNote = referenceNoteText(state);
-    if (state.summary) view.summaryItems = summaryItemsFor(state.summary);
+    let omitNext = false;
     if (state.today && state.referenceDate) {
       const weeks = sixWeekView(state.ranges, state.today, state.referenceDate);
       view.standbyOnly = describeHeadline(weeks, state.summary, state.checkIn);
+      // The standby-only detail line already names this reservation.
+      omitNext = view.standbyOnly.isStandbyOnly
+        && weeks.gap?.nextReservation?.startDate === state.summary?.nextReservation?.startDate;
       view.standbyOnly.explainer = view.standbyOnly.isStandbyOnly ? STANDBY_ONLY_EXPLAINER : '';
       view.grid = calendarGrid(weeks, state.today, state.checkIn);
     }
+    if (state.summary) view.summaryItems = summaryItemsFor(state.summary, omitNext);
   }
 
   // Facts are independent of the calendar: they render whenever the response

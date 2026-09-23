@@ -75,6 +75,9 @@ test('no readable selected date: facts are labeled against the check date, not a
   assert.equal(view().standbyOnly.headline, 'Standby-only Sep 12 – Sep 24');
   assert.match(view().standbyOnly.explainer, /only while the reservation after them holds/);
   assert.match(summaryText(view()), /reservation on this date is for Sep 11, 2026 only/);
+  // The detail line already names the reservation after the gap, so the summary does not repeat it.
+  assert.match(view().standbyOnly.detail, /before the Sep 26 reservation/);
+  assert.doesNotMatch(summaryText(view()), /Next reservation starts/);
 });
 
 test('a URL/control date disagreement suspends personalized emphasis but keeps check-date facts', async () => {
