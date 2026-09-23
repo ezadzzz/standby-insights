@@ -80,12 +80,15 @@
 .standby-strip-key [data-kind="standby-only"] { background: #1d9e75; }
 .standby-strip [data-kind="reserved"],
 .standby-strip-key [data-kind="reserved"] {
-  background: repeating-linear-gradient(135deg, #8a9598 0 1.5px, #fff 1.5px 4px);
+  background: repeating-linear-gradient(135deg, #8a9598 0 1.5px, #f1f3f3 1.5px 4px);
 }
-/* Rules, not hatch: hatch means a reservation and nothing else. */
+/* Rules, not hatch: hatch means a reservation and nothing else. The tinted
+   ground (not white) is what keeps this a filled mark at strip scale, where
+   the rule pitch alone collapses to hairlines indistinguishable from the
+   move-in outline's bare white interior. */
 .standby-strip [data-kind="blocked"],
 .standby-strip-key [data-kind="blocked"] {
-  background: repeating-linear-gradient(to bottom, #8a9598 0 1.5px, #fff 1.5px 4px);
+  background: repeating-linear-gradient(to bottom, #8a9598 0 1.5px, #f1f3f3 1.5px 4px);
 }
 .standby-strip [data-kind="move-in"],
 .standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }

@@ -154,7 +154,7 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
 - **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
 - **Mark Gray** (mark): the inset outline of standard move-in days and the dots of not-returned days.
-- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved days, and the same pair drawn as horizontal rules for move-in-blocked days. The card strip and its key draw both darker, Mark Gray over Paper, so a 10px bar still holds 3:1 against white.
+- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved days, and the same pair drawn as horizontal rules for move-in-blocked days. The card strip and its key draw both darker, Mark Gray over Hatch Ground — the tinted ground, not Paper, is what keeps reserved and move-in-blocked reading as filled marks at 10px, where the stroke pitch alone would collapse to hairlines indistinguishable from standard move-in's bare outline. Mark Gray still holds 3:1 against white.
 - **Light Divider** (divider-light): the dashed divider between fact rows and between rows of All returned ranges, one step lighter than section rules.
 
 ### Named Rules
