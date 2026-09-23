@@ -31,15 +31,6 @@
         "reason": "PRODUCT.md (confirmed by member 2026-09-12): hatching marks reservations and blocked days; meaning-carrying texture, not decoration"
       },
       {
-        "rule": "undersized-ui-text",
-        "value": "10px",
-        "files": [
-          "src/panel/panel.css"
-        ],
-        "createdAt": "2026-09-22T22:33:52.058Z",
-        "reason": "pre-existing tab-label size carried over unchanged from the CSS ::before content it replaced (issue #46 fixed only the a11y delivery, not the size)"
-      },
-      {
         "rule": "design-system-color",
         "value": "*",
         "files": [
