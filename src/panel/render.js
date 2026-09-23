@@ -111,6 +111,20 @@ function failureCauseText(error) {
   return 'the network request did not complete';
 }
 
+/**
+ * Names the unit as the page shows it and what kind of failure this was,
+ * without saying the response was that unit: a mismatch is a response that
+ * described a different unit, an ambiguous one lacked what confirming needed.
+ */
+function identityNoteText(state) {
+  const shown = state.displayedName;
+  if (!shown) return 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
+  const why = state.status === 'mismatch'
+    ? "Landing's data for this listing did not match"
+    : "Landing's data did not include enough to confirm";
+  return `Evidence unavailable: could not confirm this is ${shown}. ${why} ${shown} as shown on this page. Refresh to check again.`;
+}
+
 // Said once, in the panel only. The last clause is the part a member can't
 // see on the calendar: the gap is a consequence of the reservation after it.
 const STANDBY_ONLY_EXPLAINER = 'Standby-only nights are too few for a standard stay, so only Standby can book them. That lasts only while the reservation after them holds: if it moves or is cancelled, standard stays may be able to book those nights.';
@@ -284,7 +298,9 @@ function factItemsFor(facts) {
  */
 export function describeState(state) {
   const view = {
-    headingText: state.unitName ?? 'Standby evidence',
+    // A unit the page shows but the response never confirmed is named as the
+    // page shows it; the notes below say it was not confirmed.
+    headingText: state.unitName ?? state.displayedName ?? 'Standby evidence',
     identityNote: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
@@ -300,7 +316,7 @@ export function describeState(state) {
   };
 
   if (state.status === 'mismatch' || state.status === 'ambiguous') {
-    view.identityNote = 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
+    view.identityNote = identityNoteText(state);
   }
 
   if (state.status === 'unavailable') {
@@ -341,7 +357,7 @@ export function describeState(state) {
   } else if (state.isChecking) {
     view.checkTimeText = 'Checking…';
   } else if (state.error) {
-    view.checkTimeText = `Check failed: ${failureCauseText(state.error)}. Refresh to try again.`;
+    view.checkTimeText = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${failureCauseText(state.error)}. Refresh to try again.`;
   } else if (view.identityNote) {
     view.checkTimeText = 'Checked, but this unit could not be confirmed';
   }

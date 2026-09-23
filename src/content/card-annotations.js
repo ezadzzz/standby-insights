@@ -256,7 +256,7 @@ export function createCardAnnotator({
         ? `${PAUSED_NOTICE} ${listings(notRead)} not read.`
         : PAUSED_NOTICE;
     } else {
-      notice.text.textContent = `${listings(unreadable)} couldn't be read.`;
+      notice.text.textContent = `${listings(unreadable)} couldn't be read. Look for cards with no Standby Insights note or marked "Calendar unavailable".`;
     }
     notice.resume.hidden = !paused;
   }

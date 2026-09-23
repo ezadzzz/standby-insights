@@ -10,6 +10,18 @@ function normalize(text) {
   return collapsed === '' ? null : collapsed;
 }
 
+/**
+ * The unit name the page itself shows, for words about a unit that could not be
+ * confirmed: the detail heading, or the "Unit N" a search card displays. It is
+ * only what is on screen and never evidence of what the response describes.
+ */
+export function displayedUnitName(visibleIdentity) {
+  const heading = normalize(visibleIdentity?.visibleHeadingText);
+  if (heading !== null) return visibleIdentity.visibleHeadingText.trim().replace(/\s+/g, ' ');
+  const designator = /Unit\s+([A-Za-z0-9-]+)/.exec(visibleIdentity?.cardText ?? '');
+  return designator ? `Unit ${designator[1]}` : null;
+}
+
 /** Pulls the identity fields checkIdentity needs out of a raw home response. */
 export function responseIdentityFromHome(raw) {
   return { slug: raw?.slug, unitName: raw?.name, propertyName: raw?.property?.name };

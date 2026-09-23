@@ -61,3 +61,13 @@ test('responseIdentityFromHome pulls slug/name/property out of a raw home respon
 test('responseIdentityFromHome tolerates a missing property object', () => {
   assert.deepEqual(responseIdentityFromHome({ slug: 's-1', name: 'Unit 1' }), { slug: 's-1', unitName: 'Unit 1', propertyName: undefined });
 });
+
+import { displayedUnitName } from '../src/lib/identity.js';
+
+test('displayedUnitName reads what the page shows and nothing else', () => {
+  assert.equal(displayedUnitName({ visibleHeadingText: '  Lantana Hills   2321 ' }), 'Lantana Hills 2321');
+  assert.equal(displayedUnitName({ cardText: 'Eighty One104.5Unit 2309|1|1Available Saturday Sep 12' }), 'Unit 2309');
+  assert.equal(displayedUnitName({ cardText: 'no designator here' }), null);
+  assert.equal(displayedUnitName({ cardText: null }), null);
+  assert.equal(displayedUnitName(undefined), null);
+});

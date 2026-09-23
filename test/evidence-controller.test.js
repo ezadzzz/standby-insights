@@ -303,3 +303,18 @@ test('a failed refresh keeps the previous facts, labeled as the older check', as
   assert.equal(state.isStale, true);
   assert.equal(state.facts.minimumStay, 30);
 });
+
+test('a failed read still carries the unit name the page showed, never a confirmed one', async () => {
+  const { fetchHome, calls } = fakeFetcher();
+  const controller = createEvidenceController({ fetchHome });
+
+  controller.enterDetailPage({ slug: validClosedCalendarHome.slug, visibleIdentity: identityFor(validClosedCalendarHome) });
+  await tick();
+  calls[0].reject(new Error('offline'));
+  await tick();
+
+  const state = controller.getState();
+  assert.equal(state.status, 'unavailable');
+  assert.equal(state.displayedName, validClosedCalendarHome.name);
+  assert.equal(state.unitName, null);
+});

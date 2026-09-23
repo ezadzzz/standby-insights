@@ -355,3 +355,29 @@ test('an older check leaves the six-week headline plain, and not-returned days a
   assert.equal(missing.kind, 'not-returned');
   assert.equal(missing.title, 'No calendar data for this day');
 });
+
+const shown = { unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null, displayedName: 'Unit 1831' };
+
+test('a mismatch names the unit the page shows and says the response did not match it', () => {
+  const view = describeState({ ...shown, status: 'mismatch', identity: 'mismatch' });
+  assert.equal(view.headingText, 'Unit 1831');
+  assert.match(view.identityNote, /could not confirm this is Unit 1831/);
+  assert.match(view.identityNote, /did not match Unit 1831 as shown on this page/);
+});
+
+test('an ambiguous check names the unit and says what was missing, not that it mismatched', () => {
+  const view = describeState({ ...shown, status: 'ambiguous', identity: 'ambiguous' });
+  assert.match(view.identityNote, /did not include enough to confirm Unit 1831/);
+  assert.doesNotMatch(view.identityNote, /did not match/);
+});
+
+test('a failed check names the unit the page shows', () => {
+  const view = describeState({ ...shown, status: 'unavailable', identity: null, checkedAt: null, error: 'GateTimeoutError' });
+  assert.equal(view.headingText, 'Unit 1831');
+  assert.match(view.checkTimeText, /^Check failed for Unit 1831: /);
+});
+
+test('a confirmed unit name still wins over the displayed one', () => {
+  const view = describeState({ ...shown, status: 'mismatch', identity: 'mismatch', unitName: 'Lantana Hills 2321' });
+  assert.equal(view.headingText, 'Lantana Hills 2321');
+});

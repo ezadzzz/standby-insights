@@ -3,6 +3,7 @@ import { checkDate } from './reference-date.js';
 import { scopeKey, collectComparison, compareSubject } from './comparison.js';
 import { createUnitEvidenceStore, EMPTY_UNIT } from './unit-evidence-store.js';
 import { RateLimitedError } from './errors.js';
+import { displayedUnitName } from './identity.js';
 import { RequestGate } from './request-gate.js';
 
 const NO_CHECK_IN = { status: 'none', date: null };
@@ -39,6 +40,7 @@ export function createEvidenceController({
 
   let selectedSlug = null;
   let checkIn = NO_CHECK_IN;
+  let displayedName = null;
   let state = null;
 
   // Complete comparison evidence for this page instance, keyed by
@@ -117,6 +119,7 @@ export function createEvidenceController({
       ...unit,
       slug: selectedSlug,
       checkIn,
+      displayedName,
       ...summaryFor(unit.ranges),
       comparison: comparisonViewFor(unit),
     };
@@ -191,6 +194,7 @@ export function createEvidenceController({
   function select(trigger) {
     selectedSlug = trigger.slug;
     checkIn = trigger.checkIn ?? NO_CHECK_IN;
+    displayedName = displayedUnitName(trigger.visibleIdentity);
   }
 
   rebuild({ notify: false });

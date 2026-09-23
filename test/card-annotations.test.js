@@ -258,6 +258,7 @@ test('an unconfirmed card makes no claim and contributes to one page notice', ()
   assert.ok(h.annotations().every((el) => el.hidden), 'no unit claim is attached');
   assert.equal(h.notices().length, 1, 'two unreadable cards still produce one notice');
   assert.match(h.notices()[0].textContent, /^Standby Insights2 listings couldn't be read\./);
+  assert.match(h.notices()[0].textContent, /no Standby Insights note or marked "Calendar unavailable"/, 'says which cards to look at');
 });
 
 test('the page notice sits before Landing’s results grid, never inside a card', () => {
