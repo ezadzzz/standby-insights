@@ -177,8 +177,8 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Price** (600, 26px, 1.2, -0.02em, mono): advertised price figures; 22px at 380px and below; "Unavailable" drops to 16px (the Title step) with normal tracking. 22px is the one step that exists only as a narrow-width price size.
 - **Title** (600, 16px, 1.35, mono, balanced wrap): the standby-only headline, the visual lead of the calendar.
 - **Status** (600, 13px, 1.45, mono): calendar status line when there is no grid to show.
-- **Body** (400, 14px, 1.5, sans, tabular numerals): base text, reference notes, summaries. Supporting prose steps down to 13px in on-2.
-- **Data** (400, 12px, 1.45 to 1.5, mono): check time, detail lines, fact labels, price labels, legend, grid numerals.
+- **Body** (400, 14px, 1.5, sans, tabular numerals): base text. Supporting prose and the calendar summary under the grid step down to 13px, so nothing below the headline outweighs it.
+- **Data** (400, 12px, 1.45 to 1.5, mono): check time, the check-in reference note, detail lines, fact labels, price labels, legend, grid numerals.
 - **Label** (700, 11px, 0.12em, uppercase, mono, on-2): section headings (h2) for prices, facts and location.
 - **Tab** (700, 10px, 1.8, 0.1em, uppercase, mono): the "Standby Insights" source tab only. The card tab uses the same 10px.
 
@@ -237,7 +237,7 @@ Borderless text actions, like a typed instruction.
 - **Page notice:** the same note placed above Landing's results grid with no outer margin, 13px text with Resume sharing the line when there is room.
 
 ### Source Tab (signature)
-The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is generated content, not markup, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge. On cards it is a real element with tighter padding (1px 6px, 1.6 line height).
+The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is a real element, so assistive technology hears the source, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge. On cards it takes tighter padding (1px 6px, 1.6 line height).
 
 ### Six-Week Grid (signature)
 Seven columns of 32px day cells with 12px mono numerals. Standby-only days are green fills with bold near-black numerals; reserved days are hatched; move-in-blocked days carry horizontal rules; standard move-in days carry a 1px inset outline; not-returned days are dotted (4px dot pitch). Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so textures survive. A legend below repeats every mark with a 14 x 10px key and a mono label: "Standby-only", "Reserved", "Move-in blocked", "Standard move-in", "No calendar data" (the member-facing word for a not-returned day). A static supporting line beside the legend explains "Move-in blocked" and "No calendar data" once, so neither term depends on a hover title.

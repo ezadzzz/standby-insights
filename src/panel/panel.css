@@ -94,7 +94,8 @@ h2 {
   text-transform: uppercase;
 }
 #calendar-status:not(:empty) { font: 600 13px/1.45 var(--mono); margin-bottom: 8px; }
-#reference-note:not(:empty) { color: var(--on-2); margin-bottom: 12px; }
+/* A named date, so it reads like the check time above it, not like prose. */
+#reference-note:not(:empty) { color: var(--on-2); font: 12px/1.45 var(--mono); margin-bottom: 12px; }
 
 #standby-only-headline { font: 600 16px/1.35 var(--mono); text-wrap: balance; }
 #standby-only-headline[data-standby-only="true"] { color: var(--standby-only-text); }
@@ -108,7 +109,7 @@ h2 {
   background: var(--standby-only);
   forced-color-adjust: none;
 }
-#standby-only-detail { color: var(--on-2); font: 12px/1.45 var(--mono); margin-top: 2px; }
+#standby-only-detail { color: var(--on-2); font: 12px/1.45 var(--mono); margin-top: 2px; text-wrap: pretty; }
 
 .weekdays, #calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .weekdays { margin-top: 14px; color: var(--on-2); font: 11px/1.5 var(--mono); text-align: center; }
@@ -144,7 +145,8 @@ h2 {
 .supporting, #comparison-check-time { color: var(--on-2); font-size: 13px; }
 
 .summary { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--outline); }
-#summary-list li:first-child { font-weight: 600; }
+/* Quieter than the headline it follows: the headline is the answer, these qualify it. */
+#summary-list { font-size: 13px; text-wrap: pretty; }
 #summary-list li + li { margin-top: 4px; color: var(--on-2); }
 
 /* Every returned range, past the grid's six weeks: a typed instruction that opens a ledger. */
