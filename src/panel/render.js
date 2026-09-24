@@ -170,7 +170,7 @@ const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, wh
  */
 function comparisonView(state) {
   const comparison = state.comparison;
-  const view = { visible: false, statusText: '', subjectText: '', termsNote: '', caveat: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
+  const view = { visible: false, statusText: '', differenceText: '', subjectText: '', termsNote: '', caveat: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
   if (!comparison || comparison.status === 'idle') return view;
 
   view.visible = true;
@@ -197,6 +197,12 @@ function comparisonView(state) {
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
       { label: `Median of ${comparison.count} other ${plural(comparison.count, 'home')}`, amount: money(comparison.median), unit: 'per month' },
     ];
+    if (comparison.subjectPrice) {
+      // Rounded as the figures are shown, so the line never disagrees with them.
+      const diff = Math.round(comparison.subjectPrice.amount) - Math.round(comparison.median);
+      view.differenceText = diff === 0 ? 'Same as the median'
+        : `${money(Math.abs(diff))} ${diff < 0 ? 'below' : 'above'} the median`;
+    }
   }
 
   view.subjectText = subjectPriceText(comparison.subjectPrice);

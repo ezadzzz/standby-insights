@@ -80,6 +80,7 @@ try {
         assert(await page.evaluate(() => document.getElementById('reference-note').compareDocumentPosition(document.getElementById('six-weeks')) & Node.DOCUMENT_POSITION_FOLLOWING), 'reference note precedes the grid');
       }
       if (variant === 'missingPrice') assert.match(await page.locator('#comparison-subject').innerText(), /no eligible advertised monthly price/);
+      if (variant === 'missingPrice') assert.equal(await page.locator('#comparison-difference').innerText(), '');
       if (variant === 'ready') {
         assert.equal(await page.locator('.facts dt').count(), 6);
         assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only through Sep 24/);
@@ -87,6 +88,11 @@ try {
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12 – Sep 24: Standby-only/);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
+        assert.equal(await page.locator('#comparison-difference').innerText(), '$256 below the median');
+        assert(await page.evaluate(() => {
+          const [prices, difference, terms] = ['comparison-prices', 'comparison-difference', 'comparison-terms'].map((id) => document.getElementById(id).getBoundingClientRect());
+          return prices.bottom <= difference.top && difference.bottom <= terms.top;
+        }), 'the difference sits between the figures and the fine print');
         assert.equal(await page.locator('#price-disclosure').evaluate(el => el.open), false, 'the full disclosure starts collapsed');
         assert.match(await page.locator('#comparison-disclosure').textContent(), /not a prediction/);
         const summary = page.locator('#all-ranges summary');

@@ -172,6 +172,7 @@ h2 {
 #comparison-prices dt, #comparison-prices dd:last-child { color: var(--on-2); font: 12px/1.45 var(--mono); }
 .price-amount { font: 600 26px/1.2 var(--mono); letter-spacing: -.02em; margin: 2px 0; color: var(--on); }
 .price-amount.unavailable { font-size: 16px; letter-spacing: normal; }
+#comparison-difference:not(:empty) { font: 600 14px/1.45 var(--mono); color: var(--on); margin: -4px 0 10px; }
 #comparison-status:not(:empty) { color: var(--on-2); font: 12px/1.45 var(--mono); margin-bottom: 10px; }
 #comparison-subject:not(:empty) { margin-bottom: 10px; }
 #comparison-terms:not(:empty) { margin-bottom: 6px; }
