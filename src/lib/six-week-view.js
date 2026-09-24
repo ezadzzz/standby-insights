@@ -121,7 +121,7 @@ export function describeStandbyOnly(view) {
   if (gap) {
     let headline;
     if (gap.endDate === null) headline = `Standby-only from ${short(gap.startDate)}, end unspecified`;
-    else if (gap.inProgress) headline = `Standby-only thru ${short(gap.endDate)}`;
+    else if (gap.inProgress) headline = `Standby-only through ${short(gap.endDate)}`;
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
       ? `Standard stays can't fit before the ${short(gap.nextReservation.startDate)} reservation`

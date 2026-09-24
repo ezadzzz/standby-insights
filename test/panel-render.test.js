@@ -75,9 +75,9 @@ test('every returned range is listed chronologically with full dates and status 
     ],
   });
   assert.deepEqual(view.allRanges, [
-    'Sep 12, 2026 – Sep 24, 2026: Standby-only: too short for a standard stay',
-    'Sep 25, 2026 – Jan 9, 2027: Reserved',
-    'Jan 10, 2027 – unspecified end: Standard move-in allowed',
+    'Sep 12 – Sep 24: Standby-only: too short for a standard stay',
+    'Sep 25 – Jan 9: Reserved',
+    'Jan 10 – unspecified end: Standard move-in allowed',
   ]);
   assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
 });
@@ -104,8 +104,8 @@ test('ready calendar: each grid day names its whole returned range on hover, inc
     ],
   });
   assert.equal(view.headingText, 'Lantana Hills 2321');
-  assert.equal(view.grid.cells[0].title, 'Sep 11, 2026 – Sep 11, 2026: Reserved');
-  assert.equal(view.grid.cells[1].title, 'Sep 12, 2026 – unspecified end: Standard move-in allowed');
+  assert.equal(view.grid.cells[0].title, 'Sep 11 – Sep 11: Reserved');
+  assert.equal(view.grid.cells[1].title, 'Sep 12 – unspecified end: Standard move-in allowed');
 });
 
 test('price columns retain source labels and never show a median from incomplete evidence', () => {
@@ -114,7 +114,7 @@ test('price columns retain source labels and never show a median from incomplete
   const view = describeState({ checkedAt: null, comparison }).comparison;
   assert.deepEqual(view.prices, [
     { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
-    { label: 'Median of 12 similar homes', amount: '$2,400', unit: 'per month' },
+    { label: 'Median of 12 other homes', amount: '$2,400', unit: 'per month' },
   ]);
   assert.match(view.scopeText, /12 other homes.*same market and bedroom count/i);
   assert.match(view.termsNote, /not supplied/);
@@ -310,15 +310,15 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
       { startDate: '2026-09-25', endDate: '2026-10-30', moveInAllowed: false, isReservation: true, unbookableReason: 'reserved' },
     ],
   });
-  assert.equal(view.standbyOnly.headline, 'Standby-only thru Sep 24');
-  assert.equal(view.grid.leadingBlanks, 6, 'Sep 12, 2026 is a Saturday');
+  assert.equal(view.standbyOnly.headline, 'Standby-only through Sep 24');
+  assert.equal(view.grid.leadingBlanks, 6, 'Sep 12 is a Saturday');
   assert.equal(view.grid.cells.length, 42);
-  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12, 2026 – Sep 24, 2026: Standby-only: too short for a standard stay' });
+  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only: too short for a standard stay' });
   assert.equal(view.grid.cells[3].isCheckIn, true);
   assert.equal(view.grid.cells[19].dayText, 'Oct 1');
   assert.match(view.grid.label, /standby-only/);
-  assert.match(view.grid.label, /Your check-in, Sep 15, 2026, is marked$/);
-  assert.equal(view.referenceNote, 'Your check-in: Sep 15, 2026.');
+  assert.match(view.grid.label, /Your check-in, Sep 15, is marked$/);
+  assert.equal(view.referenceNote, 'Your check-in: Sep 15.');
   assert.deepEqual(view.grid.key.map((k) => k.text), ['Standby-only', 'Reserved', 'Today', 'Your check-in']);
 });
 

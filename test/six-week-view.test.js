@@ -25,7 +25,7 @@ test('the view is six weeks of days starting today, each classified from its ret
 test('a gap in progress on the reference date is named with its end and the reservation after it', () => {
   const statement = describeStandbyOnly(sixWeekView(lantana, TODAY, TODAY));
   assert.equal(statement.isStandbyOnly, true);
-  assert.equal(statement.headline, 'Standby-only thru Sep 24');
+  assert.equal(statement.headline, 'Standby-only through Sep 24');
   assert.equal(statement.detail, "Standard stays can't fit before the Sep 26 reservation");
 });
 

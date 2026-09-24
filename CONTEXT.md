@@ -41,7 +41,7 @@ duration.
 **Standby-only** — a range whose unbookable reason is
 `less_than_minimum_nightly_stay`: too few nights for a standard stay, so only
 Standby can book them. Contiguous standby-only ranges read as one **standby-only
-gap**, named with its end ("Standby-only thru Sep 24") and the reservation that
+gap**, named with its end ("Standby-only through Sep 24") and the reservation that
 shortens it ("Standard stays can't fit before the Sep 26 reservation"). This is
 what a Standby member scans for, and the extension states it from their side.
 It is Landing's published reason, never inferred from neighbouring ranges, and
@@ -69,6 +69,7 @@ labels):
 - *No calendar data* (spec: **not returned**) — Landing's calendar says
   nothing about that night; it is not evidence the night is open. Explained
   once, statically, beside the panel legend.
+- *Other homes* (spec: **peers**) — the comparison homes, in every surface.
 - *Standby-only*, *Reserved*, *Standard move-in* — unchanged from the spec
   terms; already plain enough for a member who never read it.
 
@@ -85,7 +86,8 @@ labeled whenever it is not the member's own.
 
 **Selected check-in** — the member's own move-in date, read from the URL with a
 rendered control as fallback. **Check date** — the current UTC day, used as the
-reference when no selected check-in is readable, and labeled as such.
+reference when no selected check-in is readable, and labeled as such. Members
+read it as "today"; "check date" stays a code and glossary term.
 **Disagreement** — the URL and the page's control name different dates, so no
 date is treated as selected.
 

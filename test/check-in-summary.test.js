@@ -38,19 +38,19 @@ const summaryText = (view) => view.summaryItems.join(' | ');
 
 test('a selected check-in spanned by a reservation: the in-progress reservation is stated with its end shown for overlap only', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-10-01' });
-  assert.equal(view().referenceNote, 'Your check-in: Oct 1, 2026.', 'stated in words, not only marked');
-  assert.match(view().grid.label, /\. Your check-in, Oct 1, 2026, is marked$/);
+  assert.equal(view().referenceNote, 'Your check-in: Oct 1.', 'stated in words, not only marked');
+  assert.match(view().grid.label, /\. Your check-in, Oct 1, is marked$/);
   assert.equal(view().grid.cells.find((cell) => cell.isCheckIn).dayText, 'Oct 1');
   assert.equal(view().standbyOnly.headline, 'Reserved on your check-in, Oct 1');
-  assert.match(summaryText(view()), /reservation on this date runs Sep 26, 2026 to Oct 24, 2026/);
+  assert.match(summaryText(view()), /reservation on this date runs Sep 26 to Oct 24/);
   assert.match(summaryText(view()), /not when a stay could start or end/);
-  assert.match(summaryText(view()), /Next reservation starts Nov 2, 2026/);
-  assert.match(view().grid.cells[0].title, /Sep 11, 2026 – Sep 11, 2026: Reserved/); // each day names its whole range on hover
+  assert.match(summaryText(view()), /Next reservation starts Nov 2/);
+  assert.match(view().grid.cells[0].title, /Sep 11 – Sep 11: Reserved/); // each day names its whole range on hover
 });
 
 test('a selected check-in past the six weeks shown is stated in words and not claimed as marked', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-11-02' });
-  assert.equal(view().referenceNote, 'Your check-in: Nov 2, 2026.');
+  assert.equal(view().referenceNote, 'Your check-in: Nov 2.');
   assert.equal(view().grid.cells.some((cell) => cell.isCheckIn), false);
   assert.doesNotMatch(view().grid.label, /check-in/i);
 });
@@ -63,18 +63,18 @@ test('no reservation before the next one, with continuous coverage: the standard
 test('the move-in observation is withheld when coverage before the reservation is incomplete', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'selected', date: '2026-09-01' });
   assert.doesNotMatch(summaryText(view()), /No standard move-in offered/);
-  assert.match(summaryText(view()), /Next reservation starts Sep 11, 2026/);
+  assert.match(summaryText(view()), /Next reservation starts Sep 11/);
 });
 
 test('no readable selected date: facts are labeled against the check date, not an assumed move-in', async () => {
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'none', date: null });
   assert.match(view().referenceNote, /no selected check-in/i);
-  assert.match(view().referenceNote, /check date/i);
-  assert.match(view().referenceNote, /Sep 11, 2026/);
+  assert.match(view().referenceNote, /today/i);
+  assert.match(view().referenceNote, /Sep 11/);
   // A standby-only gap later in the view still leads over today's reservation.
   assert.equal(view().standbyOnly.headline, 'Standby-only Sep 12 – Sep 24');
   assert.match(view().standbyOnly.explainer, /only while the reservation after them holds/);
-  assert.match(summaryText(view()), /reservation on this date is for Sep 11, 2026 only/);
+  assert.match(summaryText(view()), /reservation on this date is for Sep 11 only/);
   // The detail line already names the reservation after the gap, so the summary does not repeat it.
   assert.match(view().standbyOnly.detail, /before the Sep 26 reservation/);
   assert.doesNotMatch(summaryText(view()), /Next reservation starts/);
@@ -84,7 +84,7 @@ test('a URL/control date disagreement suspends personalized emphasis but keeps c
   const { view } = await loadedPanel(validClosedCalendarHome, { status: 'disagreement', date: null });
   assert.match(view().referenceNote, /disagree/i);
   assert.doesNotMatch(view().referenceNote, /your selected check-in/i);
-  assert.match(view().referenceNote, /check date, Sep 11, 2026/);
+  assert.match(view().referenceNote, /today, Sep 11/);
   // The reference is the check date, so dated facts survive the disagreement.
   assert.match(summaryText(view()), /reservation on this date/);
   assert.equal(view().grid.cells.some((cell) => cell.isCheckIn), false);
@@ -94,8 +94,8 @@ test('a no-reservation calendar describes the returned calendar and its finite c
   const { view } = await loadedPanel(validOpenCalendarHome, { status: 'selected', date: '2026-09-15' });
   const text = summaryText(view());
   assert.match(text, /returned calendar/i);
-  assert.match(text, /Sep 11, 2026/);
-  assert.match(text, /Sep 10, 2027/);
+  assert.match(text, /Sep 11/);
+  assert.match(text, /Sep 10/);
   assert.doesNotMatch(text, /indefinite|always|guarantee/i);
 });
 
@@ -174,7 +174,7 @@ test('a calendar with no standard move-in range says so about the returned calen
   const { view } = await loadedPanel(noMoveInHome, { status: 'selected', date: '2026-09-15' });
   const text = summaryText(view());
   assert.match(text, /returned calendar shows no standard move-in range/i);
-  assert.match(text, /Dec 31, 2026/);
+  assert.match(text, /Dec 31/);
   assert.doesNotMatch(text, /never|indefinite|closed permanently/i);
 });
 

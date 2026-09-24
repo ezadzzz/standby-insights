@@ -81,7 +81,7 @@ test('a standby-only gap leads the card in words, with the reservation that shor
     { start_date: '2026-09-25', end_date: '2026-10-30', move_in_allowed: false, unbookable_reason: 'reserved' },
   ]);
   assert.equal(view.isStandbyOnly, true);
-  assert.equal(view.headlineText, 'Standby-only thru Sep 24');
+  assert.equal(view.headlineText, 'Standby-only through Sep 24');
   assert.match(view.detailText, /before the Sep 25 reservation/);
   assert.doesNotMatch(`${view.headlineText} ${view.detailText}`, /protect|guarantee|safe|bump/i);
 });

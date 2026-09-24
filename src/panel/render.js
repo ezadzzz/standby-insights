@@ -1,7 +1,7 @@
 import { MINIMUM_PEERS } from '../lib/comparison.js';
 import { sixWeekView, describeHeadline, drawnKey } from '../lib/six-week-view.js';
 
-const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
 
 function formatDate(isoDate) {
@@ -27,11 +27,11 @@ function rangeText(range) {
 function referenceNoteText(state) {
   if (!state.referenceDate) return '';
   if (state.checkIn?.status === 'disagreement') {
-    return `The date on this page and the date in its address disagree, so no date is treated as selected. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
+    return `The date on this page and the date in its address disagree, so no date is treated as selected. Facts below are stated against today, ${formatDate(state.referenceDate)}.`;
   }
   // Stated in words as well as marked, so the mark is never the only carrier.
   if (state.checkIn?.status === 'selected') return `Your check-in: ${formatDate(state.referenceDate)}.`;
-  return `No selected check-in date was read. Facts below are stated against the check date, ${formatDate(state.referenceDate)}.`;
+  return `No selected check-in date was read. Facts below are stated against today, ${formatDate(state.referenceDate)}.`;
 }
 
 /** Visible reservation and standard move-in statements for the reference date. */
@@ -194,7 +194,7 @@ function comparisonView(state) {
     view.prices = [
       { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
-      { label: `Median of ${comparison.count} similar ${plural(comparison.count, 'home')}`, amount: money(comparison.median), unit: 'per month' },
+      { label: `Median of ${comparison.count} other ${plural(comparison.count, 'home')}`, amount: money(comparison.median), unit: 'per month' },
     ];
   }
 
@@ -268,10 +268,10 @@ function flexFact(flexOptions) {
 
   if (stated.length === 0) return { text: `${terms}; special offer not supplied`, details };
   if (offered.length === 0) {
-    return { text: `No special offer advertised on ${stated.length === 1 ? 'the supplied Flex term' : `any of the ${stated.length} supplied Flex terms`}`, details };
+    return { text: `No special offer advertised on ${stated.length === 1 ? 'the Flex term' : `any of the ${stated.length} Flex terms`}`, details };
   }
   return {
-    text: `Special offer advertised on ${offered.length} of ${stated.length} supplied Flex terms`,
+    text: `Special offer advertised on ${offered.length} of ${stated.length} Flex terms`,
     details: [...details, 'An advertised term offer is not a quoted price; whether it applies can depend on the move-in date.'],
   };
 }
