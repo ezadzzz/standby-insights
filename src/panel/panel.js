@@ -9,6 +9,7 @@ const referenceNote = document.getElementById('reference-note');
 const summaryList = document.getElementById('summary-list');
 const comparisonSection = document.getElementById('comparison-section');
 const comparisonStatus = document.getElementById('comparison-status');
+const comparisonDifference = document.getElementById('comparison-difference');
 const comparisonSubject = document.getElementById('comparison-subject');
 const comparisonTerms = document.getElementById('comparison-terms');
 const comparisonCaveat = document.getElementById('comparison-caveat');
@@ -121,6 +122,7 @@ function render(state) {
     group.append(label, amount, unit);
     return group;
   }));
+  comparisonDifference.textContent = view.comparison.differenceText;
   comparisonStatus.textContent = view.comparison.scopeText || view.comparison.statusText;
   comparisonSubject.textContent = view.comparison.subjectText;
   comparisonSubject.hidden = view.comparison.prices.length > 0 && view.comparison.prices[0].amount !== 'Unavailable';

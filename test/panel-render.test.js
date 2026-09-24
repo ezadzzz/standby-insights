@@ -94,6 +94,17 @@ test('the price caveat and disclosure show only beside shown prices', () => {
   }
 });
 
+test('the price difference is plain arithmetic on the shown, rounded figures', () => {
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
+  const difference = (overrides) => describeState({ checkedAt: null, comparison: { ...comparison, ...overrides } }).comparison.differenceText;
+  assert.equal(difference({}), '$256 below the median');
+  assert.equal(difference({ subjectPrice: { ...comparison.subjectPrice, amount: 2520 } }), '$120 above the median');
+  // $2,400.40 shows as $2,400, so it must not read as $0 above.
+  assert.equal(difference({ subjectPrice: { ...comparison.subjectPrice, amount: 2400.4 } }), 'Same as the median');
+  assert.equal(difference({ subjectPrice: null }), '');
+  assert.equal(difference({ status: 'insufficient' }), '');
+});
+
 test('ready calendar: each grid day names its whole returned range on hover, including an unspecified end', () => {
   const view = describeState({
     status: 'ready', identity: 'confirmed', unitName: 'Lantana Hills 2321', checkedAt: 1000, isChecking: false, isStale: false, error: null,

@@ -252,7 +252,7 @@ The grid condensed to a 10px horizontal bar of flex segments using the same stat
 Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.
 
 ### Price Comparison
-Two columns of mono label, large mono figure and mono caveat, split by a dashed vertical rule; stacks at 260px. Under them, in 13px sans on-2: the unit's supplied terms, then one caveat sentence ("Advertised prices, not a quote for your dates."). The full disclosure sits in a collapsed native `<details>` whose "About these prices" summary uses the All returned ranges text-action treatment. The comparison check time closes the section.
+Two columns of mono label, large mono figure and mono caveat, split by a dashed vertical rule; stacks at 260px. Directly under the columns, when both figures are shown, one 14px semibold mono line in on states their difference as plain arithmetic on the rounded figures ("$256 below the median", "Same as the median"), never a verdict. Under that, in 13px sans on-2: the unit's supplied terms, then one caveat sentence ("Advertised prices, not a quote for your dates."). The full disclosure sits in a collapsed native `<details>` whose "About these prices" summary uses the All returned ranges text-action treatment. The comparison check time closes the section.
 
 ### Facts List
 Mono label and mono value on a dashed-divided row; any second value line is a 13px sans caveat in on-2. Stacks at 380px.
