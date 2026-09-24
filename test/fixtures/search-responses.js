@@ -23,7 +23,7 @@ export function peer(slug, amount, overrides = {}) {
   };
 }
 
-export function page({ homes, page: pageNumber = 1, perPage = 100, totalPages = 1, totalCount = homes.length, marketSlug = AUSTIN }) {
+export function page({ homes, page: pageNumber = 1, perPage = 40, totalPages = 1, totalCount = homes.length, marketSlug = AUSTIN }) {
   return {
     response: {
       market: { slug: marketSlug, name: 'Austin', state: 'TX' },

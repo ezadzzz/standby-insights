@@ -4,11 +4,12 @@
 
 import { text } from './text.js';
 
-const PER_PAGE = 100;
-// ponytail: a 1,000-home ceiling, which every market sampled so far sits well
-// under. Raise it only against a measured market that legitimately exceeds it,
+// Landing's MCP search rejects per_page above 40 (observed 2026-09-24).
+const PER_PAGE = 40;
+// ponytail: a 1,000-home ceiling (25 pages of 40), which every market sampled
+// so far sits well under; the largest, Austin one-bedroom, was 323 homes. Raise it only against a measured market that legitimately exceeds it,
 // never to rescue a market that paginated unexpectedly.
-const MAX_PAGES = 10;
+const MAX_PAGES = 25;
 export const MINIMUM_PEERS = 5;
 
 /**

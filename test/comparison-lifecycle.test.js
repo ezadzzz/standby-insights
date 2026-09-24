@@ -87,7 +87,7 @@ test('the search is scoped to the subject market with an exact bedroom count and
   h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
   await settleUnit(h, home);
 
-  assert.deepEqual(h.searchCalls, [{ market: AUSTIN, bedrooms: 1, page: 1, perPage: 100 }]);
+  assert.deepEqual(h.searchCalls, [{ market: AUSTIN, bedrooms: 1, page: 1, perPage: 40 }]);
 });
 
 test('a studio subject searches its own zero-bedroom scope', async () => {
