@@ -119,7 +119,10 @@ export function createCardAnnotator({
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    parts.key.hidden = strip === null;
+    // Standby-only, reserved, standard move-in and the check-in marker are
+    // explained by the panel legend; the card keys its marks only when it draws
+    // one of the unusual ones. The strip's label speaks every mark regardless.
+    parts.key.hidden = strip === null || !strip.key.some(({ kind }) => kind === 'blocked' || kind === 'not-returned');
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
@@ -181,6 +184,7 @@ export function createCardAnnotator({
       parts.status.textContent = view.statusText;
       parts.headline.textContent = view.headlineText;
       parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
+      parts.headline.setAttribute('data-quiet', String(view.quiet));
       parts.detail.textContent = view.detailText;
       paintStrip(parts, view.strip);
       parts.note.textContent = view.noteText;

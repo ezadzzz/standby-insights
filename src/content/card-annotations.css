@@ -29,6 +29,8 @@
 .standby-evidence p:empty { display: none; }
 .standby-evidence-status { margin-bottom: 4px; }
 .standby-evidence-headline { font-size: 13px; font-weight: 600; }
+/* No standby-only gap: one quiet line, so the cards with a gap stand out. */
+.standby-evidence-headline[data-quiet="true"] { font-size: 12px; font-weight: 400; color: #5d686b; }
 /* Green is what a Standby member hunts for; the headline's words still say it. */
 .standby-evidence-headline[data-standby-only="true"] { color: #0f6e52; }
 .standby-evidence-headline[data-standby-only="true"]::before {
