@@ -116,7 +116,7 @@ test('price columns retain source labels and never show a median from incomplete
     { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
     { label: 'Median of 12 other homes', amount: '$2,400', unit: 'per month' },
   ]);
-  assert.match(view.scopeText, /12 other homes.*same market and bedroom count/i);
+  assert.equal(view.scopeText, 'Same market and bedroom count as this home.');
   assert.match(view.termsNote, /not supplied/);
   for (const status of ['loading', 'unavailable', 'insufficient', 'unresolved-scope', 'idle']) {
     assert.deepEqual(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.prices, []);
@@ -257,6 +257,7 @@ test('a special offer on any Flex term is stated up front, with the term that ca
     term({ label: '12-Month+ Stay', months: 12, committedNights: 365, specialOffer: true, earlyTerminationFeeType: 'two-months-rent' }),
   ]));
   assert.match(item.text, /special offer advertised on 1 of 2/i);
+  assert.equal(flexItem(flexFactsState([term({ specialOffer: true })])).text, 'Special offer advertised on the Flex term');
   assert.equal(item.details.filter((line) => /Stay/.test(line)).length, 2, 'one detail line per supplied term');
   assert.match(item.details[1], /12-Month\+ Stay/);
   assert.match(item.details[1], /special offer/i);

@@ -41,7 +41,7 @@
   background: #1d9e75;
   forced-color-adjust: none;
 }
-.standby-evidence-line { color: #5d686b; margin-top: 1px; }
+.standby-evidence-line { color: #5d686b; margin-top: 1px; text-wrap: pretty; }
 .standby-evidence-note { color: #5d686b; font-style: italic; margin-top: 1px; }
 
 .standby-strip {

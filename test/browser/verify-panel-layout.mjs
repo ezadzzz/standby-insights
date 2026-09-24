@@ -82,10 +82,10 @@ try {
       if (variant === 'missingPrice') assert.match(await page.locator('#comparison-subject').innerText(), /no eligible advertised monthly price/);
       if (variant === 'ready') {
         assert.equal(await page.locator('.facts dt').count(), 6);
-        assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only thru Sep 24/);
+        assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only through Sep 24/);
         assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
-        assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12, 2026 – Sep 24, 2026: Standby-only/);
+        assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12 – Sep 24: Standby-only/);
         assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
         assert.equal(await page.locator('#price-disclosure').evaluate(el => el.open), false, 'the full disclosure starts collapsed');
         assert.match(await page.locator('#comparison-disclosure').textContent(), /not a prediction/);
@@ -122,10 +122,12 @@ try {
   assert.doesNotMatch(await page.locator('#check-time').innerText(), /last refresh failed/i, 'the failure is its own line, not folded into the check time');
   // Every returned range, including past the grid's six weeks, by keyboard.
   await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.parentElement.id), 'marks-disclosure');
+  await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.id), 'all-ranges-summary');
   await page.keyboard.press('Enter');
   assert.equal(await page.locator('#all-ranges-list li').count(), 5);
-  assert.equal(await page.locator('#all-ranges-list li').last().innerText(), 'Nov 1, 2026 – unspecified end: Standard move-in allowed');
+  assert.equal(await page.locator('#all-ranges-list li').last().innerText(), 'Nov 1 – unspecified end: Standard move-in allowed');
   assert.equal(await page.locator('svg:not([aria-hidden="true"])').count(), 0);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');

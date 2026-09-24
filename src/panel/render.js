@@ -190,7 +190,8 @@ function comparisonView(state) {
     view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${plural(comparison.count, 'home')} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
   } else if (comparison.status === 'ready') {
     view.statusText = `Median advertised monthly price across ${comparison.count} other ${plural(comparison.count, 'home')} in the same market and bedroom count: ${money(comparison.median)}.`;
-    view.scopeText = `${comparison.count} other ${plural(comparison.count, 'home')} · Same market and bedroom count.`;
+    // The median's label already carries the count.
+    view.scopeText = 'Same market and bedroom count as this home.';
     view.prices = [
       { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
@@ -271,7 +272,7 @@ function flexFact(flexOptions) {
     return { text: `No special offer advertised on ${stated.length === 1 ? 'the Flex term' : `any of the ${stated.length} Flex terms`}`, details };
   }
   return {
-    text: `Special offer advertised on ${offered.length} of ${stated.length} Flex terms`,
+    text: stated.length === 1 ? 'Special offer advertised on the Flex term' : `Special offer advertised on ${offered.length} of ${stated.length} Flex terms`,
     details: [...details, 'An advertised term offer is not a quoted price; whether it applies can depend on the move-in date.'],
   };
 }
