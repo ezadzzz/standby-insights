@@ -52,20 +52,23 @@ try {
       await page.evaluate(s => window.deliver(s), current);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow ${width}/${variant}`);
       assert(await page.locator('#refresh-button').isVisible());
-      assert.equal(await page.locator('#refresh-button').isDisabled(), Boolean(current.isChecking), `refresh disabled while checking ${width}/${variant}`);
-      assert.equal(await page.locator('#refresh-button').innerText(), current.isChecking ? 'Checking…' : 'Refresh', `refresh label ${width}/${variant}`);
+      assert.equal(await page.locator('#refresh-button').getAttribute('aria-disabled'), current.isChecking ? 'true' : null, `refresh aria-disabled while checking ${width}/${variant}`);
+      assert.equal(await page.locator('#refresh-button').innerText(), 'Refresh', `refresh label ${width}/${variant}`);
+      const statusLines = await page.$$eval('#refresh-status, #identity-note, #calendar-status', els => els.filter(el => el.textContent && el.checkVisibility()).length);
+      assert(statusLines <= 1, `at most one status sentence ${width}/${variant}`);
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
       assert.equal(await page.locator('#comparison-caveat').isVisible(), current.comparison?.status === 'ready', `caveat ${width}/${variant}`);
       assert.equal(await page.locator('#price-disclosure').isVisible(), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
-      assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch'].includes(variant), `calendar section ${width}/${variant}`);
+      assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch','unavailable'].includes(variant), `calendar section ${width}/${variant}`);
       assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
-      if (variant === 'unavailable') assert.match(await page.locator('#calendar-status').innerText(), /Calendar unavailable\. .*Refresh/);
+      if (variant === 'unavailable') assert.match(await page.locator('#refresh-status').innerText(), /^Check failed: .*Refresh to try again\.$/);
       if (variant === 'loading') assert.match(await page.locator('#calendar-status').innerText(), /Checking the calendar/);
-      if (variant === 'mismatch') assert.match(await page.locator('#check-time').innerText(), /could not be confirmed/);
+      if (variant === 'mismatch') assert.match(await page.locator('#identity-note').innerText(), /could not confirm/);
       assert.equal(await page.locator('#announcer').textContent(), '', `no announcement without a member Refresh ${width}/${variant}`);
       if (variant === 'long') {
-        assert.match(await page.locator('#check-time').innerText(), /older check/);
+        assert.match(await page.locator('#refresh-status').innerText(), /older check/);
+        assert.doesNotMatch(await page.locator('#check-time').innerText(), /older check/);
         assert.match(await page.locator('#refresh-status').innerText(), /last refresh failed.*network request did not complete.*refresh/i);
         assert.doesNotMatch(await page.locator('#standby-only-headline').innerText(), /older check/i);
       }
@@ -113,13 +116,15 @@ try {
   assert.equal(await page.locator('#announcer').getAttribute('aria-live'), 'polite');
   assert.equal(await page.locator('#announcer').textContent(), '', 'nothing announced before the refresh has run');
   await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
-  assert.equal(await page.locator('#refresh-button').isDisabled(), true, 'refresh disabled while a check runs');
-  assert.equal(await page.locator('#refresh-button').innerText(), 'Checking…');
+  assert.equal(await page.locator('#refresh-button').getAttribute('aria-disabled'), 'true', 'refresh aria-disabled while a check runs');
+  assert(await page.locator('#refresh-button').evaluate(el => el === document.activeElement), 'refresh keeps focus while a check runs');
+  const sent = await page.evaluate(() => window.sentMessages.length);
+  await page.keyboard.press('Enter');
+  assert.equal(await page.evaluate(() => window.sentMessages.length), sent, 'refresh ignores presses while a check runs');
   await page.evaluate(s => window.deliver({...s, checkedAt: s.checkedAt + 60000}), state);
   assert.equal(await page.locator('#announcer').textContent(), 'Refresh complete.');
-  assert.equal(await page.locator('#refresh-button').isDisabled(), false, 'refresh re-enabled once the check completes');
+  assert.equal(await page.locator('#refresh-button').getAttribute('aria-disabled'), null, 'refresh re-enabled once the check completes');
   assert.equal(await page.locator('#refresh-status').textContent(), '', 'no failure line after a successful refresh');
-  await page.locator('#refresh-button').focus(); // disabling the button during the check moved focus away
   await page.keyboard.press('Enter');
   await page.evaluate(s => window.deliver({...s, isChecking:true, isStale:true}), state);
   await page.evaluate(s => window.deliver({...s, isStale:true, error:'GateTimeoutError'}), state);
@@ -138,5 +143,5 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('#refresh-button').evaluate(el => getComputedStyle(el).transitionDuration), '0s');
   assert.deepEqual(errors, []);
-  console.log('PASS: 40 width/state combinations; no icon or font assets; full evidence and missing-data labels; not-returned days drawn and keyed; older-check label beside the check time; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
+  console.log('PASS: 40 width/state combinations; no icon or font assets; full evidence and missing-data labels; not-returned days drawn and keyed; older-check label in the status line, one status sentence per state; Refresh keeps focus while checking; reference note before the grid; keyboard Refresh; polite announcements; reduced motion; no overflow or script errors.');
 } finally { await browser.close(); }

@@ -6,7 +6,7 @@ test('idle state: prompts without asserting anything about a unit', () => {
   const view = describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null });
   assert.equal(view.checkTimeText, 'Not checked yet');
   assert.equal(view.grid, null);
-  assert.equal(view.headingText, 'Standby evidence');
+  assert.equal(view.headingText, 'This listing');
 });
 
 test('mismatched or ambiguous identity attaches no unit-specific claim, including in the heading', () => {
@@ -14,7 +14,7 @@ test('mismatched or ambiguous identity attaches no unit-specific claim, includin
     const view = describeState({ status: identity, identity, unitName: null, ranges: null, checkedAt: 1000, isChecking: false, isStale: false, error: null });
     assert.match(view.identityNote, /could not confirm/i);
     assert.equal(view.grid, null);
-    assert.equal(view.headingText, 'Standby evidence');
+    assert.equal(view.headingText, 'This listing');
   }
 });
 
@@ -26,15 +26,15 @@ test('unavailable calendar: labeled unavailable, not an empty result, with Refre
 
 test('a failed first check says it failed, not that nothing was checked, and names a cause and next step', () => {
   const view = describeState({ status: 'unavailable', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: 'GateTimeoutError' });
-  assert.doesNotMatch(view.checkTimeText, /not checked yet/i);
-  assert.match(view.checkTimeText, /failed/i);
-  assert.match(view.checkTimeText, /network request did not complete/i);
-  assert.match(view.checkTimeText, /refresh/i);
+  assert.equal(view.checkTimeText, '');
+  assert.match(view.refreshNote, /failed/i);
+  assert.match(view.refreshNote, /network request did not complete/i);
+  assert.match(view.refreshNote, /refresh/i);
 });
 
 test('a rate-limited check names that specific cause, not a generic network failure', () => {
   const view = describeState({ status: 'unavailable', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: 'RateLimitedError' });
-  assert.match(view.checkTimeText, /asked this extension to slow down/i);
+  assert.match(view.refreshNote, /asked this extension to slow down/i);
 });
 
 test('an unconfirmed unit names its cause and offers Refresh as the next step', () => {
@@ -139,7 +139,7 @@ test('price columns retain source labels and never show a median from incomplete
 
 test('stale evidence during a recheck is labeled an older check', () => {
   const view = describeState({ status: 'ready', identity: 'confirmed', ranges: [], checkedAt: 1000, isChecking: true, isStale: true, error: null });
-  assert.match(view.checkTimeText, /older check/i);
+  assert.match(view.refreshNote, /checking again.*older check/i);
 });
 
 test('a failed refresh is labeled an older check with the failure noted, without erasing retained evidence', () => {
@@ -152,10 +152,37 @@ test('a failed refresh is labeled an older check with the failure noted, without
     isStale: true,
     error: 'GateTimeoutError',
   });
-  assert.match(view.checkTimeText, /older check/i);
-  assert.match(view.refreshFailedNote, /last refresh failed/i);
-  assert.match(view.refreshFailedNote, /network request did not complete/i);
-  assert.match(view.refreshFailedNote, /refresh/i);
+  assert.match(view.refreshNote, /last refresh failed.*older check/i);
+  assert.match(view.refreshNote, /network request did not complete/i);
+  assert.match(view.refreshNote, /refresh to try again/i);
+});
+
+test('each loading or failure state says exactly one status sentence, and the check-time line never restates it', () => {
+  const base = { identity: null, unitName: null, displayedName: 'Lantana Hills 2321', ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null };
+  const states = {
+    loading: { status: 'idle', isChecking: true },
+    recheckAfterFailure: { status: 'unavailable', isChecking: true },
+    firstCheckFailed: { status: 'unavailable', error: 'GateTimeoutError' },
+    calendarUnavailable: { status: 'unavailable', identity: 'confirmed', checkedAt: 1000 },
+    mismatch: { status: 'mismatch', identity: 'mismatch', checkedAt: 1000 },
+    ambiguousUnchecked: { status: 'ambiguous', identity: 'ambiguous' },
+    recheckingHeld: { status: 'mismatch', identity: 'mismatch', checkedAt: 1000, isChecking: true, isStale: true },
+    refreshFailedHeld: { status: 'unavailable', identity: 'confirmed', checkedAt: 1000, isStale: true, error: 'RateLimitedError' },
+  };
+  for (const [name, overrides] of Object.entries(states)) {
+    const view = describeState({ ...base, ...overrides });
+    const sentences = [view.refreshNote, view.identityNote, view.calendarStatusText].filter(Boolean);
+    assert.equal(sentences.length, 1, name);
+    assert.match(view.checkTimeText, /^(Checked [^.]*)?$/, name);
+    assert.ok((sentences[0].match(/Refresh/g) ?? []).length <= 1, `${name} names Refresh once`);
+  }
+});
+
+test('the reference note says "today" only when the reference date is today', () => {
+  const note = (checkIn, today) => describeState({ status: 'ready', identity: 'confirmed', ranges: [], checkedAt: 1000, today, referenceDate: '2026-09-15', checkIn }).referenceNote;
+  assert.match(note({ status: 'disagreement' }, '2026-09-15'), /against today, Sep 15/);
+  assert.match(note({ status: 'disagreement' }, '2026-09-12'), /against Sep 15\./);
+  assert.doesNotMatch(note({ status: 'none' }, '2026-09-12'), /today/);
 });
 
 const factsState = (facts, overrides = {}) => ({
@@ -360,9 +387,9 @@ test('an older check leaves the six-week headline plain, and not-returned days a
     ranges: [{ startDate: '2026-09-11', endDate: '2026-09-20', moveInAllowed: true, isReservation: false, unbookableReason: null }],
   };
   const fresh = describeState({ ...state, isStale: false });
-  const stale = describeState({ ...state, isStale: true });
+  const stale = describeState({ ...state, isStale: true, error: 'GateTimeoutError' });
   assert.equal(stale.standbyOnly.headline, fresh.standbyOnly.headline);
-  assert.match(stale.checkTimeText, /older check/i);
+  assert.match(stale.refreshNote, /older check/i);
   const missing = fresh.grid.cells[10];
   assert.equal(missing.kind, 'not-returned');
   assert.equal(missing.title, 'No calendar data for this day');
@@ -386,7 +413,7 @@ test('an ambiguous check names the unit and says what was missing, not that it m
 test('a failed check names the unit the page shows', () => {
   const view = describeState({ ...shown, status: 'unavailable', identity: null, checkedAt: null, error: 'GateTimeoutError' });
   assert.equal(view.headingText, 'Unit 1831');
-  assert.match(view.checkTimeText, /^Check failed for Unit 1831: /);
+  assert.match(view.refreshNote, /^Check failed for Unit 1831: /);
 });
 
 test('a confirmed unit name still wins over the displayed one', () => {

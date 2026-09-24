@@ -59,10 +59,10 @@ function render(state) {
   heading.title = view.headingText;
   identityNote.textContent = view.identityNote;
   checkTime.textContent = view.checkTimeText;
-  refreshStatus.textContent = view.refreshFailedNote ?? '';
+  refreshStatus.textContent = view.refreshNote;
   calendarStatus.textContent = view.calendarStatusText;
-  refreshButton.disabled = state.isChecking;
-  refreshButton.textContent = state.isChecking ? 'Checking…' : 'Refresh';
+  // aria-disabled, not disabled, so a running check never drops keyboard focus.
+  refreshButton.ariaDisabled = state.isChecking ? 'true' : null;
   calendarSection.hidden = !view.calendarVisible;
 
   allRanges.hidden = view.allRanges.length === 0;
@@ -156,7 +156,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 });
 
 refreshButton.addEventListener('click', () => {
-  if (tabId === null) return;
+  if (tabId === null || refreshButton.ariaDisabled === 'true') return;
   refresh = 'requested';
   announcer.textContent = '';
   chrome.tabs.sendMessage(tabId, { type: 'request-refresh' });
