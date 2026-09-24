@@ -362,6 +362,26 @@ test('each note is a labeled group whose attribution and View evidence name the 
   assert.match(strip.getAttribute('aria-label'), /Your check-in, Sep 15, is marked$/);
   const key = note.children.find((el) => el.className === 'standby-strip-key');
   assert.match(key.textContent, /Standard move-in.*No calendar data.*Your check-in/);
+  assert.equal(key.hidden, false, 'a strip with no calendar data keys its marks');
+});
+
+test('a card without a gap or an unusual mark is one quiet line over an unkeyed strip', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, {
+    ...READY,
+    ranges: [{ startDate: '2026-09-01', endDate: '2027-09-01', moveInAllowed: true, isReservation: false }],
+  });
+
+  const note = h.annotations()[0];
+  const part = (className) => note.children.find((el) => el.className === className);
+  assert.equal(part('standby-evidence-headline').textContent, 'No reservation shown');
+  assert.equal(part('standby-evidence-headline').getAttribute('data-quiet'), 'true');
+  assert.equal(part('standby-evidence-line').textContent, '');
+  assert.equal(part('standby-strip').hidden, false, 'the strip stays');
+  assert.match(part('standby-strip').getAttribute('aria-label'), /^Six weeks from/, 'the strip still speaks every mark');
+  assert.equal(part('standby-strip-key').hidden, true, 'the panel legend explains the usual marks');
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {

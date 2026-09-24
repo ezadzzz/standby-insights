@@ -233,7 +233,7 @@ Borderless text actions, like a typed instruction.
 - **Shadow Strategy:** none (see Elevation & Depth).
 - **Border:** 1px dashed Dash Gray.
 - **Internal Padding:** 22px 16px 16px on the panel (12px sides at 380px); 13px 10px 8px on cards.
-- **Card note:** 16px above and 12px below under Landing's card link, never overlaying it. Status line, 13px headline, then on-2 detail lines; a qualifying note line is on-2 italic.
+- **Card note:** 16px above and 12px below under Landing's card link, never overlaying it. Status line, 13px headline, then on-2 detail lines; a qualifying note line is on-2 italic. A card with no standby-only gap drops to one quiet 12px on-2 line, the reservation fact ("Next reservation Oct 14", "No reservation shown from Oct 1"), over its strip; "returned calendar" is said once, in the panel.
 - **Page notice:** the same note placed above Landing's results grid with no outer margin, 13px text with Resume sharing the line when there is room.
 
 ### Source Tab (signature)
@@ -246,7 +246,7 @@ Seven columns of 32px day cells with 12px mono numerals. Standby-only days are g
 A native `<details>`, collapsed, closing the calendar section under a dashed rule. The summary reads "All returned ranges (N)" as a borderless mono text action (12px, 500, 44px target, hover underline, 2px focus outline) with no disclosure marker. Open, it lists every returned range chronologically in 12px mono, one per row on a light dashed divider, with full dates and status words. It is the keyboard and screen-reader path to ranges past the six-week grid and to the per-day detail the grid only offers on hover.
 
 ### Standby Strip (card)
-The grid condensed to a 10px horizontal bar of flex segments using the same state marks (darker hatch and rules, dots at 3px pitch), with 1px white week dividers splitting it into six weeks, a 1.5px graphite today edge at the left extending 3px past the bar, and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every mark, so the strip reads without opening the panel.
+The grid condensed to a 10px horizontal bar of flex segments using the same state marks (darker hatch and rules, dots at 3px pitch), with 1px white week dividers splitting it into six weeks, a 1.5px graphite today edge at the left extending 3px past the bar, and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every drawn mark, but only when the strip draws move-in blocked or no calendar data; the usual marks are explained by the panel legend, and the strip's aria-label speaks every mark regardless.
 
 ### Standby-Only Headline
 Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.

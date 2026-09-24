@@ -10,15 +10,15 @@ function formatDate(isoDate) {
 
 /**
  * The reservation line under a headline that doesn't already carry one. An
- * absence is always phrased as what the returned calendar shows, because that
- * is all it is evidence of, and names its date, because the strip may hatch a
- * reservation that ends before it.
+ * absence says only "not shown", never "none", and names its date, because the
+ * strip may hatch a reservation that ends before it. That the evidence is the
+ * returned calendar is said once, in the panel, not on every card.
  */
 function reservationLine(summary, referenceDate) {
   const { nextReservation: next } = summary;
   if (next) return `Next reservation ${formatDate(next.startDate)}`;
-  if (summary.noReservationsInCalendar) return 'No reservation shown in the returned calendar';
-  return `No reservation shown from ${formatDate(referenceDate)} in the returned calendar`;
+  if (summary.noReservationsInCalendar) return 'No reservation shown';
+  return `No reservation shown from ${formatDate(referenceDate)}`;
 }
 
 /**
@@ -26,15 +26,15 @@ function reservationLine(summary, referenceDate) {
  * wiring decides where this goes, this decides only what it may say.
  *
  * The headline is what a Standby member scans a results column for: whether
- * a standby-only gap is open from their date. Without one, the reservation
- * line leads and the standby-only negative is the quieter detail.
+ * a standby-only gap is open from their date. Without one, the card drops to
+ * a single quiet line, the reservation fact; the strip still shows the weeks.
  *
  * `readable` false means no unit-specific claim may be attached at all — the
  * card contributes to the single "Some listings couldn't be read" notice
  * instead of carrying a notice of its own.
  */
 export function describeCard({ evidence, summary, referenceDate, today, checkIn }) {
-  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, detailText: '', strip: null, noteText: '' };
+  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, quiet: false, detailText: '', strip: null, noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
     return { ...view, readable: false };
@@ -64,10 +64,11 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   const statement = describeHeadline(weeks, summary, checkIn);
   view.isStandbyOnly = statement.isStandbyOnly;
   if (statement.noGap) {
-    // Down a results column the negative repeats on every card; the reservation
-    // fact is what differs, so it leads and the negative drops to the detail.
+    // Down a results column the negative repeats on every card, so it is not
+    // said; the reservation fact is what differs, and it stays quiet so the
+    // cards with a gap stand out.
     view.headlineText = reservationLine(summary, referenceDate);
-    view.detailText = statement.headline;
+    view.quiet = true;
   } else {
     view.headlineText = statement.headline;
     view.detailText = statement.detail || reservationLine(summary, referenceDate);
