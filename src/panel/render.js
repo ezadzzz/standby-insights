@@ -26,12 +26,14 @@ function rangeText(range) {
  */
 function referenceNoteText(state) {
   if (!state.referenceDate) return '';
+  // "Today" only when the reference date is today; otherwise the date alone.
+  const against = `Facts below are stated against ${state.referenceDate === state.today ? 'today, ' : ''}${formatDate(state.referenceDate)}.`;
   if (state.checkIn?.status === 'disagreement') {
-    return `The date on this page and the date in its address disagree, so no date is treated as selected. Facts below are stated against today, ${formatDate(state.referenceDate)}.`;
+    return `The date on this page and the date in its address disagree, so no date is treated as selected. ${against}`;
   }
   // Stated in words as well as marked, so the mark is never the only carrier.
   if (state.checkIn?.status === 'selected') return `Your check-in: ${formatDate(state.referenceDate)}.`;
-  return `No selected check-in date was read. Facts below are stated against today, ${formatDate(state.referenceDate)}.`;
+  return `No selected check-in date was read. ${against}`;
 }
 
 /** Visible reservation and standard move-in statements for the reference date. */
@@ -307,7 +309,7 @@ export function describeState(state) {
   const view = {
     // A unit the page shows but the response never confirmed is named as the
     // page shows it; the notes below say it was not confirmed.
-    headingText: state.unitName ?? state.displayedName ?? 'Standby evidence',
+    headingText: state.unitName ?? state.displayedName ?? 'This listing',
     identityNote: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
@@ -318,20 +320,26 @@ export function describeState(state) {
     allRanges: [],
     summaryItems: [],
     factItems: [],
-    refreshFailedNote: null,
+    refreshNote: '',
     comparison: comparisonView(state),
   };
 
-  if (state.status === 'mismatch' || state.status === 'ambiguous') {
+  // Each state carries exactly one status sentence, in one element; the
+  // check-time line only ever names a time.
+  const held = state.checkedAt !== null;
+  const cause = state.error ? failureCauseText(state.error) : null;
+  if (state.isChecking && held) {
+    view.refreshNote = 'Checking again; showing an older check until it finishes.';
+  } else if (state.isChecking) {
+    view.calendarStatusText = state.status === 'unavailable' ? 'Calendar unavailable. Checking again…' : 'Checking the calendar…';
+  } else if (cause && held) {
+    view.refreshNote = `The last refresh failed: ${cause}. Showing an older check; Refresh to try again.`;
+  } else if (cause) {
+    view.refreshNote = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${cause}. Refresh to try again.`;
+  } else if (state.status === 'mismatch' || state.status === 'ambiguous') {
     view.identityNote = identityNoteText(state);
-  }
-
-  if (state.status === 'unavailable') {
-    view.calendarStatusText = state.isChecking
-      ? 'Calendar unavailable. Checking again…'
-      : 'Calendar unavailable. Use Refresh to check again.';
-  } else if (state.isChecking && !Array.isArray(state.ranges)) {
-    view.calendarStatusText = 'Checking the calendar…';
+  } else if (state.status === 'unavailable') {
+    view.calendarStatusText = 'Calendar unavailable. Use Refresh to check again.';
   }
 
   if (state.status === 'ready' && Array.isArray(state.ranges)) {
@@ -358,20 +366,8 @@ export function describeState(state) {
   // they came from was confirmed to be this unit's.
   if (state.facts) view.factItems = factItemsFor(state.facts);
 
-  if (state.checkedAt !== null) {
-    view.checkTimeText = `Checked ${timeFormatter.format(new Date(state.checkedAt))}`;
-    if (state.isStale) view.checkTimeText += ' (showing an older check)';
-  } else if (state.isChecking) {
-    view.checkTimeText = 'Checking…';
-  } else if (state.error) {
-    view.checkTimeText = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${failureCauseText(state.error)}. Refresh to try again.`;
-  } else if (view.identityNote) {
-    view.checkTimeText = 'Checked, but this unit could not be confirmed';
-  }
-
-  if (state.isStale && state.error) {
-    view.refreshFailedNote = `The last refresh failed: ${failureCauseText(state.error)}. Refresh to try again; showing the previous check.`;
-  }
+  if (held) view.checkTimeText = `Checked ${timeFormatter.format(new Date(state.checkedAt))}`;
+  else if (view.refreshNote || view.calendarStatusText || view.identityNote) view.checkTimeText = '';
 
   view.calendarVisible = Boolean(view.calendarStatusText || view.referenceNote || view.grid
     || view.summaryItems.length || view.allRanges.length);

@@ -176,7 +176,7 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Headline** (600, 19px, 1.3, -0.01em, mono): the unit name heading the note.
 - **Price** (600, 26px, 1.2, -0.02em, mono): advertised price figures; 22px at 380px and below; "Unavailable" drops to 16px (the Title step) with normal tracking. 22px is the one step that exists only as a narrow-width price size.
 - **Title** (600, 16px, 1.35, mono, balanced wrap): the standby-only headline, the visual lead of the calendar.
-- **Status** (600, 13px, 1.45, mono): calendar status line when there is no grid to show.
+- **Status** (600, 13px, 1.45, mono): the one status sentence a loading or failure state gets (calendar status, identity note, or refresh line; never more than one at a time). The check-time line stays Data and only names a time.
 - **Body** (400, 14px, 1.5, sans, tabular numerals): base text. Supporting prose and the calendar summary under the grid step down to 13px, so nothing below the headline outweighs it.
 - **Data** (400, 12px, 1.45 to 1.5, mono): check time, the check-in reference note, detail lines, fact labels, price labels, legend, grid numerals.
 - **Label** (700, 11px, 0.12em, uppercase, mono, on-2): section headings (h2) for prices, facts and location.
@@ -224,7 +224,7 @@ Square. Every corner is 0 radius, including buttons (radius explicitly reset to 
 Borderless text actions, like a typed instruction.
 - **Shape:** square (0px), no border, transparent background.
 - **Refresh (panel):** 12px weight 500 mono in graphite, 2px side padding, 44px minimum target height.
-- **Hover / Focus:** underline with 3px offset on hover; focus-visible is a 2px solid graphite outline at 2px offset. Disabled goes to on-2 with a wait cursor and no underline.
+- **Hover / Focus:** underline with 3px offset on hover; focus-visible is a 2px solid graphite outline at 2px offset. While a check runs, Refresh is `aria-disabled="true"` (never `disabled`, so it keeps keyboard focus), ignores presses, keeps its "Refresh" label, and goes to on-2 with a wait cursor and no underline.
 - **Card action:** the same treatment at 12px with 3px vertical padding and a "→ " prefix ("View evidence" only; the page notice's Resume has none).
 
 ### Cards / Containers
