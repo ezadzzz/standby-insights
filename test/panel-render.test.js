@@ -368,7 +368,7 @@ test('the grid marks no check-in when the date is only the check date, and the l
   });
   assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
   assert.doesNotMatch(view.grid.label, /check-in/i);
-  assert.deepEqual(view.grid.key.map((k) => k.kind), ['move-in', 'today']);
+  assert.deepEqual(view.grid.key.map((k) => k.kind), ['today']);
 });
 
 test('the legend lists only marks the grid draws, so a single-kind calendar keys just that kind plus Today', () => {

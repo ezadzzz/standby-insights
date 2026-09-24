@@ -57,23 +57,15 @@
 .standby-strip[hidden],
 .standby-evidence .standby-strip-scale[hidden],
 .standby-evidence .standby-strip-key[hidden] { display: none; }
-/* Week dividers and today's edge, drawn over the segments. */
-.standby-strip::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, transparent calc(100% - 1px), #fff 0) 0 0 / calc(100% / 6) 100%;
-  pointer-events: none;
-}
 .standby-strip::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: -3px;
-  bottom: -3px;
-  width: 1.5px;
-  background: #2d3538;
+  /* Today's edge and the view's closing edge. */
+  inset: -3px 0;
+  border: solid #2d3538;
+  border-width: 0 1.5px;
   z-index: 1;
+  pointer-events: none;
 }
 .standby-strip-segment { flex-basis: 0; min-width: 0; }
 /* Segments and key swatches share one set of marks, so the key can't drift.
@@ -84,14 +76,10 @@
 .standby-strip-key [data-kind="reserved"] {
   background: repeating-linear-gradient(135deg, #8a9598 0 1.5px, #f1f3f3 1.5px 4px);
 }
-/* Rules, not hatch: hatch means a reservation and nothing else. The tinted
-   ground (not white) is what keeps this a filled mark at strip scale, where
-   the rule pitch alone collapses to hairlines indistinguishable from the
-   move-in outline's bare white interior. */
+/* A solid block, not a pattern: hatch means a reservation and nothing else,
+   and a flat fill can't blur into the hatch at strip scale. */
 .standby-strip [data-kind="blocked"],
-.standby-strip-key [data-kind="blocked"] {
-  background: repeating-linear-gradient(to bottom, #8a9598 0 1.5px, #f1f3f3 1.5px 4px);
-}
+.standby-strip-key [data-kind="blocked"] { background: #8a9598; }
 .standby-strip [data-kind="move-in"],
 .standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }
 /* Missing days are drawn as missing: dotted, not blank and not outlined like move-in. */

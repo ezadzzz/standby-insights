@@ -10,7 +10,6 @@
   --standby-only: #1d9e75;
   --standby-only-text: #0f6e52;
   --hatch: repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px);
-  --rules: repeating-linear-gradient(to bottom, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px);
   --dots: radial-gradient(circle, #8a9598 .9px, transparent 1.3px) 0 0 / 4px 4px;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   --sans: system-ui, "Segoe UI", sans-serif;
@@ -128,8 +127,8 @@ h2 {
 [data-kind="standby-only"] { background: var(--standby-only); color: #04261b; }
 #calendar-grid [data-kind="standby-only"] { font-weight: 700; }
 [data-kind="reserved"] { background: var(--hatch); }
-[data-kind="blocked"] { background: var(--rules); }
-/* Numerals stay legible over hatch, rules and dots. */
+[data-kind="blocked"] { background: var(--mark); }
+/* Numerals stay legible over hatch, the blocked fill and dots. */
 #calendar-grid [data-kind="reserved"], #calendar-grid [data-kind="blocked"], #calendar-grid [data-kind="not-returned"] { text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; }
 [data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--mark); }
 [data-kind="not-returned"], #calendar-grid [data-kind="not-returned"] { background: var(--dots); color: var(--on); }

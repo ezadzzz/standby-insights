@@ -26,7 +26,7 @@ test('a gap in progress on the reference date is named with its end and the rese
   const statement = describeStandbyOnly(sixWeekView(lantana, TODAY, TODAY));
   assert.equal(statement.isStandbyOnly, true);
   assert.equal(statement.headline, 'Standby-only through Sep 24');
-  assert.equal(statement.detail, "Standard stays can't fit before the Sep 26 reservation");
+  assert.equal(statement.detail, 'Minimum LOS blocks standard move-ins before the Sep 26 reservation');
 });
 
 test('an upcoming gap is named by both ends', () => {

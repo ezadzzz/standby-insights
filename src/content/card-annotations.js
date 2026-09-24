@@ -119,7 +119,7 @@ export function createCardAnnotator({
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    // Standby-only, reserved, standard move-in and the check-in marker are
+    // Standby-only, reserved and the check-in marker are
     // explained by the panel legend; the card keys its marks only when it draws
     // one of the unusual ones. The strip's label speaks every mark regardless.
     parts.key.hidden = strip === null || !strip.key.some(({ kind }) => kind === 'blocked' || kind === 'not-returned');

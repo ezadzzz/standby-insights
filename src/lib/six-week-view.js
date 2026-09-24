@@ -3,11 +3,11 @@ import { addDays, coversInterval } from './calendar.js';
 export const VIEW_DAYS = 42;
 
 // The panel legend's words, so a mark means the same thing on both surfaces.
+// Standard move-in is the default and goes unkeyed.
 export const KEY_WORDS = [
   ['standby-only', 'Standby-only'],
   ['reserved', 'Reserved'],
   ['blocked', 'Move-in blocked'],
-  ['move-in', 'Standard move-in'],
   ['not-returned', 'No calendar data'],
 ];
 
@@ -114,7 +114,7 @@ export function sixWeekView(ranges, today, referenceDate) {
 /**
  * The words a member scans for. A standby-only gap is stated from Landing's
  * reason with the reservation that shortens it; nothing here says the member
- * cannot be bumped, only that a standard stay cannot fit.
+ * cannot be bumped, only that the minimum stay blocks a standard move-in.
  */
 export function describeStandbyOnly(view) {
   const { gap } = view;
@@ -124,7 +124,7 @@ export function describeStandbyOnly(view) {
     else if (gap.inProgress) headline = `Standby-only through ${short(gap.endDate)}`;
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
-      ? `Standard stays can't fit before the ${short(gap.nextReservation.startDate)} reservation`
+      ? `Minimum LOS blocks standard move-ins before the ${short(gap.nextReservation.startDate)} reservation`
       : 'Too short for a standard stay';
     return { isStandbyOnly: true, headline, detail };
   }
