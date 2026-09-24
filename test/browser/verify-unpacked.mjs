@@ -182,7 +182,7 @@ try {
   const argued = args.min_bedrooms === args.max_bedrooms
     && Number.isInteger(args.min_bedrooms)
     && typeof args.market === 'string'
-    && args.per_page === 100
+    && args.per_page === 40
     && args.include_hero_images === false
     && !('start_date' in args) && !('end_date' in args) && !('committed_nights' in args)
     && !('min_price' in args) && !('max_price' in args) && !('deals_only' in args)
@@ -196,9 +196,9 @@ try {
   // this extension: the comparison rejects a shrunken page rather than
   // sampling part of a market, so this records that the design still holds.
   record('Landing still honours the requested page size (design premise)',
-    Boolean(echo && echo.echo && echo.echo.per_page === 100),
+    Boolean(echo && echo.echo && echo.echo.per_page === 40),
     JSON.stringify(echo ?? 'no response captured'));
-  record('comparison stayed within the ten-request budget', mcpCalls.length <= 10, `${mcpCalls.length} page request(s)`);
+  record('comparison stayed within the 25-request budget', mcpCalls.length <= 25, `${mcpCalls.length} page request(s)`);
 
   // 7. The adapter's own reading of this live page.
   const liveRead = await page.evaluate(async (id) => {

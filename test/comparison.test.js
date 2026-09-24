@@ -96,10 +96,10 @@ test('a single reported page completes in one request', async () => {
 
   assert.equal(result.status, 'complete');
   assert.equal(result.homes.length, 2);
-  assert.deepEqual(calls, [{ market: AUSTIN, bedrooms: 1, page: 1, perPage: 100 }]);
+  assert.deepEqual(calls, [{ market: AUSTIN, bedrooms: 1, page: 1, perPage: 40 }]);
 });
 
-test('every reported page is collected, at 100 homes per page', async () => {
+test('every reported page is collected, at 40 homes per page', async () => {
   const { search, calls } = searcher([
     page({ homes: [peer('a', 1000)], page: 1, totalPages: 3, totalCount: 3 }),
     page({ homes: [peer('b', 2000)], page: 2, totalPages: 3, totalCount: 3 }),
@@ -110,7 +110,7 @@ test('every reported page is collected, at 100 homes per page', async () => {
   assert.equal(result.status, 'complete');
   assert.equal(result.homes.length, 3);
   assert.deepEqual(calls.map((c) => c.page), [1, 2, 3]);
-  assert.ok(calls.every((c) => c.perPage === 100));
+  assert.ok(calls.every((c) => c.perPage === 40));
 });
 
 test('duplicate homes across pages are counted once', async () => {
@@ -142,13 +142,13 @@ test('a failed page leaves the comparison incomplete and is not retried', async 
 });
 
 test('a market beyond the request budget stops incomplete rather than sampling part of it', async () => {
-  const pages = Array.from({ length: 12 }, (_, i) => page({
-    homes: [peer(`h${i}`, 1000 + i)], page: i + 1, totalPages: 12, totalCount: 12,
+  const pages = Array.from({ length: 27 }, (_, i) => page({
+    homes: [peer(`h${i}`, 1000 + i)], page: i + 1, totalPages: 27, totalCount: 27,
   }));
   const { search, calls } = searcher(pages);
 
   assert.equal((await collectComparison({ search, scope })).status, 'incomplete');
-  assert.equal(calls.length, 10);
+  assert.equal(calls.length, 25);
 });
 
 test('totals that change between pages leave the comparison incomplete', async () => {

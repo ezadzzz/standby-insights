@@ -48,6 +48,16 @@ shape than the one planned, so it is rejected. This is the concrete check that
 catches the REST degradation above, and it is what makes "complete coverage"
 an assertion rather than an assumption.
 
+## Amendment, 2026-09-24
+
+Landing began rejecting `per_page` above 40 ("Invalid arguments: number at
+/per_page is greater than: 40"), so every comparison became unavailable, as
+designed. `verify:browser`'s design-premise check caught it. The page size is
+now 40 and the budget 25 requests, which keeps the 1,000-home ceiling. The
+largest scope measured that day was Austin one-bedroom at 323 homes (9 pages).
+The references to 100 per page and ten requests below describe the original
+decision.
+
 ## Consequences
 
 - The comparison depends on Landing continuing to honour `per_page: 100`. If it
