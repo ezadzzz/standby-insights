@@ -154,13 +154,15 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
 - **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
 - **Mark Gray** (mark): the inset outline of standard move-in days and the dots of not-returned days.
-- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved days, and the same pair drawn as horizontal rules for move-in-blocked days. The card strip and its key draw both darker, Mark Gray over Hatch Ground — the tinted ground, not Paper, is what keeps reserved and move-in-blocked reading as filled marks at 10px, where the stroke pitch alone would collapse to hairlines indistinguishable from standard move-in's bare outline. Mark Gray still holds 3:1 against white.
+- **Hatch pair** (hatch-stroke over hatch-ground): the panel grid's 135-degree stripes (1.5px stroke, 4px repeat) for reserved days, and the same pair drawn as horizontal rules for move-in-blocked days. Panel only: the card strip draws no textures (see The Card Strip Rule).
 - **Light Divider** (divider-light): the dashed divider between fact rows and between rows of All returned ranges, one step lighter than section rules.
 
 ### Named Rules
 **The One Green Rule.** Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.
 
 **The Texture Not Hue Rule.** Every non-standby-only state is drawn as a texture in grays: hatch for reserved, horizontal rules for move-in blocked, a 1px inset outline for standard move-in, dots for not returned. Missing data is dotted, never blank and never outlined like move-in. Hatch means a reservation and nothing else, so a blocked day is never hatched.
+
+**The Card Strip Rule.** The card strip answers only what a member scans a results column for, in three flat fills stepped in lightness: Standby Green for standby-only, Light Divider (#d3d8d9) for standard move-in (keyed *Available*), Weathered Gray (#5d686b) for unavailable, which merges reservations and move-in blocks; the reason is the panel's to give. No calendar data is the one empty mark, a 1px Light Divider outline. White paper cuts split it into 42 days from today, 1px each. Every drawn mark is keyed on the card. No hatch, dots, rules or edges.
 
 **The Words First Rule.** A state is always named in text; the grid, strip and legend repeat it. The calendar grid is `role="img"` with a text alternative, and the legend is decorative.
 
@@ -208,7 +210,7 @@ Responsive behavior:
 Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only by the note's dashed outline, the tab overlapping that outline by half its height, and gray-step text. Two shadow properties exist as drawing tools, not depth: a 1px inset box-shadow draws the move-in outline, and a white text-shadow halo keeps numerals legible over hatch and dots.
 
 ### Shadow Vocabulary
-- **Move-in outline** (`box-shadow: inset 0 0 0 1px #8a9598`): standard move-in days in the grid, strip and legend.
+- **Move-in outline** (`box-shadow: inset 0 0 0 1px #8a9598`): standard move-in days in the panel grid and legend.
 - **Numeral halo** (`text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff`): grid numerals on reserved, move-in-blocked and not-returned days. Not-returned numerals also stay in graphite.
 
 ### Named Rules

@@ -316,7 +316,7 @@ test('a rate limit is stated on the page with an explicit way to resume', () => 
 
   const notice = h.notices()[0];
   assert.match(notice.textContent, /paused/i);
-  const resume = notice.children.find((el) => el.tag === 'button');
+  const resume = notice.children.find((el) => el.className === 'standby-evidence-button');
   assert.ok(resume, 'recovery is offered, not left to a timer');
   assert.equal(resume.hidden, false);
 
@@ -338,11 +338,29 @@ test('View evidence reports the card’s own unit, and does not follow the card 
   h.annotator.start();
   h.store.set(CARD.response.slug, READY);
 
-  const button = h.annotations()[0].children.find((el) => el.tag === 'button');
+  const button = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-button');
   assert.equal(button.textContent, 'View evidence');
   button.click();
 
   assert.deepEqual(h.viewed, [CARD.response.slug]);
+});
+
+test('the ? toggles a note on what the card and its six-week strip mean, without following the card link', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, READY);
+
+  const note = h.annotations()[0];
+  const info = note.children.find((el) => el.className === 'standby-evidence-info');
+  const tip = note.children.find((el) => el.className === 'standby-evidence-tip');
+  assert.equal(info.getAttribute('aria-label'), 'About this card');
+  assert.match(tip.textContent, /next six weeks/);
+  info.click();
+  assert.equal(info.getAttribute('aria-expanded'), 'true');
+  info.click();
+  assert.equal(info.getAttribute('aria-expanded'), 'false');
+  assert.deepEqual(h.viewed, []);
 });
 
 test('each note is a labeled group whose attribution and View evidence name the unit', () => {
@@ -355,7 +373,7 @@ test('each note is a labeled group whose attribution and View evidence name the 
   assert.equal(note.getAttribute('role'), 'group');
   assert.equal(note.getAttribute('aria-label'), 'Standby Insights for Lantana Hills 2321');
   assert.equal(note.children[0].textContent, 'Standby Insights', 'the source tab is real text, not CSS content');
-  const button = note.children.find((el) => el.tag === 'button');
+  const button = note.children.find((el) => el.className === 'standby-evidence-button');
   assert.equal(button.getAttribute('aria-label'), 'View evidence for Lantana Hills 2321');
 
   const strip = note.children.find((el) => el.className === 'standby-strip');
@@ -365,7 +383,7 @@ test('each note is a labeled group whose attribution and View evidence name the 
   assert.equal(key.hidden, false, 'a strip with no calendar data keys its marks');
 });
 
-test('a card without a gap or an unusual mark is one quiet line over an unkeyed strip', () => {
+test('a card without a gap is one quiet line over a keyed strip', () => {
   const h = harness();
   addCard(h.doc, CARD);
   h.annotator.start();
@@ -381,7 +399,9 @@ test('a card without a gap or an unusual mark is one quiet line over an unkeyed 
   assert.equal(part('standby-evidence-line').textContent, '');
   assert.equal(part('standby-strip').hidden, false, 'the strip stays');
   assert.match(part('standby-strip').getAttribute('aria-label'), /^Six weeks from/, 'the strip still speaks every mark');
-  assert.equal(part('standby-strip-key').hidden, true, 'the panel legend explains the usual marks');
+  assert.equal(part('standby-strip-key').hidden, false, 'every strip keys its marks');
+  assert.equal(part('standby-strip-key').textContent, 'Available');
+  assert.deepEqual(part('standby-strip-scale').children.map((el) => el.textContent), ['Today', '6 weeks'], 'a span, not an end date');
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {

@@ -105,25 +105,29 @@ test('the check-in marker appears only for the member’s own selected date', ()
   assert.doesNotMatch(cardFor(raw).strip.label, /check-in/);
 });
 
-test('the strip key names, in the panel legend’s words, only the marks this strip draws', () => {
+test('the strip key names only the marks this strip draws', () => {
   const raw = [
     { start_date: '2026-09-01', end_date: '2026-09-24', move_in_allowed: false, unbookable_reason: 'less_than_minimum_nightly_stay' },
     { start_date: '2026-09-25', end_date: '2026-10-05', move_in_allowed: false, unbookable_reason: 'reserved' },
   ];
   const keyText = (view) => view.strip.key.map((k) => k.text);
-  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Reserved', 'No calendar data']);
+  assert.deepEqual(keyText(cardFor(raw)), ['Standby-only', 'Unavailable', 'No calendar data']);
   const selected = cardFor(raw, { referenceDate: '2026-09-20', checkIn: { status: 'selected', date: '2026-09-20' } });
   assert.equal(keyText(selected).at(-1), 'Your check-in');
 });
 
-test('move-in-blocked days are keyed apart from reservations, so hatch means a reservation', () => {
+test('a card draws reservations and other blocks as one unavailable mark; the panel gives the reason', () => {
   const raw = [
     { start_date: '2026-09-01', end_date: '2026-10-30', move_in_allowed: false },
   ];
   const view = cardFor(raw);
   assert.match(view.headlineText, /^No reservation shown/);
-  assert.deepEqual(view.strip.key.map((k) => k.kind), ['blocked']);
-  assert.deepEqual(view.strip.key.map((k) => k.text), ['Move-in blocked']);
+  assert.deepEqual(view.strip.key.map((k) => k.kind), ['unavailable']);
+  const both = cardFor([
+    { start_date: '2026-09-01', end_date: '2026-09-20', move_in_allowed: false, unbookable_reason: 'reserved' },
+    { start_date: '2026-09-21', end_date: '2026-10-30', move_in_allowed: false },
+  ]);
+  assert.deepEqual(both.strip.segments.map((s) => [s.kind, s.days]), [['unavailable', 42]], 'adjacent blocks merge into one stretch');
 });
 
 test('a card with a reservation before the check-in names the date its absence runs from', () => {
@@ -133,13 +137,8 @@ test('a card with a reservation before the check-in names the date its absence r
     { start_date: '2026-09-21', end_date: '2026-12-30', move_in_allowed: true },
   ];
   const view = cardFor(raw, { referenceDate: '2026-10-01', checkIn: { status: 'selected', date: '2026-10-01' } });
-  assert.ok(view.strip.key.some((k) => k.kind === 'reserved'), 'the Sep 18 reservation is still drawn');
+  assert.ok(view.strip.key.some((k) => k.kind === 'unavailable'), 'the Sep 18 reservation is still drawn');
   assert.equal(view.headlineText, 'No reservation shown from Oct 1');
-});
-
-test('the strip’s end label uses the headline’s date form', () => {
-  const view = cardFor([{ start_date: '2026-09-01', end_date: '2027-09-01', move_in_allowed: true }]);
-  assert.equal(view.strip.endLabel, 'Oct 26');
 });
 
 test('an unusable calendar shows unavailable, never an absence of reservations', () => {

@@ -64,6 +64,11 @@ export function createCardAnnotator({
     return describeCard({ evidence, summary, referenceDate, today: getToday(), checkIn: getCheckIn?.() });
   }
 
+  const CARD_TIP = [
+    'Standby Insights reads this unit’s public booking calendar.',
+    'The bar is the next six weeks, one cell per day: today at the left, the last day shown at the right.',
+  ].join('\n');
+
   function buildAnnotation(slug) {
     const container = doc.createElement('div');
     container.setAttribute(ANNOTATION_ATTRIBUTE, slug);
@@ -73,6 +78,23 @@ export function createCardAnnotator({
     const tab = doc.createElement('span');
     tab.className = 'standby-evidence-tab';
     tab.textContent = 'Standby Insights';
+    // What the card and its strip mean, for a member seeing one the first time.
+    // Hover shows it; click toggles it, so keyboard and touch reach it too.
+    const info = doc.createElement('button');
+    info.type = 'button';
+    info.className = 'standby-evidence-info';
+    info.textContent = '?';
+    info.setAttribute('aria-label', 'About this card');
+    info.setAttribute('aria-expanded', 'false');
+    info.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true'));
+    });
+    info.addEventListener('blur', () => info.setAttribute('aria-expanded', 'false'));
+    const tip = doc.createElement('p');
+    tip.className = 'standby-evidence-tip';
+    tip.textContent = CARD_TIP;
 
     const status = doc.createElement('p');
     status.className = 'standby-evidence-status';
@@ -112,17 +134,15 @@ export function createCardAnnotator({
     // Card order the specification fixes: standby-only headline, its detail,
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
-    container.append(tab, status, headline, note, detail, strip, scale, key, button);
+    container.append(tab, info, tip, status, headline, note, detail, strip, scale, key, button);
     return { container, status, headline, detail, strip, scale, key, note, button, slug };
   }
 
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    // Standby-only, reserved and the check-in marker are
-    // explained by the panel legend; the card keys its marks only when it draws
-    // one of the unusual ones. The strip's label speaks every mark regardless.
-    parts.key.hidden = strip === null || !strip.key.some(({ kind }) => kind === 'blocked' || kind === 'not-returned');
+    // Every drawn mark is keyed, so the strip reads at first glance.
+    parts.key.hidden = strip === null;
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
@@ -139,10 +159,11 @@ export function createCardAnnotator({
       pieces.push(marker);
     }
     parts.strip.replaceChildren(...pieces);
+    // A span, not an end date: the date read as an event on the unit.
     const start = doc.createElement('span');
     start.textContent = 'Today';
     const end = doc.createElement('span');
-    end.textContent = strip.endLabel;
+    end.textContent = '6 weeks';
     parts.scale.replaceChildren(start, end);
     parts.scale.setAttribute('aria-hidden', 'true');
     parts.key.replaceChildren(...strip.key.map(({ kind, text }) => {
