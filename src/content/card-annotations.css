@@ -24,6 +24,46 @@
   letter-spacing: .1em;
   text-transform: uppercase;
 }
+/* Mirrors the source tab on the opposite corner. */
+.standby-evidence-info {
+  position: absolute;
+  right: 8px;
+  top: -10px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #22343a;
+  color: #eef3f2;
+  font: 700 11px/18px ui-monospace, "Cascadia Mono", Consolas, monospace;
+  cursor: help;
+}
+/* A 24px target around the 18px mark. */
+.standby-evidence-info::before { content: ""; position: absolute; inset: -3px; }
+.standby-evidence-info:focus-visible { outline: 2px solid #2d3538; outline-offset: 2px; }
+.standby-evidence .standby-evidence-tip {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 12px;
+  z-index: 2;
+  width: min(260px, 100%);
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #22343a;
+  background: #fff;
+  color: #2d3538;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: normal;
+}
+.standby-evidence-info:hover + .standby-evidence-tip,
+.standby-evidence-info[aria-expanded="true"] + .standby-evidence-tip { display: block; }
+@media (forced-colors: active) {
+  .standby-evidence-info { border: 1px solid CanvasText; }
+}
 
 .standby-evidence p { margin: 0; }
 .standby-evidence p:empty { display: none; }
@@ -57,36 +97,29 @@
 .standby-strip[hidden],
 .standby-evidence .standby-strip-scale[hidden],
 .standby-evidence .standby-strip-key[hidden] { display: none; }
-.standby-strip::before {
+/* Paper cuts that read the bar as a calendar: a hairline between days. One
+   stretched SVG rather than a repeating gradient, so 42 fractional tiles can't
+   round and drift. */
+.standby-strip::after {
   content: "";
   position: absolute;
-  /* Today's edge and the view's closing edge. */
-  inset: -3px 0;
-  border: solid #2d3538;
-  border-width: 0 1.5px;
-  z-index: 1;
+  inset: 0;
   pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 1' preserveAspectRatio='none'%3E%3Cpath stroke='white' vector-effect='non-scaling-stroke' d='M1 0V1M2 0V1M3 0V1M4 0V1M5 0V1M6 0V1M7 0V1M8 0V1M9 0V1M10 0V1M11 0V1M12 0V1M13 0V1M14 0V1M15 0V1M16 0V1M17 0V1M18 0V1M19 0V1M20 0V1M21 0V1M22 0V1M23 0V1M24 0V1M25 0V1M26 0V1M27 0V1M28 0V1M29 0V1M30 0V1M31 0V1M32 0V1M33 0V1M34 0V1M35 0V1M36 0V1M37 0V1M38 0V1M39 0V1M40 0V1M41 0V1'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
 }
 .standby-strip-segment { flex-basis: 0; min-width: 0; }
-/* Segments and key swatches share one set of marks, so the key can't drift.
-   Hatch and outline strokes (Mark Gray, 3.07:1) hold at least 3:1 against white. */
+/* Three flat fills, one per thing a member asks of a day, stepped in lightness
+   so they part without hue. Segments and key swatches share them, so the key
+   can't drift. No calendar data is an empty outline: drawn as missing, never
+   filled like a day the calendar speaks for. */
 .standby-strip [data-kind="standby-only"],
 .standby-strip-key [data-kind="standby-only"] { background: #1d9e75; }
-.standby-strip [data-kind="reserved"],
-.standby-strip-key [data-kind="reserved"] {
-  background: repeating-linear-gradient(135deg, #8a9598 0 1.5px, #f1f3f3 1.5px 4px);
-}
-/* A solid block, not a pattern: hatch means a reservation and nothing else,
-   and a flat fill can't blur into the hatch at strip scale. */
-.standby-strip [data-kind="blocked"],
-.standby-strip-key [data-kind="blocked"] { background: #8a9598; }
 .standby-strip [data-kind="move-in"],
-.standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }
-/* Missing days are drawn as missing: dotted, not blank and not outlined like move-in. */
-.standby-strip-segment[data-kind="not-returned"],
-.standby-strip-key [data-kind="not-returned"] {
-  background: radial-gradient(circle, #8a9598 .8px, transparent 1.2px) 0 0 / 3px 3px;
-}
+.standby-strip-key [data-kind="move-in"] { background: #d3d8d9; }
+.standby-strip [data-kind="unavailable"],
+.standby-strip-key [data-kind="unavailable"] { background: #5d686b; }
+.standby-strip [data-kind="not-returned"],
+.standby-strip-key [data-kind="not-returned"] { box-shadow: inset 0 0 0 1px #d3d8d9; }
 .standby-strip-check-in {
   position: absolute;
   top: -6px;

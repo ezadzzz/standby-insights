@@ -50,7 +50,9 @@ bumped. The gap exists only while the reservation after it holds.
 
 **Six-week view** — the 42 days from today drawn as a strip on each card and a
 weekday grid in the panel. Standby-only is green, reservations and other blocked
-days are hatched, standard move-in is outlined, and a day no range covers is
+days are hatched, standard move-in is outlined (on the card strip, reservations
+and other blocks merge into one *Unavailable* fill and standard move-in is a
+light fill keyed *Available*; the panel gives the reason), and a day no range covers is
 dotted and keyed to the member as **"No calendar data"** — drawn as missing,
 never left looking open. The member's selected check-in is marked; a check
 date is not. Statements are made from the reference date forward, and "No
@@ -72,6 +74,8 @@ labels):
 - *Other homes* (spec: **peers**) — the comparison homes, in every surface.
 - *Standby-only*, *Reserved*, *Standard move-in* — unchanged from the spec
   terms; already plain enough for a member who never read it.
+- *Available*, *Unavailable* — card key only: standard move-in; reserved and
+  move-in blocked together.
 
 **Standard move-in** — a range that allows move-in. Its absence is only stated
 under coverage (below).
