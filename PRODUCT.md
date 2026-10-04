@@ -22,9 +22,9 @@ onboarding for unfamiliar members is not yet in scope.
 
 An unpacked Manifest V3 Chrome extension that shows exact-unit evidence beside
 Landing Standby: the returned booking calendar, the reservation situation
-relative to the member's own check-in date, an advertised monthly-price
-comparison against the same market and bedroom count, and minimum-stay,
-rating, and location facts.
+relative to the member's own check-in date, bump-risk signals (the advertised
+monthly price against the same market and bedroom count, whether a Flex term
+advertises an offer, and the minimum stay), and rating and location facts.
 
 The first thing a card answers, from the Standby member's side: does this unit
 have a **standby-only** gap — nights too short for a standard stay because a
@@ -112,11 +112,13 @@ cover.
   Written from the Standby member's perspective. Status is always carried by
   words, never by color or position alone. Color does carry meaning in one
   place, confirmed 2026-09-12: **green marks standby-only nights**, the thing a
-  Standby member hunts for, beside words that say so; hatching marks
-  reservations and blocked days. The
-  forbidden vocabulary in `CONTEXT.md` — *bump risk*, *protection*, *protected
-  thru*, *safe until*, *guaranteed* — is binding in every surface;
-  *standby-only* is the term for those gaps.
+  Standby member hunts for, beside words that say so; a dark gray fill
+  marks unavailable days (reservations and blocks). The
+  forbidden vocabulary in `CONTEXT.md` — *bump risk* as a claim, *protection*,
+  *protected thru*, *safe until*, *guaranteed* — is binding in every surface;
+  *standby-only* is the term for those gaps. Confirmed 2026-10-04: the panel's
+  *Bump-risk signals* heading is the one sanctioned use, naming facts the member
+  weighs, never a verdict the extension draws.
 
 ## Evidence on Hand
 

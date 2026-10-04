@@ -74,10 +74,11 @@ test('the comparison states the median of the five other homes and excludes the 
   assert.equal(comparison.median, 3000);
 
   const view = h.view();
-  assert.match(view.comparison.statusText, /Median advertised monthly price across 5 other homes in the same market and bedroom count: \$3,000\./);
+  assert.deepEqual(view.comparison.prices[1], { label: 'Median of 5 other homes', amount: '$3,000', unit: 'per month' });
+  assert.match(view.comparison.disclosure, /market and bedroom count/);
   assert.match(view.comparison.subjectText, /This home: \$2,000 per month\./);
-  assert.match(view.comparison.disclosure, /not a matched-date booking quote/);
-  assert.match(view.comparison.disclosure, /Underlying commitment and discount terms differ/);
+  assert.match(view.comparison.disclosure, /not a quote for your dates/);
+  assert.match(view.comparison.disclosure, /not a prediction/);
 });
 
 test('the search is scoped to the subject market with an exact bedroom count and no extra filters', async () => {
@@ -173,7 +174,7 @@ test('the subject price is shown with the terms and note it was supplied under',
   h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
   await settleUnit(h, home);
 
-  const { termsNote } = h.view().comparison;
+  const termsNote = h.view().comparison.disclosure;
   assert.match(termsNote, /Terms supplied with this price: 6-Month\+ Stay, 12-Month\+ Stay\./);
   assert.match(termsNote, /Price includes all fees except taxes\./);
 });
@@ -185,7 +186,7 @@ test('terms the response never supplied are stated as unsupplied, not as no comm
   h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
   await settleUnit(h, home);
 
-  assert.match(h.view().comparison.termsNote, /Terms for this price were not supplied\./);
+  assert.match(h.view().comparison.disclosure, /Terms for this price were not supplied\./);
 });
 
 test('cached comparison evidence is reused for a matching selection, and excludes that new subject', async () => {
@@ -330,7 +331,7 @@ test('a subject with no eligible monthly price still gets a peer median, and its
   await settleUnit(h, home);
 
   const view = h.view();
-  assert.match(view.comparison.statusText, /Median advertised monthly price across 5 other homes/);
+  assert.equal(view.comparison.prices[1].label, 'Median of 5 other homes');
   assert.match(view.comparison.subjectText, /no eligible advertised monthly price/);
 });
 
@@ -354,7 +355,7 @@ test('the comparison shows while the calendar is unusable, and loading while it 
   await tick();
   const view = h.view();
   assert.match(view.calendarStatusText, /^Calendar unavailable\./);
-  assert.match(view.comparison.statusText, /Median advertised monthly price/);
+  assert.equal(view.comparison.prices.length, 2);
 });
 
 test('a stale comparison generation cannot replace evidence for the unit now selected', async () => {

@@ -9,8 +9,6 @@
   --mark: #8a9598;
   --standby-only: #1d9e75;
   --standby-only-text: #0f6e52;
-  --hatch: repeating-linear-gradient(135deg, #b4bcbe 0 1.5px, #f1f3f3 1.5px 4px);
-  --dots: radial-gradient(circle, #8a9598 .9px, transparent 1.3px) 0 0 / 4px 4px;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
   --sans: system-ui, "Segoe UI", sans-serif;
 }
@@ -126,12 +124,11 @@ h2 {
 }
 [data-kind="standby-only"] { background: var(--standby-only); color: #04261b; }
 #calendar-grid [data-kind="standby-only"] { font-weight: 700; }
-[data-kind="reserved"] { background: var(--hatch); }
-[data-kind="blocked"] { background: var(--mark); }
-/* Numerals stay legible over hatch, the blocked fill and dots. */
-#calendar-grid [data-kind="reserved"], #calendar-grid [data-kind="blocked"], #calendar-grid [data-kind="not-returned"] { text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff; }
-[data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--mark); }
-[data-kind="not-returned"], #calendar-grid [data-kind="not-returned"] { background: var(--dots); color: var(--on); }
+/* The card strip's three fills, stepped in lightness, so both surfaces draw a day alike. */
+[data-kind="move-in"] { background: #d3d8d9; }
+[data-kind="unavailable"] { background: var(--on-2); color: #fff; }
+/* Missing is the one unfilled mark: an outline, never a fill that reads as a state. */
+[data-kind="not-returned"] { box-shadow: inset 0 0 0 1px #d3d8d9; }
 #calendar-grid .today { outline: 2px solid var(--on); outline-offset: 1px; z-index: 1; }
 #calendar-grid .check-in::after { content: ""; position: absolute; top: 2px; right: 2px; border: 4px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
 .grid-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; color: var(--on-2); font: 12px/1.5 var(--mono); }
@@ -141,7 +138,7 @@ h2 {
 .grid-legend i[data-kind="check-in"] { width: 0; height: 0; border: 5px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
 #marks-disclosure { margin-top: 4px; }
 #marks-disclosure > p { margin: 0 0 4px; }
-.supporting, #comparison-check-time { color: var(--on-2); font-size: 13px; }
+.supporting { color: var(--on-2); font-size: 13px; }
 
 .summary { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--outline); }
 /* Quieter than the headline it follows: the headline is the answer, these qualify it. */
@@ -150,7 +147,7 @@ h2 {
 
 /* Every returned range, past the grid's six weeks: a typed instruction that opens a ledger. */
 #all-ranges { margin-top: 12px; border-top: 1px dashed var(--outline); }
-#all-ranges summary, #price-disclosure summary, #marks-disclosure summary {
+#all-ranges summary, #marks-disclosure summary {
   display: flex;
   align-items: center;
   min-height: 44px;
@@ -158,31 +155,66 @@ h2 {
   font: 500 12px/1.3 var(--mono);
   cursor: pointer;
 }
-#all-ranges summary:hover, #price-disclosure summary:hover, #marks-disclosure summary:hover { text-decoration: underline; text-underline-offset: 3px; }
-#all-ranges summary:focus-visible, #price-disclosure summary:focus-visible, #marks-disclosure summary:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+#all-ranges summary:hover, #marks-disclosure summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+#all-ranges summary:focus-visible, #marks-disclosure summary:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
 #all-ranges-list { margin: 0; padding: 0; list-style: none; font: 12px/1.5 var(--mono); }
 #all-ranges-list li { padding: 6px 0; border-top: 1px dashed #d3d8d9; }
 
-/* Each column shares the grid's rows, so a wrapped label never pushes one figure below the other. */
-#comparison-prices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; margin-bottom: 14px; }
-#comparison-prices > div { display: grid; grid-row: span 3; grid-template-rows: subgrid; align-content: start; min-width: 0; }
-#comparison-prices dt { align-self: end; }
-#comparison-prices > div + div { border-left: 1px dashed var(--outline); padding-left: 16px; }
-#comparison-prices dt, #comparison-prices dd:last-child { color: var(--on-2); font: 12px/1.45 var(--mono); }
-.price-amount { font: 600 26px/1.2 var(--mono); letter-spacing: -.02em; margin: 2px 0; color: var(--on); }
-.price-amount.unavailable { font-size: 16px; letter-spacing: normal; }
-#comparison-difference:not(:empty) { font: 600 14px/1.45 var(--mono); color: var(--on); margin: -4px 0 10px; }
-#comparison-status:not(:empty) { color: var(--on-2); font: 12px/1.45 var(--mono); margin-bottom: 10px; }
-#comparison-subject:not(:empty) { margin-bottom: 10px; }
-#comparison-terms:not(:empty) { margin-bottom: 6px; }
-#price-disclosure > p { margin: 0 0 4px; }
-#comparison-check-time:not(:empty) { margin-top: 8px; font: 12px/1.45 var(--mono); }
+/* Demand signals: label left, the fact and its direction right; reasoning behind "i". */
+.signals > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; align-items: start; padding: 12px 0; border-bottom: 1px dashed #d3d8d9; }
+.signals > div:first-child { padding-top: 0; }
+.signals > div:last-child { border-bottom: 0; }
+.signals .place-icon { grid-row: span 3; }
+.signals dt { grid-column: 2; display: flex; align-items: center; gap: 6px; margin-bottom: 1px; color: var(--on-2); font: 12px/1.5 var(--mono); }
+.signals dd { grid-column: 2; }
+.signal-value { font: 600 16px/1.35 var(--mono); }
+.signal-sub { color: var(--on-2); font: 12px/1.45 var(--mono); }
+.muted { color: var(--on-2); font-weight: 400; }
 
-.facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); border-bottom: 1px dashed #d3d8d9; }
-.facts > div:last-child { border-bottom: 0; }
-.facts dt { padding: 7px 12px 7px 0; color: var(--on-2); font: 12px/1.5 var(--mono); }
-.facts dd { grid-column: 2; padding: 7px 0; font: 13px/1.5 var(--mono); }
-.facts dd + dd { color: var(--on-2); font: 13px/1.45 var(--sans); padding-top: 0; }
+/* A typed footnote mark: square, outlined, the size of a label. */
+.info {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--outline);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--on-2);
+  font: 700 10px/1 var(--mono);
+  letter-spacing: 0;
+  text-transform: none;
+  vertical-align: 1px;
+  cursor: help;
+}
+/* The hit area reaches 32px without drawing a bigger mark. */
+.info::before { content: ""; position: absolute; inset: -8px; }
+.info:hover, .info[aria-expanded="true"] { border-color: var(--on); color: var(--on); }
+.info:focus-visible { outline: 2px solid var(--on); outline-offset: 2px; }
+#demand-heading { display: flex; align-items: center; gap: 8px; }
+.tip {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  width: min(260px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid var(--on);
+  background: var(--paper);
+  color: var(--on);
+  font: 13px/1.45 var(--sans);
+  text-wrap: pretty;
+}
+
+/* Location tiles: an icon square, the value, then its label. */
+.places { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(180px, calc(50% - 6px)), 1fr)); gap: 16px 12px; }
+.places > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; align-items: center; }
+.place-icon { grid-row: span 2; display: grid; place-items: center; width: 32px; height: 32px; background: #f1f3f3; color: var(--on); }
+.places dd { grid-column: 2; grid-row: 1; font: 600 18px/1.2 var(--mono); }
+.places dd.muted { font-size: 13px; font-weight: 400; }
+.places dt { grid-column: 2; grid-row: 2; color: var(--on-2); font: 12px/1.4 var(--mono); }
 
 /* The calendar's label stays for assistive technology; visually the headline leads. */
 #calendar-heading,
@@ -190,14 +222,5 @@ h2 {
 @media (max-width: 380px) {
   body { padding-inline: 12px; }
   .note { padding-inline: 12px; }
-  .facts > div { grid-template-columns: minmax(0, 1fr); padding-block: 6px; }
-  .facts dt { padding: 0 0 2px; }
-  .facts dd { grid-column: 1; padding: 0 0 2px; }
-  .facts dd + dd { padding-top: 4px; }
-  .price-amount { font-size: 22px; }
-}
-@media (max-width: 260px) {
-  #comparison-prices { grid-template-columns: minmax(0, 1fr); }
-  #comparison-prices > div + div { border-left: 0; border-top: 1px dashed var(--outline); padding: 12px 0 0; }
 }
 @media (forced-colors: active) { .note-tab { border: 1px solid CanvasText; } }
