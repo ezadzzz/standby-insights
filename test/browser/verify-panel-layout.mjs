@@ -57,9 +57,7 @@ try {
       const statusLines = await page.$$eval('#refresh-status, #identity-note, #calendar-status', els => els.filter(el => el.textContent && el.checkVisibility()).length);
       assert(statusLines <= 1, `at most one status sentence ${width}/${variant}`);
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
-      assert.equal(await page.locator('#comparison-prices').isVisible(), current.comparison?.status === 'ready');
-      assert.equal(await page.locator('#comparison-caveat').isVisible(), current.comparison?.status === 'ready', `caveat ${width}/${variant}`);
-      assert.equal(await page.locator('#price-disclosure').isVisible(), current.comparison?.status === 'ready', `disclosure ${width}/${variant}`);
+      assert.equal(await page.locator('#signal-price').isVisible(), Boolean(current.comparison), `price signal ${width}/${variant}`);
       assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch','unavailable'].includes(variant), `calendar section ${width}/${variant}`);
       assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
       if (variant === 'unavailable') assert.match(await page.locator('#refresh-status').innerText(), /^Check failed: .*Refresh to try again\.$/);
@@ -75,29 +73,41 @@ try {
       if (variant === 'notReturned') {
         const missing = page.locator('#calendar-grid [data-kind="not-returned"]');
         assert(await missing.count() > 0, 'uncovered days are not-returned');
-        assert.notEqual(await missing.first().evaluate(el => getComputedStyle(el).backgroundImage), 'none', 'not-returned days are drawn');
+        assert.notEqual(await missing.first().evaluate(el => getComputedStyle(el).boxShadow), 'none', 'not-returned days are drawn');
         assert.match(await page.locator('.grid-legend').innerText(), /No calendar data/);
       }
       if (variant === 'disagreement') {
         assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
         assert(await page.evaluate(() => document.getElementById('reference-note').compareDocumentPosition(document.getElementById('six-weeks')) & Node.DOCUMENT_POSITION_FOLLOWING), 'reference note precedes the grid');
       }
-      if (variant === 'missingPrice') assert.match(await page.locator('#comparison-subject').innerText(), /no eligible advertised monthly price/);
-      if (variant === 'missingPrice') assert.equal(await page.locator('#comparison-difference').innerText(), '');
+      if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /no eligible advertised monthly price/);
+      if (variant === 'missingPrice') assert.match(await page.locator('#signal-price .signal-value').innerText(), /unavailable/);
       if (variant === 'ready') {
-        assert.equal(await page.locator('.facts dt').count(), 6);
+        assert.equal(await page.locator('.signals dt').count(), 3);
+        assert.equal(await page.locator('.places dt').count(), 4);
+        assert.equal(await page.locator('.places svg[aria-hidden="true"]').count(), 4);
+        assert.equal(await page.locator('.signals svg[aria-hidden="true"]').count(), 3);
+        assert.deepEqual(await page.$$eval('.grid-legend li', els => els.map(el => el.textContent)), ['Standby-only', 'Unavailable', 'Today', 'Your check-in']);
+        assert.match(await page.locator('#signal-flex .signal-value').innerText(), /Offer advertised/);
+        assert.doesNotMatch(await page.locator('#demand-list').innerText(), /more demand|less demand/i, 'signals carry no verdict');
         assert.match(await page.locator('#standby-only-headline').innerText(), /Standby-only through Sep 24/);
         assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12 – Sep 24: Standby-only/);
-        assert.match(await page.locator('#comparison-terms').innerText(), /6 months/);
-        assert.equal(await page.locator('#comparison-difference').innerText(), '$256 below the median');
-        assert(await page.evaluate(() => {
-          const [prices, difference, terms] = ['comparison-prices', 'comparison-difference', 'comparison-terms'].map((id) => document.getElementById(id).getBoundingClientRect());
-          return prices.bottom <= difference.top && difference.bottom <= terms.top;
-        }), 'the difference sits between the figures and the fine print');
-        assert.equal(await page.locator('#price-disclosure').evaluate(el => el.open), false, 'the full disclosure starts collapsed');
-        assert.match(await page.locator('#comparison-disclosure').textContent(), /not a prediction/);
+        assert.match(await page.locator('#tip-price').textContent(), /6 months/);
+        assert.match(await page.locator('#tip-price').textContent(), /not a prediction/);
+        assert.equal(await page.locator('#signal-price .signal-value').innerText(), '$256 below the median');
+        assert.equal(await page.locator('#tip-price').isVisible(), false, 'tips start closed');
+        const info = page.locator('#signal-price .info');
+        await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))); // let the resize settle
+        await info.click();
+        assert.equal(await page.locator('#tip-price').isVisible(), true, `a click opens the tip ${width}`);
+        assert.equal(await info.getAttribute('aria-expanded'), 'true');
+        assert(await page.locator('#tip-price').evaluate(el => { const r = el.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; }), `tip inside the panel ${width}`);
+        if (process.argv.includes('--screenshots') && width === 320) await page.screenshot({path:'.impeccable/review/panel-note-build-tip-320.png'});
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('#tip-price').isVisible(), false, 'Escape closes the tip');
+        await page.mouse.click(1, 1); // resets the focus start point, as a member clicking away would
         const summary = page.locator('#all-ranges summary');
         assert.equal(await summary.innerText(), 'All returned ranges (5)');
         assert.equal(await page.locator('#all-ranges').evaluate(el => el.open), false, 'the range list starts collapsed');

@@ -18,6 +18,10 @@ OWN-WORLD: White ground. A dashed, unfilled note under a dark tab reading "Stand
 
 STORY: Confirm unit and check time, read the standby-only answer and grid, then scan prices, facts and location in quieter dashed-ruled sections. Refresh is a borderless monospace text action with a 44px target.
 
+## Revisions
+
+- 2026-10-04: prices, Flex offer and minimum stay merged into one "Bump-risk signals" section of one-fact rows; reasoning and fine print moved behind info-mark tips; location shown as icon tiles. See DESIGN.md (Bump-Risk Signals, Info Mark and Tip, Place Tiles), which supersedes "no icons" below.
+
 ## Boundaries
 
 - Restyle only: `render.js` wording, element order and states are unchanged. The only markup change is a wrapper around the unit header and calendar section. Critique P1s ship as their own issues.

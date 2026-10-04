@@ -1,4 +1,4 @@
-import { sixWeekView, describeHeadline } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline, drawnKey, drawnKind } from '../lib/six-week-view.js';
 
 // Card dates match the headline's "Sep 24" form: no year, as on the strip.
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
@@ -21,22 +21,10 @@ function reservationLine(summary, referenceDate) {
   return `No reservation shown from ${formatDate(referenceDate)}`;
 }
 
-// A member reading a card wants three things from the strip: where a standard
-// stay can start, where a standby-only gap is, and where neither is. Why a day
-// is unavailable (a reservation or another block) is the panel's to say. Days
-// with no calendar data stay apart: missing is never drawn as a claim.
-const CARD_KIND = { reserved: 'unavailable', blocked: 'unavailable' };
-const CARD_KEY = [
-  ['standby-only', 'Standby-only'],
-  ['move-in', 'Available'],
-  ['unavailable', 'Unavailable'],
-  ['not-returned', 'No calendar data'],
-];
-
 function cardSegments(segments) {
   const merged = [];
   for (const segment of segments) {
-    const kind = CARD_KIND[segment.kind] ?? segment.kind;
+    const kind = drawnKind(segment.kind);
     const last = merged.at(-1);
     if (last?.kind === kind) last.days += segment.days;
     else merged.push({ ...segment, kind });
@@ -104,8 +92,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
     : `${weeks.label}. Your check-in, ${formatDate(referenceDate)}, is marked`;
   const extras = checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }];
   const segments = cardSegments(weeks.segments);
-  const drawn = new Set(segments.map((s) => s.kind));
-  const key = [...CARD_KEY.filter(([kind]) => drawn.has(kind)).map(([kind, text]) => ({ kind, text })), ...extras];
+  const key = drawnKey(segments.map((s) => s.kind), extras);
   view.strip = { segments, label, checkInIndex, key };
   return view;
 }

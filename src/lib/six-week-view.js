@@ -2,12 +2,21 @@ import { addDays, coversInterval } from './calendar.js';
 
 export const VIEW_DAYS = 42;
 
-// The panel legend's words, so a mark means the same thing on both surfaces.
-// Standard move-in is the default and goes unkeyed.
+// What a member reads off the strip and the grid: where a standard stay can
+// start, where a standby-only gap is, and where neither is. Why a day is
+// unavailable (a reservation or another block) is told in words: the panel's
+// day titles and its list of every returned range. Days with no calendar data
+// stay apart: missing is never drawn as a claim.
+const DRAWN_KIND = { reserved: 'unavailable', blocked: 'unavailable' };
+
+/** The mark a day's kind is drawn as, on the card strip and the panel grid alike. */
+export const drawnKind = (kind) => DRAWN_KIND[kind] ?? kind;
+
+// One legend for both surfaces, so a mark means the same thing on each.
 export const KEY_WORDS = [
   ['standby-only', 'Standby-only'],
-  ['reserved', 'Reserved'],
-  ['blocked', 'Move-in blocked'],
+  ['move-in', 'Available'],
+  ['unavailable', 'Unavailable'],
   ['not-returned', 'No calendar data'],
 ];
 

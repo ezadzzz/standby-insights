@@ -1,5 +1,5 @@
 import { MINIMUM_PEERS } from '../lib/comparison.js';
-import { sixWeekView, describeHeadline, drawnKey } from '../lib/six-week-view.js';
+import { sixWeekView, describeHeadline, drawnKey, drawnKind } from '../lib/six-week-view.js';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const timeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' });
@@ -70,7 +70,7 @@ function summaryItemsFor(summary, omitNext) {
 }
 
 const MARK_EXPLANATIONS = {
-  blocked: 'Move-in blocked means Landing\'s calendar marks the night unavailable for a reason other than a reservation or a standby-only gap.',
+  unavailable: 'Unavailable means a reservation or another block; hover a day or open All returned ranges for which.',
   'not-returned': 'No calendar data means Landing\'s calendar doesn\'t say anything about that night — not that it\'s open.',
 };
 
@@ -81,7 +81,8 @@ const MARK_EXPLANATIONS = {
  */
 function calendarGrid(weeks, today, checkIn) {
   const checkInIndex = checkIn?.status === 'selected' ? weeks.checkInIndex : null;
-  const drawn = new Set(weeks.days.map((d) => d.kind));
+  const kinds = weeks.days.map((d) => drawnKind(d.kind));
+  const drawn = new Set(kinds);
   const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
   return {
     // Same sentence as the card strip's label, so both surfaces say it alike.
@@ -90,7 +91,7 @@ function calendarGrid(weeks, today, checkIn) {
       : `${weeks.label}. Your check-in, ${formatDate(weeks.days[checkInIndex].date)}, is marked`,
     leadingBlanks: new Date(`${today}T00:00:00Z`).getUTCDay(),
     // Today is always drawn (index 0); the check-in mark only when selected.
-    key: drawnKey(weeks.days.map((d) => d.kind), [
+    key: drawnKey(kinds, [
       { kind: 'today', text: 'Today' },
       ...(checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }]),
     ]),
@@ -103,7 +104,7 @@ function calendarGrid(weeks, today, checkIn) {
       const date = new Date(`${day.date}T00:00:00Z`);
       return {
         dayText: index === 0 || date.getUTCDate() === 1 ? monthDay.format(date) : String(date.getUTCDate()),
-        kind: day.kind,
+        kind: drawnKind(day.kind),
         isToday: index === 0,
         isCheckIn: index === checkInIndex,
         title: day.range ? rangeText(day.range) : 'No calendar data for this day',
@@ -173,8 +174,8 @@ function termsText(price) {
 
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
-const COMPARISON_CAVEAT = 'Advertised prices, not a quote for your dates.';
-const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, which already reflect any discount a home is carrying. Underlying commitment and discount terms differ between homes. This is not a matched-date booking quote and not a prediction that this home’s price will change.';
+const COMPARISON_DISCLOSURE = 'Other homes share its market and bedroom count. Advertised monthly prices, discounts applied: not a quote for your dates, and not a prediction.';
+
 
 /**
  * The comparison as the member sees it. Each outcome is distinguishable: too
@@ -183,7 +184,7 @@ const COMPARISON_DISCLOSURE = 'These are currently advertised monthly prices, wh
  */
 function comparisonView(state) {
   const comparison = state.comparison;
-  const view = { visible: false, statusText: '', differenceText: '', subjectText: '', termsNote: '', caveat: '', disclosure: '', checkTimeText: '', prices: [], scopeText: '' };
+  const view = { visible: false, statusText: '', differenceText: '', subjectText: '', disclosure: '', checkTimeText: '', prices: [] };
   if (!comparison || comparison.status === 'idle') return view;
 
   view.visible = true;
@@ -202,9 +203,6 @@ function comparisonView(state) {
   } else if (comparison.status === 'insufficient') {
     view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${plural(comparison.count, 'home')} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
   } else if (comparison.status === 'ready') {
-    view.statusText = `Median advertised monthly price across ${comparison.count} other ${plural(comparison.count, 'home')} in the same market and bedroom count: ${money(comparison.median)}.`;
-    // The median's label already carries the count.
-    view.scopeText = 'Same market and bedroom count as this home.';
     view.prices = [
       { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
@@ -219,13 +217,13 @@ function comparisonView(state) {
   }
 
   view.subjectText = subjectPriceText(comparison.subjectPrice);
-  view.termsNote = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note]
-    .filter((line) => line)
-    .join(' ');
-  // Both qualify price figures, so they appear only beside them. The caveat
-  // stays in view; the full disclosure sits one click behind it.
-  view.caveat = view.prices.length > 0 ? COMPARISON_CAVEAT : '';
-  view.disclosure = view.prices.length > 0 ? COMPARISON_DISCLOSURE : '';
+  // The fine print qualifies price figures, so it exists only beside them and
+  // sits one click behind them.
+  if (view.prices.length > 0) {
+    view.disclosure = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note, COMPARISON_DISCLOSURE]
+      .filter((line) => line)
+      .join(' ');
+  }
 
   if (comparison.checkedAt !== null) {
     view.checkTimeText = `Comparison checked ${timeFormatter.format(new Date(comparison.checkedAt))}`;
@@ -239,6 +237,17 @@ function scoreText(score) {
   return score.description ? `${score.value} (${score.description})` : String(score.value);
 }
 
+/** The same facts split for a location tile: a short figure, then what qualifies it. */
+function scoreTile(score) {
+  return score ? { value: String(score.value), note: score.description ?? '' } : { value: UNAVAILABLE, note: '' };
+}
+
+function ratingTile(rating) {
+  if (!rating) return { value: UNAVAILABLE, note: '' };
+  if (rating.count === 0) return { value: 'Unrated', note: 'no reviews' };
+  return { value: String(rating.average), note: `${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}` };
+}
+
 function ratingText(rating) {
   if (!rating) return UNAVAILABLE;
   // A building nobody has reviewed is unrated. Stating its average would read
@@ -249,51 +258,66 @@ function ratingText(rating) {
   return `${rating.average} from ${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}`;
 }
 
-/** One Flex term, in the response's own words rather than its field names. */
-function flexOptionText(option) {
-  const parts = [];
-  const name = option.label ?? (option.months === null ? null : `${option.months}-month term`);
-  if (name !== null) parts.push(name);
-  if (option.months !== null && option.label !== null) parts.push(`${option.months} months`);
-  if (option.committedNights !== null) parts.push(`${option.committedNights} committed nights`);
-  if (option.specialOffer !== null) parts.push(option.specialOffer ? 'special offer advertised' : 'no special offer advertised');
-  if (option.earlyTerminationFeeType !== null) {
-    parts.push(`early termination fee: ${option.earlyTerminationFeeType.replace(/-/g, ' ')}`);
+/**
+ * Whether any supplied Flex term advertises a special offer — the one Flex fact
+ * that bears on how many Flex members this home draws. It is stated only about
+ * terms that actually supplied the field: a term that never carried one is
+ * unknown, not an absent offer.
+ *
+ * The flag is scoped to one term on one unit and advertises that an offer
+ * exists, not that a stay is discounted, so it is said to be advertised and
+ * never collapsed into a unit-level deal.
+ */
+function flexSignal(flexOptions) {
+  if (flexOptions === null) return { text: UNAVAILABLE };
+  if (flexOptions.length === 0) return { text: 'No Flex terms supplied' };
+
+  const stated = flexOptions.filter((option) => option.specialOffer !== null);
+  const offered = stated.filter((option) => option.specialOffer);
+
+  if (stated.length === 0) return { text: 'Offer not supplied' };
+  if (offered.length === 0) return { text: 'No offer advertised' };
+  return { text: stated.length === 1 ? 'Offer advertised' : `Offer advertised on ${offered.length} of ${stated.length} terms` };
+}
+
+const FLEX_TIP = 'Offers are advertised per Flex term, not quoted; whether one applies can depend on the move-in date.';
+const MINIMUM_STAY_TIP = 'A shorter minimum stay lets more standard stays fit, so more potential bookings compete for these nights.';
+
+/**
+ * The price signal in one row: the gap leads, the figures and fine print
+ * follow. It states no direction; what the gap means is the member's call.
+ */
+function priceRow(view, comparison) {
+  const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false,
+    tip: [view.disclosure, view.checkTimeText].filter((line) => line).join(' ') };
+  if (comparison.status === 'loading') return { ...row, value: 'Loading…', muted: true, tip: 'Comparing advertised prices with other homes in this market and bedroom count.' };
+  if (comparison.status !== 'ready') {
+    const short = comparison.status === 'insufficient'
+      ? `Too few other homes (${comparison.count} of ${MINIMUM_PEERS})`
+      : 'Comparison unavailable';
+    return { ...row, value: short, muted: true, tip: [view.statusText, view.checkTimeText].filter((line) => line).join(' ') };
   }
-  parts.push(...option.extra);
-  return parts.join(' · ');
+  const [subject, median] = view.prices;
+  const homes = `${comparison.count} other ${plural(comparison.count, 'home')}`;
+  if (!comparison.subjectPrice) {
+    return { ...row, value: 'This home: unavailable', sub: `Median ${median.amount} · ${homes}`, tip: `${view.subjectText} ${row.tip}` };
+  }
+  const older = comparison.isStale ? ' · older check' : '';
+  return { ...row, value: view.differenceText, sub: `${subject.amount} vs. ${median.amount} median · ${homes}${older}` };
 }
 
 /**
- * Leads with whether any supplied Flex term advertises a special offer, which
- * is the fact worth seeing first. It is stated only about terms that actually
- * supplied the field: a term that never carried one is unknown, not an absent
- * offer.
- *
- * The flag is scoped to one term on one unit, and sampling showed it advertises
- * that an offer exists rather than that a stay is discounted — the same flagged
- * term yields a discount for one move-in date and none for another, and only a
- * quote settles it. This panel requests no quotes, so an advertised offer is
- * said to be advertised and nothing more. What it implies about competing
- * demand for the unit is the member's inference, not the extension's claim.
+ * Every fact the member reads as a sign of how much standard and Flex members
+ * want this home, in one place. Each row is a fact plus at most a direction;
+ * the reasoning and fine print sit behind its info button.
  */
-function flexFact(flexOptions) {
-  if (flexOptions === null) return { text: UNAVAILABLE, details: [] };
-  if (flexOptions.length === 0) return { text: 'No Flex options supplied', details: [] };
-
-  const details = flexOptions.map(flexOptionText);
-  const stated = flexOptions.filter((option) => option.specialOffer !== null);
-  const offered = stated.filter((option) => option.specialOffer);
-  const terms = `${flexOptions.length} Flex ${flexOptions.length === 1 ? 'term' : 'terms'}`;
-
-  if (stated.length === 0) return { text: `${terms}; special offer not supplied`, details };
-  if (offered.length === 0) {
-    return { text: `No special offer advertised on ${stated.length === 1 ? 'the Flex term' : `any of the ${stated.length} Flex terms`}`, details };
-  }
-  return {
-    text: stated.length === 1 ? 'Special offer advertised on the Flex term' : `Special offer advertised on ${offered.length} of ${stated.length} Flex terms`,
-    details: [...details, 'An advertised term offer is not a quoted price; whether it applies can depend on the move-in date.'],
-  };
+function demandRowsFor(view, state) {
+  const rows = [];
+  if (view.comparison.visible) rows.push(priceRow(view.comparison, state.comparison));
+  if (view.flex) rows.push({ id: 'flex', label: 'Flex offer', value: view.flex.text, sub: '', muted: false, tip: FLEX_TIP });
+  const minimum = view.factItems.find((item) => item.label === 'Minimum stay');
+  if (minimum) rows.push({ id: 'minimum-stay', label: 'Minimum stay', value: minimum.text, sub: '', muted: false, tip: MINIMUM_STAY_TIP });
+  return rows;
 }
 
 /**
@@ -304,12 +328,11 @@ function flexFact(flexOptions) {
 function factItemsFor(facts) {
   return [
     { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
-    { label: 'Flex', ...flexFact(facts.flexOptions) },
-    { label: 'Rating', text: ratingText(facts.rating) },
-    { label: 'Walk score', text: scoreText(facts.scores.walk) },
-    { label: 'Transit score', text: scoreText(facts.scores.transit) },
-    { label: 'Bike score', text: scoreText(facts.scores.bike) },
-  ].map((item) => ({ details: [], ...item }));
+    { label: 'Rating', text: ratingText(facts.rating), ...ratingTile(facts.rating) },
+    { label: 'Walk score', text: scoreText(facts.scores.walk), ...scoreTile(facts.scores.walk) },
+    { label: 'Transit score', text: scoreText(facts.scores.transit), ...scoreTile(facts.scores.transit) },
+    { label: 'Bike score', text: scoreText(facts.scores.bike), ...scoreTile(facts.scores.bike) },
+  ];
 }
 
 /**
@@ -333,6 +356,7 @@ export function describeState(state) {
     factItems: [],
     refreshNote: '',
     comparison: comparisonView(state),
+    flex: null,
   };
 
   // Each state carries exactly one status sentence, in one element; the
@@ -375,7 +399,11 @@ export function describeState(state) {
 
   // Facts are independent of the calendar: they render whenever the response
   // they came from was confirmed to be this unit's.
-  if (state.facts) view.factItems = factItemsFor(state.facts);
+  if (state.facts) {
+    view.factItems = factItemsFor(state.facts);
+    view.flex = flexSignal(state.facts.flexOptions);
+  }
+  view.demandRows = demandRowsFor(view, state);
 
   if (held) view.checkTimeText = `Checked ${timeFormatter.format(new Date(state.checkedAt))}`;
   else if (view.refreshNote || view.calendarStatusText || view.identityNote) view.checkTimeText = '';

@@ -82,15 +82,23 @@ test('every returned range is listed chronologically with full dates and status 
   assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
 });
 
-test('the price caveat and disclosure show only beside shown prices', () => {
-  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
+test('the price disclosure shows only beside shown prices, and names scope and terms', () => {
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: ['6 months'], note: null } };
   const ready = describeState({ checkedAt: null, comparison }).comparison;
-  assert.equal(ready.caveat, 'Advertised prices, not a quote for your dates.');
+  assert.match(ready.disclosure, /not a quote for your dates/);
   assert.match(ready.disclosure, /not a prediction/);
+  assert.match(ready.disclosure, /market and bedroom count/);
+  assert.match(ready.disclosure, /Terms supplied with this price: 6 months\./);
   for (const status of ['unavailable', 'insufficient']) {
-    const view = describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison;
-    assert.equal(view.caveat, '');
-    assert.equal(view.disclosure, '');
+    assert.equal(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.disclosure, '');
+  }
+});
+
+test('the price row states the gap and leaves its meaning to the member', () => {
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
+  for (const amount of [2144, 2520]) {
+    const [row] = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: { ...comparison.subjectPrice, amount } } }).demandRows;
+    assert.doesNotMatch(row.tip, /demand|bookings/i);
   }
 });
 
@@ -127,8 +135,7 @@ test('price columns retain source labels and never show a median from incomplete
     { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
     { label: 'Median of 12 other homes', amount: '$2,400', unit: 'per month' },
   ]);
-  assert.equal(view.scopeText, 'Same market and bedroom count as this home.');
-  assert.match(view.termsNote, /not supplied/);
+  assert.match(view.disclosure, /Terms for this price were not supplied/);
   for (const status of ['loading', 'unavailable', 'insufficient', 'unresolved-scope', 'idle']) {
     assert.deepEqual(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.prices, []);
   }
@@ -203,9 +210,9 @@ test('complete facts are stated in the specification order, after the calendar',
       bike: { value: 52, description: 'Bikeable' },
     },
   }));
-  assert.deepEqual(view.factItems.map((item) => item.label), ['Minimum stay', 'Flex', 'Rating', 'Walk score', 'Transit score', 'Bike score']);
+  assert.deepEqual(view.factItems.map((item) => item.label), ['Minimum stay', 'Rating', 'Walk score', 'Transit score', 'Bike score']);
   assert.match(factText(view, 'Minimum stay'), /30 nights/);
-  assert.match(factText(view, 'Flex'), /no special offer/i);
+  assert.match(view.flex.text, /no offer advertised/i);
   assert.match(factText(view, 'Rating'), /4\.15/);
   assert.match(factText(view, 'Rating'), /13 reviews/);
   assert.match(factText(view, 'Walk score'), /41/);
@@ -218,8 +225,8 @@ test('each absent fact is independently unavailable, and none reads as favorable
     minimumStay: null, flexOptions: null, rating: null,
     scores: { walk: null, transit: null, bike: null },
   }));
-  assert.equal(view.factItems.length, 6);
-  for (const item of view.factItems) {
+  assert.equal(view.factItems.length, 5);
+  for (const item of [...view.factItems, { label: 'Flex', text: view.flex.text }]) {
     assert.match(item.text, /unavailable/i, `${item.label} must say unavailable`);
     assert.doesNotMatch(item.text, /\b(eligible|none|no minimum)\b/i);
   }
@@ -232,7 +239,7 @@ test('one unreadable fact does not withhold its readable siblings', () => {
   }));
   assert.match(factText(view, 'Minimum stay'), /30 nights/);
   assert.match(factText(view, 'Walk score'), /41/);
-  assert.match(factText(view, 'Flex'), /unavailable/i);
+  assert.match(view.flex.text, /unavailable/i);
   assert.match(factText(view, 'Rating'), /unavailable/i);
 });
 
@@ -250,7 +257,7 @@ test('a supplied but empty Flex field is stated as supplying nothing, not as eli
     minimumStay: null, flexOptions: [], rating: null,
     scores: { walk: null, transit: null, bike: null },
   }));
-  assert.match(factText(view, 'Flex'), /no Flex options/i);
+  assert.match(view.flex.text, /no Flex terms/i);
 });
 
 test('an unusable calendar still shows the facts from the same response', () => {
@@ -282,62 +289,51 @@ test('a one-night minimum reads as a night, and a rating states no scale the res
 const flexFactsState = (flexOptions) => factsState({
   minimumStay: null, flexOptions, rating: null, scores: { walk: null, transit: null, bike: null },
 });
-const flexItem = (state) => describeState(state).factItems.find((item) => item.label === 'Flex');
+const flexItem = (state) => describeState(state).flex;
 
 const term = (over = {}) => ({
   label: '6-Month+ Stay', months: 6, committedNights: 180,
   specialOffer: false, earlyTerminationFeeType: 'one-month-rent', extra: [], ...over,
 });
 
-test('a special offer on any Flex term is stated up front, with the term that carries it', () => {
+test('a special offer on any Flex term is stated up front, with no verdict attached', () => {
   const item = flexItem(flexFactsState([
     term(),
     term({ label: '12-Month+ Stay', months: 12, committedNights: 365, specialOffer: true, earlyTerminationFeeType: 'two-months-rent' }),
   ]));
-  assert.match(item.text, /special offer advertised on 1 of 2/i);
-  assert.equal(flexItem(flexFactsState([term({ specialOffer: true })])).text, 'Special offer advertised on the Flex term');
-  assert.equal(item.details.filter((line) => /Stay/.test(line)).length, 2, 'one detail line per supplied term');
-  assert.match(item.details[1], /12-Month\+ Stay/);
-  assert.match(item.details[1], /special offer/i);
-  assert.match(item.details[0], /no special offer/i);
-  assert.match(item.details[0], /180 committed nights/);
-  assert.doesNotMatch(item.details[0], /committed_nights|special_offer/, 'raw response keys are never shown to the member');
+  assert.equal(item.text, 'Offer advertised on 1 of 2 terms');
+  assert.equal(flexItem(flexFactsState([term({ specialOffer: true })])).text, 'Offer advertised');
+  assert.deepEqual(Object.keys(item), ['text']);
 });
 
 test('every term supplying a false special offer says so, since the response stated it', () => {
   const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12 })]));
-  assert.match(item.text, /no special offer/i);
-  assert.doesNotMatch(item.text, /1 of 2/);
+  assert.equal(item.text, 'No offer advertised');
 });
 
 test('a Flex term that never supplied the field is unknown, not an absent special offer', () => {
   const item = flexItem(flexFactsState([term({ specialOffer: null })]));
-  assert.doesNotMatch(item.text, /no special offer/i);
-  assert.match(item.text, /not supplied|unknown/i);
+  assert.doesNotMatch(item.text, /no offer/i);
+  assert.match(item.text, /not supplied/i);
 });
 
-test('the panel states no bump risk, ranking, or tenure claim from a special offer', () => {
-  const item = flexItem(flexFactsState([term({ specialOffer: true })]));
-  assert.doesNotMatch(`${item.text} ${item.details.join(' ')}`, /bump|risk|likel|protected|guarantee|safe/i);
+test('demand signals use none of the forbidden vocabulary and call an offer advertised', () => {
+  const state = { ...flexFactsState([term({ specialOffer: true })]), facts: { ...flexFactsState([term({ specialOffer: true })]).facts, minimumStay: 30 },
+    comparison: { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } } };
+  const rows = describeState(state).demandRows;
+  assert.deepEqual(rows.map((row) => row.label), ['Flex price', 'Flex offer', 'Minimum stay']);
+  assert.match(rows[1].value, /advertised/i);
+  assert.match(rows[0].sub, /\$2,144 vs\. \$2,400 median · 12 other homes/);
+  assert.match(rows[2].tip, /shorter minimum stay/i);
+  for (const row of rows) assert.doesNotMatch(`${row.value} ${row.sub} ${row.tip}`, /bump|risk|protected|guarantee|safe/i);
 });
 
-test('fields outside the sampled shape reach the member without raw key underscores', () => {
-  const item = flexItem(flexFactsState([term({ extra: ['brand new field: kept'] })]));
-  assert.match(item.details[0], /brand new field: kept/);
-});
-
-test('an advertised term offer is not stated as a price the member will receive', () => {
-  const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12, specialOffer: true })]));
-  assert.match(item.text, /advertised/i);
-  const all = `${item.text} ${item.details.join(' ')}`;
-  assert.match(all, /not a quoted price/i);
-  assert.match(all, /move-in date/i);
-});
-
-test('with no advertised offer, no quote caveat is raised', () => {
-  const item = flexItem(flexFactsState([term(), term({ label: '12-Month+ Stay', months: 12 })]));
-  assert.match(item.text, /no special offer advertised/i);
-  assert.doesNotMatch(item.details.join(' '), /quoted price/i);
+test('a comparison that is not ready is a short muted value with its full reason in the tip', () => {
+  const state = { checkedAt: null, comparison: { status: 'insufficient', count: 4, checkedAt: null } };
+  const [row] = describeState(state).demandRows;
+  assert.equal(row.value, 'Too few other homes (4 of 5)');
+  assert.equal(row.muted, true);
+  assert.match(row.tip, /Not enough comparable prices/);
 });
 
 test('ready calendar: leads with the standby-only headline and a six-week grid marking today and the selected check-in', () => {
@@ -358,7 +354,7 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.match(view.grid.label, /standby-only/);
   assert.match(view.grid.label, /Your check-in, Sep 15, is marked$/);
   assert.equal(view.referenceNote, 'Your check-in: Sep 15.');
-  assert.deepEqual(view.grid.key.map((k) => k.text), ['Standby-only', 'Reserved', 'Today', 'Your check-in']);
+  assert.deepEqual(view.grid.key.map((k) => k.text), ['Standby-only', 'Unavailable', 'Today', 'Your check-in']);
 });
 
 test('the grid marks no check-in when the date is only the check date, and the legend drops that key too', () => {
@@ -368,7 +364,7 @@ test('the grid marks no check-in when the date is only the check date, and the l
   });
   assert.equal(view.grid.cells.some((cell) => cell.isCheckIn), false);
   assert.doesNotMatch(view.grid.label, /check-in/i);
-  assert.deepEqual(view.grid.key.map((k) => k.kind), ['today']);
+  assert.deepEqual(view.grid.key.map((k) => k.kind), ['move-in', 'today']);
 });
 
 test('the legend lists only marks the grid draws, so a single-kind calendar keys just that kind plus Today', () => {
@@ -376,8 +372,8 @@ test('the legend lists only marks the grid draws, so a single-kind calendar keys
     status: 'ready', identity: 'confirmed', checkedAt: 1000, today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
     ranges: [{ startDate: '2026-09-01', endDate: '2026-10-30', moveInAllowed: false, isReservation: false, unbookableReason: null }],
   });
-  assert.deepEqual(view.grid.key.map((k) => k.kind), ['blocked', 'today']);
-  assert.deepEqual(view.grid.key.map((k) => k.text), ['Move-in blocked', 'Today']);
+  assert.deepEqual(view.grid.key.map((k) => k.kind), ['unavailable', 'today']);
+  assert.deepEqual(view.grid.key.map((k) => k.text), ['Unavailable', 'Today']);
 });
 
 test('the marks explainer explains only marks the grid draws', () => {
@@ -386,11 +382,11 @@ test('the marks explainer explains only marks the grid draws', () => {
   }).grid.marksExplainer;
   assert.equal(at([{ startDate: '2026-09-01', endDate: null, moveInAllowed: true, isReservation: false, unbookableReason: null }]), '');
   const blocked = at([{ startDate: '2026-09-01', endDate: null, moveInAllowed: false, isReservation: false, unbookableReason: null }]);
-  assert.match(blocked, /^Move-in blocked means/);
+  assert.match(blocked, /^Unavailable means/);
   assert.doesNotMatch(blocked, /No calendar data/);
   const missing = at([{ startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: true, isReservation: false, unbookableReason: null }]);
   assert.match(missing, /^No calendar data means/);
-  assert.doesNotMatch(missing, /Move-in blocked/);
+  assert.doesNotMatch(missing, /Unavailable/);
 });
 
 test('an older check leaves the six-week headline plain, and not-returned days are their own kind', () => {

@@ -49,12 +49,12 @@ it says only that a standard stay cannot fit — not that the member cannot be
 bumped. The gap exists only while the reservation after it holds.
 
 **Six-week view** — the 42 days from today drawn as a strip on each card and a
-weekday grid in the panel. Standby-only is green, reservations and other blocked
-days are hatched, standard move-in is outlined (on the card strip, reservations
-and other blocks merge into one *Unavailable* fill and standard move-in is a
-light fill keyed *Available*; the panel gives the reason), and a day no range covers is
-dotted and keyed to the member as **"No calendar data"** — drawn as missing,
-never left looking open. The member's selected check-in is marked; a check
+weekday grid in the panel, drawn alike on both. Standby-only is green;
+reservations and other blocks merge into one dark *Unavailable* fill (the panel
+says which in words: day titles and the full range list); standard move-in is a
+light fill keyed *Available*; and a day no range covers is an empty outline
+keyed to the member as **"No calendar data"** — drawn as missing, never left
+looking open. The member's selected check-in is marked; a check
 date is not. Statements are made from the reference date forward, and "No
 standby-only nights in the next six weeks" requires coverage through the
 view's last day; otherwise the view says the returned calendar doesn't cover
@@ -139,11 +139,24 @@ is dropped rather than displayed under the current identity.
 20-second timeout, per page instance. Nothing is retried automatically; an
 explicit **Refresh** is what starts a new bounded attempt.
 
+## Bump-risk signals
+
+**Bump-risk signals** — the panel section, named by the member on 2026-10-04,
+that groups the facts a Standby member weighs when judging how much standard and
+Flex demand a home draws: the **Flex price** (the advertised price against the
+median of other homes), the **Flex offer** (whether any Flex term advertises a
+special offer) and the **minimum stay** (a shorter one lets more standard stays
+fit). The name states why the facts are grouped. Each row states a fact and never
+its meaning: no direction, verdict, score or ranking. The member draws the
+conclusion.
+
 ## Terms deliberately not used
 
-**Bump risk**, **protection**, **protected thru**, **safe until**, **guaranteed**
-— the extension makes no such claim, and the spec forbids deriving one from this
-evidence. No Standby stay is ever truly protected: a standby-only gap can open
+**Bump risk** as a claim, score or verdict about a unit or stay,
+**protection**, **protected thru**, **safe until**, **guaranteed** — the
+extension makes no such claim, and the spec forbids deriving one from this
+evidence. The one sanctioned use is the section heading *Bump-risk signals*
+above. No Standby stay is ever truly protected: a standby-only gap can open
 to standard bookings if the reservation after it changes. Say **standby-only**
 instead.
 

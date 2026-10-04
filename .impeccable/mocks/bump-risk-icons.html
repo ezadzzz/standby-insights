@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bump-risk signals with icons (mock)</title>
+  <link rel="stylesheet" href="../../src/panel/panel.css" />
+  <style>
+    /* Mock only: signal rows borrow the place tile's icon square. */
+    .signals.iconed > div { grid-template-columns: 32px minmax(0, 1fr); column-gap: 10px; align-items: start; padding: 12px 0; }
+    .signals.iconed .place-icon { grid-row: span 3; }
+    .signals.iconed dt { grid-row: auto; grid-column: 2; margin-bottom: 1px; }
+    .signals.iconed dd { grid-column: 2; }
+    .signals.iconed .signal-value { font-size: 16px; }
+    .mock-caption { margin: 0 0 20px; color: var(--on-2); font: 12px/1.45 var(--mono); }
+    @media (max-width: 380px) { .signals.iconed dt { margin-bottom: 1px; } }
+  </style>
+</head>
+<body>
+<main>
+  <p class="mock-caption">Mock · bump-risk signals as icon rows, matching the location tiles</p>
+
+  <section aria-labelledby="demand-heading" style="margin-top:0;border-top:0;padding-top:0">
+    <h2 id="demand-heading">Bump-risk signals <button type="button" class="info" aria-label="About bump-risk signals">i</button></h2>
+    <dl class="signals iconed">
+      <div>
+        <span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.6 1.8H14v5.4l-6.6 6.6a1 1 0 0 1-1.4 0L2.2 10a1 1 0 0 1 0-1.4z"/><path d="M11.3 4.6h.1" stroke-width="2"/></svg></span>
+        <dt>Flex price <button type="button" class="info" aria-label="About flex price">i</button></dt>
+        <dd class="signal-value">$256 below the median</dd>
+        <dd class="signal-sub">$2,144 vs. $2,400 median · 12 other homes</dd>
+      </div>
+      <div>
+        <span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M5.6 10.4l4.8-4.8"/><path d="M5.9 5.9h.1M10.1 10.1h.1" stroke-width="2"/></svg></span>
+        <dt>Flex offer <button type="button" class="info" aria-label="About flex offer">i</button></dt>
+        <dd class="signal-value">Offer advertised</dd>
+      </div>
+      <div>
+        <span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="1"/><path d="M2 6.6h12M5.2 1.8v2.4M10.8 1.8v2.4"/><path d="M5 9.6h6" /></svg></span>
+        <dt>Minimum stay <button type="button" class="info" aria-label="About minimum stay">i</button></dt>
+        <dd class="signal-value">30 nights</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="location-heading">
+    <h2 id="location-heading">Location and reviews</h2>
+    <dl class="places">
+      <div><span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.6l-3.8 2 .7-4.3-3.1-3 4.3-.6z"/></svg></span><dt>Rating<span> · 13 reviews</span></dt><dd>4.15</dd></div>
+      <div><span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="2.6" r="1.3"/><path d="M8.5 5.2 7.2 9.4l2.4 1.9.9 3.3M8.5 5.2l2.9 2.5M8.3 5.5 5.6 7.2 5 9.8M7.2 9.4 5.8 14.6"/></svg></span><dt>Walk score<span> · Car-Dependent</span></dt><dd>41</dd></div>
+      <div><span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="1.8" width="10" height="10.4" rx="1.6"/><path d="M3 7.6h10M5.3 14.3v-2.1M10.7 14.3v-2.1"/><path d="M5.6 10h.1M10.3 10h.1" stroke-width="2"/></svg></span><dt>Transit score</dt><dd class="muted">Unavailable</dd></div>
+      <div><span class="place-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="3.9" cy="10.9" r="2.7"/><circle cx="12.1" cy="10.9" r="2.7"/><path d="M3.9 10.9h4.2L6.6 5.6zM8.1 10.9l2.8-5.3 1.2 5.3M6.6 5.6h4.3M5.6 4h2M10.2 3.6h1.6"/></svg></span><dt>Bike score<span> · Bikeable</span></dt><dd>52</dd></div>
+    </dl>
+  </section>
+</main>
+</body>
+</html>

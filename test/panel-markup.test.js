@@ -29,13 +29,15 @@ test('a failed refresh gets its own announced status line, separate from the che
   assert(html.indexOf('id="check-time"') < html.indexOf('id="refresh-status"'));
 });
 
-test('not-returned days are drawn, not left blank, on both surfaces', async () => {
-  const panel = declarationsFor(await read('src/panel/panel.css'), '#calendar-grid [data-kind="not-returned"]');
-  assert.match(panel, /background:\s*(?!transparent)\S/, 'a missing day needs its own mark');
-  assert.doesNotMatch(panel, /box-shadow/, 'an outline would read as standard move-in');
-  // The card fills every day the calendar speaks for, so a missing day is the
-  // one left as an empty outline.
-  const card = declarationsFor(await read('src/content/card-annotations.css'), '.standby-strip [data-kind="not-returned"]');
-  assert.match(card, /box-shadow:\s*inset/, 'a missing day needs its own mark');
-  assert.doesNotMatch(card, /background/, 'a fill would read as a day the calendar speaks for');
+test('not-returned days are drawn, not left blank, alike on both surfaces', async () => {
+  // Both fill every day the calendar speaks for, so a missing day is the one
+  // left as an empty outline.
+  for (const [file, selector] of [
+    ['src/panel/panel.css', '[data-kind="not-returned"]'],
+    ['src/content/card-annotations.css', '.standby-strip [data-kind="not-returned"]'],
+  ]) {
+    const rules = declarationsFor(await read(file), selector);
+    assert.match(rules, /box-shadow:\s*inset/, `${file}: a missing day needs its own mark`);
+    assert.doesNotMatch(rules, /background/, `${file}: a fill would read as a day the calendar speaks for`);
+  }
 });
