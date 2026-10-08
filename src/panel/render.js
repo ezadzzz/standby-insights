@@ -11,10 +11,11 @@ function formatDate(isoDate) {
 /** The whole returned range a grid day belongs to, shown on hover. */
 function rangeText(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
-  const dateText = `${formatDate(range.startDate)} – ${end}`;
+  const start = formatDate(range.startDate);
+  const dateText = end === start ? start : `${start} – ${end}`;
   const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
   let statusText = range.moveInAllowed ? 'Standard move-in allowed' : 'Move-in blocked';
-  if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
+  if (standbyOnly) statusText = 'Standby-only, too short for a standard stay';
   if (range.isReservation) statusText = 'Reserved';
   return `${dateText}: ${statusText}`;
 }
@@ -138,9 +139,9 @@ function identityNoteText(state) {
   const shown = state.displayedName;
   if (!shown) return 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
   const why = state.status === 'mismatch'
-    ? "Landing's data for this listing did not match"
-    : "Landing's data did not include enough to confirm";
-  return `Evidence unavailable: could not confirm this is ${shown}. ${why} ${shown} as shown on this page. Refresh to check again.`;
+    ? "Landing's data for this listing did not match what this page shows."
+    : "Landing's data did not include enough to confirm it.";
+  return `Evidence unavailable: could not confirm this is ${shown}. ${why} Refresh to check again.`;
 }
 
 // Said once, in the panel only, under the headline where the member decides.
@@ -279,7 +280,7 @@ const MINIMUM_STAY_TIP = 'A shorter minimum stay lets short-term guests book too
  */
 function priceRow(view, comparison) {
   const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false, tip: view.disclosure };
-  if (comparison.status === 'loading') return { ...row, value: 'Loading…', muted: true, tip: view.statusText };
+  if (comparison.status === 'loading') return { ...row, value: 'Checking…', muted: true, tip: view.statusText };
   if (comparison.status !== 'ready') {
     const short = comparison.status === 'insufficient'
       ? `Too few other homes (${comparison.count} of ${MINIMUM_PEERS})`

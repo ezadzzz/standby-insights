@@ -75,7 +75,7 @@ test('every returned range is listed chronologically with full dates and status 
     ],
   });
   assert.deepEqual(view.allRanges, [
-    'Sep 12 – Sep 24: Standby-only: too short for a standard stay',
+    'Sep 12 – Sep 24: Standby-only, too short for a standard stay',
     'Sep 25 – Jan 9: Reserved',
     'Jan 10 – unspecified end: Standard move-in allowed',
   ]);
@@ -124,7 +124,7 @@ test('ready calendar: each grid day names its whole returned range on hover, inc
     ],
   });
   assert.equal(view.headingText, 'Lantana Hills 2321');
-  assert.equal(view.grid.cells[0].title, 'Sep 11 – Sep 11: Reserved');
+  assert.equal(view.grid.cells[0].title, 'Sep 11: Reserved');
   assert.equal(view.grid.cells[1].title, 'Sep 12 – unspecified end: Standard move-in allowed');
 });
 
@@ -356,7 +356,7 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.doesNotMatch(`${view.standbyOnly.detail} ${view.standbyOnly.explainer}`, /LOS|protect|safe until|guarantee|bump/i);
   assert.equal(view.grid.leadingBlanks, 6, 'Sep 12 is a Saturday');
   assert.equal(view.grid.cells.length, 42);
-  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only: too short for a standard stay' });
+  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only, too short for a standard stay' });
   assert.equal(view.grid.cells[3].isCheckIn, true);
   assert.equal(view.grid.cells[19].dayText, 'Oct 1');
   assert.match(view.grid.label, /standby-only/);
@@ -418,12 +418,14 @@ test('a mismatch names the unit the page shows and says the response did not mat
   const view = describeState({ ...shown, status: 'mismatch', identity: 'mismatch' });
   assert.equal(view.headingText, 'Unit 1831');
   assert.match(view.identityNote, /could not confirm this is Unit 1831/);
-  assert.match(view.identityNote, /did not match Unit 1831 as shown on this page/);
+  assert.match(view.identityNote, /did not match what this page shows/);
+  assert.equal(view.identityNote.split('Unit 1831').length - 1, 1, 'the unit name appears once');
 });
 
 test('an ambiguous check names the unit and says what was missing, not that it mismatched', () => {
   const view = describeState({ ...shown, status: 'ambiguous', identity: 'ambiguous' });
-  assert.match(view.identityNote, /did not include enough to confirm Unit 1831/);
+  assert.match(view.identityNote, /did not include enough to confirm it/);
+  assert.equal(view.identityNote.split('Unit 1831').length - 1, 1, 'the unit name appears once');
   assert.doesNotMatch(view.identityNote, /did not match/);
 });
 
@@ -462,4 +464,11 @@ test('with no reservation after the gap, the explainer drops the sentence about 
   });
   assert.equal(view.standbyOnly.detail, 'Too short for a standard stay');
   assert.equal(view.standbyOnly.explainer, 'Only Standby can book these nights.');
+});
+
+test('a one-day checking state names the wait once, without the word Loading', () => {
+  const view = describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: true, isStale: false, error: null, comparison: { status: 'loading' } });
+  assert.equal(view.calendarStatusText, 'Checking the calendar…');
+  assert.equal(view.demandRows[0].value, 'Checking…');
+  assert.doesNotMatch(JSON.stringify(view), /Loading/);
 });

@@ -66,6 +66,7 @@ h1 {
 #check-time, #refresh-status, #identity-note { grid-column: 1 / -1; }
 #check-time { color: var(--on-2); font: 12px/1.5 var(--mono); }
 #refresh-status:not(:empty), #identity-note:not(:empty) { margin-top: 8px; font: 600 13px/1.45 var(--mono); }
+#identity-note:not(:empty) { font-weight: 400; }
 #refresh-button {
   min-height: 44px;
   padding: 0 2px;
@@ -152,7 +153,7 @@ h2 {
 #summary-list li + li { margin-top: 4px; color: var(--on-2); }
 
 /* Every returned range, past the grid's six weeks: a typed instruction that opens a ledger. */
-#all-ranges { margin-top: 12px; border-top: 1px dashed var(--outline); }
+#all-ranges { margin-top: 0; border-top: 1px dashed var(--outline); }
 #all-ranges summary, #marks-disclosure summary {
   display: flex;
   align-items: center;
