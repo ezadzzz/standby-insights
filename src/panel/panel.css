@@ -124,13 +124,18 @@ h2 {
 }
 [data-kind="standby-only"] { background: var(--standby-only); color: #04261b; }
 #calendar-grid [data-kind="standby-only"] { font-weight: 700; }
-/* The card strip's three fills, stepped in lightness, so both surfaces draw a day alike. */
-[data-kind="move-in"] { background: #d3d8d9; }
-[data-kind="unavailable"] { background: var(--on-2); color: #fff; }
-/* Missing is the one unfilled mark: an outline, never a fill that reads as a state. */
-[data-kind="not-returned"] { box-shadow: inset 0 0 0 1px #d3d8d9; }
+/* The card strip's marks, so both surfaces draw a day alike: an open box for
+   available, solid gray under white numerals for unavailable, and a hatch with
+   dimmed numerals for no calendar data, so missing never reads as open. */
+[data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--mark); }
+[data-kind="unavailable"] { background: #6b7679; color: #fff; }
+[data-kind="not-returned"] { background: repeating-linear-gradient(-45deg, var(--mark) 0 1px, transparent 1px 4px); color: var(--on-2); }
+/* A paper band keeps the numeral off the hatch, so the date stays readable. */
+#calendar-grid [data-kind="not-returned"] { background: linear-gradient(var(--paper) 0 0) center / calc(100% - 6px) 1.5em no-repeat, repeating-linear-gradient(-45deg, var(--mark) 0 1px, transparent 1px 4px); }
 #calendar-grid .today { outline: 2px solid var(--on); outline-offset: 1px; z-index: 1; }
 #calendar-grid .check-in::after { content: ""; position: absolute; top: 2px; right: 2px; border: 4px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
+/* Graphite would sink into the gray; paper keeps the corner at 4.67:1. */
+#calendar-grid [data-kind="unavailable"].check-in::after { border-top-color: var(--paper); border-right-color: var(--paper); }
 .grid-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; color: var(--on-2); font: 12px/1.5 var(--mono); }
 .grid-legend li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .grid-legend i { display: inline-block; width: 14px; height: 10px; }

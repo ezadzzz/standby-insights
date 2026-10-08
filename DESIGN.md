@@ -12,7 +12,7 @@ colors:
   standby-only: "#1d9e75"
   standby-only-text: "#0f6e52"
   standby-only-numeral: "#04261b"
-  fill-available: "#d3d8d9"
+  fill-unavailable: "#6b7679"
   icon-ground: "#f1f3f3"
   divider-light: "#d3d8d9"
 typography:
@@ -130,7 +130,7 @@ This system replaces the Scout / Picture Desk panel (petrol ink, Archivo display
 **Key Characteristics:**
 - Dashed, unfilled note under a dark square source tab, on both card and panel.
 - Monospace for tabs, labels, headings, dates, prices and grid numerals; system sans only for caveat prose.
-- One accent (standby-only green); every other calendar state is a gray step: light fill for available, dark fill for unavailable, an outline for no calendar data.
+- One accent (standby-only green); every other calendar state is gray and drawn by shape: an open outlined day for available, a solid fill for unavailable, a diagonal hatch for no calendar data.
 - Square corners everywhere. No elevation, no web fonts. Icons appear only on bump-risk signal rows and location tiles, drawn inline.
 - Hierarchy by dashed rules and gray steps, not by boxes or fills.
 
@@ -146,20 +146,20 @@ A cool-gray ink system on pure white, with one green that means exactly one thin
 - **Paper** (paper): the ground of the panel and the paper cuts between calendar days.
 - **Slate Tab** (tab): the source tab background and the text-selection background.
 - **Tab Mist** (tab-on): text on the tab and on selection.
-- **Graphite** (on): primary text, Refresh, focus outlines, today outline, check-in corner mark, and the not-returned numerals.
-- **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh.
+- **Graphite** (on): primary text, Refresh, focus outlines, today outline, and the check-in mark (12.52:1 on paper, 3.69:1 on Standby Green). On an unavailable day the check-in corner turns Paper (4.67:1), since graphite would sink into the fill.
+- **Weathered Gray** (on-2): secondary text: check time, section labels, weekdays, legend, supporting copy, fact labels, disabled Refresh, and the dimmed numerals of days with no calendar data.
 - **Dash Gray** (outline): every dashed rule and the note outline; also the scrollbar thumb.
-- **Mark Gray** (mark): reserved for marks; no calendar fill uses it since 2026-10-04.
-- **Available Gray** (fill-available, #d3d8d9, the Light Divider value): the fill of standard move-in days on card and panel, and the outline of days with no calendar data.
+- **Mark Gray** (mark, #8a9598, 3.07:1 on paper): reserved for calendar marks: the 1px outline of available days and the 1px diagonal hatch of days with no calendar data, on card and panel and in both keys. It is the lightest gray that still meets 3:1 as a graphic.
+- **Unavailable Gray** (fill-unavailable, #6b7679): the fill of unavailable days on card and panel, one step lighter than Weathered Gray so it no longer outweighs the green answer. White numerals on it measure 4.67:1.
 - **Icon Ground** (icon-ground): the square behind location and signal icons.
 - **Light Divider** (divider-light): the dashed divider between fact rows and between rows of All returned ranges, one step lighter than section rules.
 
 ### Named Rules
 **The One Green Rule.** Green appears only where a day or answer is standby-only. It is never a brand color, a link color, a button fill or a success state.
 
-**The One Calendar Key Rule.** Card strip and panel grid draw a day the same way, from one shared mapping (`drawnKind` in `src/lib/six-week-view.js`): Standby Green for standby-only, Available Gray for standard move-in (keyed *Available*), Weathered Gray with white numerals for unavailable, which merges reservations and move-in blocks, and a 1px Available Gray outline for no calendar data, the one unfilled mark. Missing data is never filled, so it never reads as a state the calendar stated. Why a day is unavailable is said in words: the panel's day titles and All returned ranges.
+**The One Calendar Key Rule.** Card strip and panel grid draw a day the same way, from one shared mapping (`drawnKind` in `src/lib/six-week-view.js`): Standby Green for standby-only; an open day inside a 1px Mark Gray outline for standard move-in (keyed *Available*), so a day a stay can start looks open; Unavailable Gray with white numerals for unavailable, which merges reservations and move-in blocks; and a 1px Mark Gray diagonal hatch (-45deg, 4px pitch) for no calendar data, keyed *No calendar data*. Missing data is never drawn as an open day or a solid fill, so it reads as missing rather than as something the calendar stated. Every mark is at least 3:1 on paper. Why a day is unavailable is said in words: the panel's day titles and All returned ranges.
 
-**The Card Strip Rule.** The card strip uses the One Calendar Key in a single bar: white paper cuts split it into 42 days from today, 1px each, and every drawn mark is keyed on the card. No hatch, dots, rules or edges.
+**The Card Strip Rule.** The card strip uses the One Calendar Key in a single bar: white paper cuts split it into 42 days from today, 1px each, and every drawn mark is keyed on the card. The no-calendar-data hatch is its only texture; no dots, rules or edges. The check-in triangle sits above the bar, on paper.
 
 **The Words First Rule.** A state is always named in text; the grid, strip and legend repeat it. The calendar grid is `role="img"` with a text alternative, and the legend is decorative.
 
@@ -203,10 +203,10 @@ Responsive behavior:
 
 ## Elevation & Depth
 
-Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only by the note's dashed outline, the tab overlapping that outline by half its height, and gray-step text. One shadow property exists as a drawing tool, not depth: a 1px inset box-shadow draws the no-calendar-data outline.
+Flat. There is no elevation and no drop shadow anywhere; depth is conveyed only by the note's dashed outline, the tab overlapping that outline by half its height, and gray-step text. One shadow property exists as a drawing tool, not depth: a 1px inset box-shadow draws the available-day outline.
 
 ### Shadow Vocabulary
-- **Missing outline** (`box-shadow: inset 0 0 0 1px #d3d8d9`): no-calendar-data days in the panel grid, the card strip and both legends.
+- **Available outline** (`box-shadow: inset 0 0 0 1px #8a9598`): available days in the panel grid, the card strip and both legends. No calendar data is a background hatch, not a shadow.
 
 ### Named Rules
 **The Flat Paper Rule.** Nothing lifts off the page. A box-shadow or text-shadow is allowed only when it draws a mark or protects legibility, never when it suggests elevation.
@@ -237,13 +237,13 @@ Borderless text actions, like a typed instruction.
 The attribution in words. A dark slate block reading "Standby Insights", uppercase mono, 700, 0.1em tracking, overlapping the top edge of the note. It is a real element, so assistive technology hears the source, and appears exactly once per note. In forced-colors mode it gains a 1px CanvasText border so it keeps its edge. On cards it takes tighter padding (1px 6px, 1.6 line height).
 
 ### Six-Week Grid (signature)
-Seven columns of 32px day cells with 12px mono numerals, filled per the One Calendar Key: standby-only green with bold near-black numerals, available gray with graphite numerals, unavailable Weathered Gray with white numerals, and an outlined white cell for no calendar data. Today gets a 2px graphite outline; the member's check-in gets a graphite corner triangle. The grid opts out of forced-color adjustment so fills survive. A legend below repeats every drawn mark with a 14 x 10px key, in the card's words: "Standby-only", "Available", "Unavailable", "No calendar data", then "Today" and "Your check-in". A collapsed "About these marks" explains "Unavailable" and "No calendar data" once, so neither depends on a hover title.
+Seven columns of 32px day cells with 12px mono numerals, drawn per the One Calendar Key: standby-only green with bold near-black numerals, available as a paper cell in a 1px Mark Gray outline with graphite numerals, unavailable Unavailable Gray with white numerals, and no calendar data as a Mark Gray hatch with Weathered Gray numerals on a paper band (the cell inset 3px each side, 1.5em tall) so the date stays legible over the hatch. Today gets a 2px graphite outline; the member's check-in gets a corner triangle, graphite except Paper on an unavailable day. The grid opts out of forced-color adjustment so fills survive. A legend below repeats every drawn mark with a 14 x 10px key, in the card's words: "Standby-only", "Available", "Unavailable", "No calendar data", then "Today" and "Your check-in". A collapsed "About these marks" explains "Unavailable" and "No calendar data" once, so neither depends on a hover title.
 
 ### All Returned Ranges
 A native `<details>`, collapsed, closing the calendar section under a dashed rule. The summary reads "All returned ranges (N)" as a borderless mono text action (12px, 500, 44px target, hover underline, 2px focus outline) with no disclosure marker. Open, it lists every returned range chronologically in 12px mono, one per row on a light dashed divider, with full dates and status words. It is the keyboard and screen-reader path to ranges past the six-week grid and to the per-day detail the grid only offers on hover.
 
 ### Standby Strip (card)
-The grid condensed to a 10px horizontal bar of flex segments in the same fills, with a 1.5px graphite today edge at the left extending 3px past the bar and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every drawn mark; the strip's aria-label speaks every mark regardless.
+The grid condensed to a 10px horizontal bar of flex segments in the same marks (outline, fill, hatch), with a 1.5px graphite today edge at the left extending 3px past the bar and a downward 4px graphite triangle for check-in. A 11px on-2 date scale sits under it, and a key (10 x 7px swatches, 11px labels) names every drawn mark; the strip's aria-label speaks every mark regardless.
 
 ### Standby-Only Headline
 Mono title that turns deep green when the answer is standby-only, preceded by a solid green square (9px panel, 7px card) that ignores forced-color adjustment. A mono detail line in on-2 follows.
@@ -275,7 +275,7 @@ Rating and walk, transit and bike scores as tiles: a 32px Icon Ground square hol
 - **Do** move reasoning and fine print behind an info mark rather than adding lines under a fact.
 
 ### Don't:
-- **Don't** fill the note, round a corner, or add an elevation shadow; the missing-day inset outline is the only shadow.
+- **Don't** fill the note, round a corner, or add an elevation shadow; the available-day inset outline is the only shadow.
 - **Don't** use green for brand, links, buttons or success.
 - **Don't** load web fonts or bundled font files; the system stacks are the inventory.
 - **Don't** add icons outside the signal rows and location tiles; elsewhere marks are the fills, outlines and corner triangles already in the grid. Exceptions, confirmed by the member: the card's text action keeps its "→ " prefix before "View evidence" (2026-09-14), and the info mark's "i" (2026-10-04).
