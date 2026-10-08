@@ -75,10 +75,9 @@ test('the comparison states the median of the five other homes and excludes the 
 
   const view = h.view();
   assert.deepEqual(view.comparison.prices[1], { label: 'Median of 5 other homes', amount: '$3,000', unit: 'per month' });
-  assert.match(view.comparison.disclosure, /market and bedroom count/);
+  assert.match(view.comparison.disclosure, /similar homes in this market/);
   assert.match(view.comparison.subjectText, /This home: \$2,000 per month\./);
-  assert.match(view.comparison.disclosure, /not a quote for your dates/);
-  assert.match(view.comparison.disclosure, /not a prediction/);
+  assert.match(view.comparison.disclosure, /Not a quote for your dates/);
 });
 
 test('the search is scoped to the subject market with an exact bedroom count and no extra filters', async () => {
@@ -114,7 +113,7 @@ test('an unresolvable market is explained, never broadened and never hidden', as
 
   const view = h.view();
   assert.equal(view.comparison.visible, true);
-  assert.match(view.comparison.statusText, /market or bedroom count could not be resolved/);
+  assert.match(view.comparison.statusText, /market or bedroom count/);
 });
 
 test('an explicit Refresh supersedes an attempt already in flight instead of being dropped', async () => {
@@ -167,28 +166,6 @@ test('a closed panel stops comparisons for units merely browsed past', async () 
   assert.equal(h.searchCalls.length, 2, 'reopening the panel collects for the unit now shown');
 });
 
-test('the subject price is shown with the terms and note it was supplied under', async () => {
-  const home = subjectHome({ overrides: { flex_options: [{ label: '6-Month+ Stay' }, { label: '12-Month+ Stay' }] } });
-  const h = harness();
-
-  h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
-  await settleUnit(h, home);
-
-  const termsNote = h.view().comparison.disclosure;
-  assert.match(termsNote, /Terms supplied with this price: 6-Month\+ Stay, 12-Month\+ Stay\./);
-  assert.match(termsNote, /Price includes all fees except taxes\./);
-});
-
-test('terms the response never supplied are stated as unsupplied, not as no commitment', async () => {
-  const home = subjectHome({ overrides: { flex_options: undefined } });
-  const h = harness();
-
-  h.controller.openPanel({ slug: home.slug, visibleIdentity: identityFor(home) });
-  await settleUnit(h, home);
-
-  assert.match(h.view().comparison.disclosure, /Terms for this price were not supplied\./);
-});
-
 test('cached comparison evidence is reused for a matching selection, and excludes that new subject', async () => {
   const first = subjectHome({ slug: 'peer-0' });
   const second = subjectHome({ slug: 'peer-4', amount: 2500 });
@@ -233,7 +210,6 @@ test('unit and comparison evidence keep separate successful-check times', async 
   assert.ok(state.checkedAt !== null);
   assert.ok(state.comparison.checkedAt !== null);
   assert.notEqual(state.checkedAt, state.comparison.checkedAt);
-  assert.match(h.view().comparison.checkTimeText, /^Comparison checked /);
 });
 
 test('Refresh bypasses both caches and keeps the old comparison labeled an older check while it runs', async () => {
@@ -260,7 +236,7 @@ test('Refresh bypasses both caches and keeps the old comparison labeled an older
   assert.equal(during.status, 'ready', 'the previous comparison stays usable during refresh');
   assert.equal(during.isStale, true);
   assert.equal(during.checkedAt, firstCheckedAt, 'a running refresh does not advance the check time');
-  assert.match(h.view().comparison.checkTimeText, /showing an older check/);
+  assert.match(h.view().demandRows[0].sub, /older check/);
 
   release();
   await settleUnit(h, home, 1);
@@ -289,7 +265,7 @@ test('a failed comparison keeps the previous one, labeled an older check, and ne
   assert.equal(after.status, 'ready');
   assert.equal(after.isStale, true);
   assert.equal(after.checkedAt, firstCheckedAt);
-  assert.match(h.view().comparison.checkTimeText, /showing an older check/);
+  assert.match(h.view().demandRows[0].sub, /older check/);
 });
 
 test('a first comparison that cannot be completed says so, and the calendar stays usable', async () => {
@@ -305,8 +281,7 @@ test('a first comparison that cannot be completed says so, and the calendar stay
 
   const view = h.view();
   assert.equal(view.grid.cells.length, 42);
-  assert.match(view.comparison.statusText, /could not be collected/);
-  assert.equal(view.comparison.checkTimeText, '');
+  assert.match(view.comparison.statusText, /Couldn’t load all the similar homes/);
 });
 
 test('too few eligible peers reads as not enough comparable prices, not as a failure', async () => {
@@ -320,7 +295,7 @@ test('too few eligible peers reads as not enough comparable prices, not as a fai
   assert.equal(comparison.status, 'insufficient');
   assert.equal(comparison.count, 4);
   assert.equal(comparison.median, null);
-  assert.match(h.view().comparison.statusText, /Not enough comparable prices: 4 eligible other homes.*at least 5 are needed/);
+  assert.match(h.view().comparison.statusText, /Only 4 similar homes listed a price\. At least 5 are needed/);
 });
 
 test('a subject with no eligible monthly price still gets a peer median, and its own price is not invented', async () => {
@@ -332,7 +307,7 @@ test('a subject with no eligible monthly price still gets a peer median, and its
 
   const view = h.view();
   assert.equal(view.comparison.prices[1].label, 'Median of 5 other homes');
-  assert.match(view.comparison.subjectText, /no eligible advertised monthly price/);
+  assert.match(view.comparison.subjectText, /doesn’t list a monthly price/);
 });
 
 test('the comparison shows while the calendar is unusable, and loading while it runs', async () => {
@@ -348,7 +323,7 @@ test('the comparison shows while the calendar is unusable, and loading while it 
   await tick();
 
   assert.equal(h.controller.getState().comparison.status, 'loading');
-  assert.match(h.view().comparison.statusText, /Loading comparable advertised prices/);
+  assert.match(h.view().comparison.statusText, /Comparing with similar homes/);
 
   release();
   await tick();

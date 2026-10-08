@@ -355,7 +355,7 @@ test('the ? toggles a note on what the card and its six-week strip mean, without
   const info = note.children.find((el) => el.className === 'standby-evidence-info');
   const tip = note.children.find((el) => el.className === 'standby-evidence-tip');
   assert.equal(info.getAttribute('aria-label'), 'About this card');
-  assert.match(tip.textContent, /next six weeks/);
+  assert.match(tip.textContent, /Next six weeks/);
   info.click();
   assert.equal(info.getAttribute('aria-expanded'), 'true');
   info.click();

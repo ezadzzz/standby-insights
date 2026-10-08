@@ -64,10 +64,7 @@ export function createCardAnnotator({
     return describeCard({ evidence, summary, referenceDate, today: getToday(), checkIn: getCheckIn?.() });
   }
 
-  const CARD_TIP = [
-    'Standby Insights reads this unit’s public booking calendar.',
-    'The bar is the next six weeks, one cell per day: today at the left, the last day shown at the right.',
-  ].join('\n');
+  const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left.';
 
   function buildAnnotation(slug) {
     const container = doc.createElement('div');

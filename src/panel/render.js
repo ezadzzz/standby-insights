@@ -155,26 +155,14 @@ function money(amount) {
  * unavailable rather than converted or guessed into a monthly figure.
  */
 function subjectPriceText(price) {
-  if (!price) return 'This home has no eligible advertised monthly price, so it is not stated here.';
+  if (!price) return 'This home doesn’t list a monthly price.';
   const label = price.label ?? 'per month (label not supplied)';
   return `This home: ${money(price.amount)}${label.startsWith(' ') ? '' : ' '}${label}.`;
 }
 
-/**
- * The terms the subject's advertised price was supplied alongside. They are
- * named because the price is only comparable under them, and a home that
- * supplied none says so rather than reading as a home with no commitment.
- */
-function termsText(price) {
-  if (!price) return '';
-  if (price.terms === null) return 'Terms for this price were not supplied.';
-  if (price.terms.length === 0) return 'This price was supplied with no commitment terms.';
-  return `Terms supplied with this price: ${price.terms.join(', ')}.`;
-}
-
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
-const COMPARISON_DISCLOSURE = 'Other homes share its market and bedroom count. Advertised monthly prices, discounts applied: not a quote for your dates, and not a prediction.';
+const COMPARISON_DISCLOSURE = 'Listed Flex rate vs. similar homes in this market. A lower price may draw more bookings. Not a quote for your dates.';
 
 
 /**
@@ -184,24 +172,26 @@ const COMPARISON_DISCLOSURE = 'Other homes share its market and bedroom count. A
  */
 function comparisonView(state) {
   const comparison = state.comparison;
-  const view = { visible: false, statusText: '', differenceText: '', subjectText: '', disclosure: '', checkTimeText: '', prices: [] };
+  const view = { visible: false, statusText: '', differenceText: '', subjectText: '', disclosure: '', prices: [] };
   if (!comparison || comparison.status === 'idle') return view;
 
   view.visible = true;
   if (comparison.status === 'loading') {
-    view.statusText = 'Loading comparable advertised prices…';
+    view.statusText = 'Comparing with similar homes in this market…';
     return view;
   }
 
   if (comparison.status === 'unresolved-scope') {
-    view.statusText = 'Comparison unavailable: this home’s market or bedroom count could not be resolved, so there is no scope to compare it against.';
+    view.statusText = 'Couldn’t tell this home’s market or bedroom count, so there’s nothing to compare it with.';
     return view;
   }
 
   if (comparison.status === 'unavailable') {
-    view.statusText = 'Comparison unavailable: the full set of comparable homes could not be collected.';
+    view.statusText = 'Couldn’t load all the similar homes, so no median is shown.';
   } else if (comparison.status === 'insufficient') {
-    view.statusText = `Not enough comparable prices: ${comparison.count} eligible other ${plural(comparison.count, 'home')} in this market and bedroom count, and at least ${MINIMUM_PEERS} are needed.`;
+    const listed = comparison.count === 0 ? 'No similar homes listed a price.'
+      : `Only ${comparison.count} similar ${plural(comparison.count, 'home')} listed a price.`;
+    view.statusText = `${listed} At least ${MINIMUM_PEERS} are needed for a fair median.`;
   } else if (comparison.status === 'ready') {
     view.prices = [
       { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
@@ -219,16 +209,7 @@ function comparisonView(state) {
   view.subjectText = subjectPriceText(comparison.subjectPrice);
   // The fine print qualifies price figures, so it exists only beside them and
   // sits one click behind them.
-  if (view.prices.length > 0) {
-    view.disclosure = [termsText(comparison.subjectPrice), comparison.subjectPrice?.note, COMPARISON_DISCLOSURE]
-      .filter((line) => line)
-      .join(' ');
-  }
-
-  if (comparison.checkedAt !== null) {
-    view.checkTimeText = `Comparison checked ${timeFormatter.format(new Date(comparison.checkedAt))}`;
-    if (comparison.isStale) view.checkTimeText += ' (showing an older check)';
-  }
+  if (view.prices.length > 0) view.disclosure = COMPARISON_DISCLOSURE;
   return view;
 }
 
@@ -269,38 +250,38 @@ function ratingText(rating) {
  * never collapsed into a unit-level deal.
  */
 function flexSignal(flexOptions) {
-  if (flexOptions === null) return { text: UNAVAILABLE };
-  if (flexOptions.length === 0) return { text: 'No Flex terms supplied' };
+  if (flexOptions === null) return { text: UNAVAILABLE, tip: OFFER_UNKNOWN_TIP };
+  if (flexOptions.length === 0) return { text: 'No Flex terms supplied', tip: OFFER_UNKNOWN_TIP };
 
   const stated = flexOptions.filter((option) => option.specialOffer !== null);
   const offered = stated.filter((option) => option.specialOffer);
 
-  if (stated.length === 0) return { text: 'Offer not supplied' };
-  if (offered.length === 0) return { text: 'No offer advertised' };
-  return { text: stated.length === 1 ? 'Offer advertised' : `Offer advertised on ${offered.length} of ${stated.length} terms` };
+  if (stated.length === 0) return { text: 'Offer not supplied', tip: OFFER_UNKNOWN_TIP };
+  if (offered.length === 0) return { text: 'No offer advertised', tip: 'No Flex term lists an offer.' };
+  return { text: stated.length === 1 ? 'Offer advertised' : `Offer advertised on ${offered.length} of ${stated.length} terms`,
+    tip: 'At least one Flex term lists an offer, which may draw more Flex bookings.' };
 }
 
-const FLEX_TIP = 'Offers are advertised per Flex term, not quoted; whether one applies can depend on the move-in date.';
-const MINIMUM_STAY_TIP = 'A shorter minimum stay lets more standard stays fit, so more potential bookings compete for these nights.';
+const OFFER_UNKNOWN_TIP = 'Landing didn’t say whether any Flex term has an offer.';
+const MINIMUM_STAY_TIP = 'A shorter minimum stay lets short-term guests book too, so more bookings compete for these nights.';
 
 /**
- * The price signal in one row: the gap leads, the figures and fine print
- * follow. It states no direction; what the gap means is the member's call.
+ * The price signal in one row: the gap leads, the figures follow. The value
+ * states no direction; only the tip offers a hedged hint.
  */
 function priceRow(view, comparison) {
-  const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false,
-    tip: [view.disclosure, view.checkTimeText].filter((line) => line).join(' ') };
-  if (comparison.status === 'loading') return { ...row, value: 'Loading…', muted: true, tip: 'Comparing advertised prices with other homes in this market and bedroom count.' };
+  const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false, tip: view.disclosure };
+  if (comparison.status === 'loading') return { ...row, value: 'Loading…', muted: true, tip: view.statusText };
   if (comparison.status !== 'ready') {
     const short = comparison.status === 'insufficient'
       ? `Too few other homes (${comparison.count} of ${MINIMUM_PEERS})`
       : 'Comparison unavailable';
-    return { ...row, value: short, muted: true, tip: [view.statusText, view.checkTimeText].filter((line) => line).join(' ') };
+    return { ...row, value: short, muted: true, tip: view.statusText };
   }
   const [subject, median] = view.prices;
   const homes = `${comparison.count} other ${plural(comparison.count, 'home')}`;
   if (!comparison.subjectPrice) {
-    return { ...row, value: 'This home: unavailable', sub: `Median ${median.amount} · ${homes}`, tip: `${view.subjectText} ${row.tip}` };
+    return { ...row, value: 'This home: unavailable', sub: `Median ${median.amount} · ${homes}`, tip: view.subjectText };
   }
   const older = comparison.isStale ? ' · older check' : '';
   return { ...row, value: view.differenceText, sub: `${subject.amount} vs. ${median.amount} median · ${homes}${older}` };
@@ -314,7 +295,7 @@ function priceRow(view, comparison) {
 function demandRowsFor(view, state) {
   const rows = [];
   if (view.comparison.visible) rows.push(priceRow(view.comparison, state.comparison));
-  if (view.flex) rows.push({ id: 'flex', label: 'Flex offer', value: view.flex.text, sub: '', muted: false, tip: FLEX_TIP });
+  if (view.flex) rows.push({ id: 'flex', label: 'Flex offer', value: view.flex.text, sub: '', muted: false, tip: view.flex.tip });
   const minimum = view.factItems.find((item) => item.label === 'Minimum stay');
   if (minimum) rows.push({ id: 'minimum-stay', label: 'Minimum stay', value: minimum.text, sub: '', muted: false, tip: MINIMUM_STAY_TIP });
   return rows;

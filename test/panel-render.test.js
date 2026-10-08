@@ -82,23 +82,22 @@ test('every returned range is listed chronologically with full dates and status 
   assert.deepEqual(describeState({ status: 'unavailable', checkedAt: 1000 }).allRanges, []);
 });
 
-test('the price disclosure shows only beside shown prices, and names scope and terms', () => {
+test('the price disclosure shows only beside shown prices, and names its scope', () => {
   const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: ['6 months'], note: null } };
   const ready = describeState({ checkedAt: null, comparison }).comparison;
-  assert.match(ready.disclosure, /not a quote for your dates/);
-  assert.match(ready.disclosure, /not a prediction/);
-  assert.match(ready.disclosure, /market and bedroom count/);
-  assert.match(ready.disclosure, /Terms supplied with this price: 6 months\./);
+  assert.match(ready.disclosure, /Not a quote for your dates/);
+  assert.match(ready.disclosure, /similar homes in this market/);
   for (const status of ['unavailable', 'insufficient']) {
     assert.equal(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.disclosure, '');
   }
 });
 
-test('the price row states the gap and leaves its meaning to the member', () => {
+test('the price row value states only the gap; the tip carries the hedged hint', () => {
   const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
   for (const amount of [2144, 2520]) {
     const [row] = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: { ...comparison.subjectPrice, amount } } }).demandRows;
-    assert.doesNotMatch(row.tip, /demand|bookings/i);
+    assert.doesNotMatch(row.value, /demand|bookings/i);
+    assert.match(row.tip, /may draw more bookings/);
   }
 });
 
@@ -135,13 +134,12 @@ test('price columns retain source labels and never show a median from incomplete
     { label: 'This home', amount: '$2,144', unit: 'per month (label not supplied)' },
     { label: 'Median of 12 other homes', amount: '$2,400', unit: 'per month' },
   ]);
-  assert.match(view.disclosure, /Terms for this price were not supplied/);
   for (const status of ['loading', 'unavailable', 'insufficient', 'unresolved-scope', 'idle']) {
     assert.deepEqual(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.prices, []);
   }
   const missing = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: null } }).comparison;
   assert.equal(missing.prices[0].amount, 'Unavailable');
-  assert.match(missing.subjectText, /no eligible advertised monthly price/);
+  assert.match(missing.subjectText, /doesn’t list a monthly price/);
 });
 
 test('stale evidence during a recheck is labeled an older check', () => {
@@ -303,7 +301,7 @@ test('a special offer on any Flex term is stated up front, with no verdict attac
   ]));
   assert.equal(item.text, 'Offer advertised on 1 of 2 terms');
   assert.equal(flexItem(flexFactsState([term({ specialOffer: true })])).text, 'Offer advertised');
-  assert.deepEqual(Object.keys(item), ['text']);
+  assert.deepEqual(Object.keys(item), ['text', 'tip']);
 });
 
 test('every term supplying a false special offer says so, since the response stated it', () => {
@@ -333,7 +331,7 @@ test('a comparison that is not ready is a short muted value with its full reason
   const [row] = describeState(state).demandRows;
   assert.equal(row.value, 'Too few other homes (4 of 5)');
   assert.equal(row.muted, true);
-  assert.match(row.tip, /Not enough comparable prices/);
+  assert.match(row.tip, /Only 4 similar homes listed a price/);
 });
 
 test('ready calendar: leads with the standby-only headline and a six-week grid marking today and the selected check-in', () => {

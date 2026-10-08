@@ -80,7 +80,7 @@ try {
         assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
         assert(await page.evaluate(() => document.getElementById('reference-note').compareDocumentPosition(document.getElementById('six-weeks')) & Node.DOCUMENT_POSITION_FOLLOWING), 'reference note precedes the grid');
       }
-      if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /no eligible advertised monthly price/);
+      if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /doesn’t list a monthly price/);
       if (variant === 'missingPrice') assert.match(await page.locator('#signal-price .signal-value').innerText(), /unavailable/);
       if (variant === 'ready') {
         assert.equal(await page.locator('.signals dt').count(), 3);
@@ -94,8 +94,8 @@ try {
         assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12 – Sep 24: Standby-only/);
-        assert.match(await page.locator('#tip-price').textContent(), /6 months/);
-        assert.match(await page.locator('#tip-price').textContent(), /not a prediction/);
+        assert.match(await page.locator('#tip-price').textContent(), /similar homes in this market/);
+        assert.match(await page.locator('#tip-price').textContent(), /Not a quote for your dates/);
         assert.equal(await page.locator('#signal-price .signal-value').innerText(), '$256 below the median');
         assert.equal(await page.locator('#tip-price').isVisible(), false, 'tips start closed');
         const info = page.locator('#signal-price .info');
