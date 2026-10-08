@@ -51,8 +51,8 @@ bumped. The gap exists only while the reservation after it holds.
 **Six-week view** — the 42 days from today drawn as a strip on each card and a
 weekday grid in the panel, drawn alike on both. Standby-only is green;
 reservations and other blocks merge into one dark *Unavailable* fill (the panel
-says which in words: day titles and the full range list); standard move-in is a
-light fill keyed *Available*; and a day no range covers is an empty outline
+says which in words: day titles and the full range list); standard move-in is an
+open outlined day keyed *Available*; and a day no range covers is hatched,
 keyed to the member as **"No calendar data"** — drawn as missing, never left
 looking open. The member's selected check-in is marked; a check
 date is not. Statements are made from the reference date forward, and "No

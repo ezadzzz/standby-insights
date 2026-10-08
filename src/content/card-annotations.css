@@ -108,18 +108,18 @@
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 42 1' preserveAspectRatio='none'%3E%3Cpath stroke='white' vector-effect='non-scaling-stroke' d='M1 0V1M2 0V1M3 0V1M4 0V1M5 0V1M6 0V1M7 0V1M8 0V1M9 0V1M10 0V1M11 0V1M12 0V1M13 0V1M14 0V1M15 0V1M16 0V1M17 0V1M18 0V1M19 0V1M20 0V1M21 0V1M22 0V1M23 0V1M24 0V1M25 0V1M26 0V1M27 0V1M28 0V1M29 0V1M30 0V1M31 0V1M32 0V1M33 0V1M34 0V1M35 0V1M36 0V1M37 0V1M38 0V1M39 0V1M40 0V1M41 0V1'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
 }
 .standby-strip-segment { flex-basis: 0; min-width: 0; }
-/* Three flat fills, one per thing a member asks of a day, stepped in lightness
-   so they part without hue. Segments and key swatches share them, so the key
-   can't drift. No calendar data is an empty outline: drawn as missing, never
-   filled like a day the calendar speaks for. */
+/* One mark per thing a member asks of a day, each at least 3:1 on paper.
+   Segments and key swatches share them, so the key can't drift. Available is
+   an open box; unavailable a solid gray; no calendar data a diagonal hatch,
+   drawn as missing rather than as an open day or a filled one. */
 .standby-strip [data-kind="standby-only"],
 .standby-strip-key [data-kind="standby-only"] { background: #1d9e75; }
 .standby-strip [data-kind="move-in"],
-.standby-strip-key [data-kind="move-in"] { background: #d3d8d9; }
+.standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }
 .standby-strip [data-kind="unavailable"],
-.standby-strip-key [data-kind="unavailable"] { background: #5d686b; }
+.standby-strip-key [data-kind="unavailable"] { background: #6b7679; }
 .standby-strip [data-kind="not-returned"],
-.standby-strip-key [data-kind="not-returned"] { box-shadow: inset 0 0 0 1px #d3d8d9; }
+.standby-strip-key [data-kind="not-returned"] { background: repeating-linear-gradient(-45deg, #8a9598 0 1px, transparent 1px 4px); }
 .standby-strip-check-in {
   position: absolute;
   top: -6px;
