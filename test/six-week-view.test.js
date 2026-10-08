@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveCalendarEvidence } from '../src/lib/calendar.js';
-import { sixWeekView, describeStandbyOnly } from '../src/lib/six-week-view.js';
+import { deriveCalendarEvidence, summarizeForReference } from '../src/lib/calendar.js';
+import { sixWeekView, describeStandbyOnly, describeHeadline } from '../src/lib/six-week-view.js';
 import { validClosedCalendarHome } from './fixtures/home-responses.js';
 
 const TODAY = '2026-09-12';
@@ -26,7 +26,7 @@ test('a gap in progress on the reference date is named with its end and the rese
   const statement = describeStandbyOnly(sixWeekView(lantana, TODAY, TODAY));
   assert.equal(statement.isStandbyOnly, true);
   assert.equal(statement.headline, 'Standby-only through Sep 24');
-  assert.equal(statement.detail, 'Minimum LOS blocks standard move-ins before the Sep 26 reservation');
+  assert.equal(statement.detail, "Standard stays can't fit before the Sep 26 reservation, while it holds");
 });
 
 test('an upcoming gap is named by both ends', () => {
@@ -43,6 +43,27 @@ test('a gap that ended before the member’s check-in is not their gap', () => {
   const statement = describeStandbyOnly(view);
   assert.equal(statement.isStandbyOnly, false);
   assert.equal(view.checkInIndex, 18);
+});
+
+test('a reserved reference date is said even when a standby-only gap follows it', () => {
+  const reservedThenGap = ranges([
+    { start_date: '2026-09-01', end_date: '2026-10-07', move_in_allowed: true },
+    { start_date: '2026-10-08', end_date: '2026-10-12', move_in_allowed: false, unbookable_reason: 'reserved' },
+    { start_date: '2026-10-13', end_date: '2026-10-22', move_in_allowed: false, unbookable_reason: 'less_than_minimum_nightly_stay' },
+    { start_date: '2026-10-23', end_date: '2026-12-01', move_in_allowed: false, unbookable_reason: 'reserved' },
+  ]);
+  const at = (today, checkIn) => describeHeadline(
+    sixWeekView(reservedThenGap, today, '2026-10-10'), summarizeForReference(reservedThenGap, '2026-10-10'), checkIn,
+  );
+
+  const selected = at(TODAY, { status: 'selected', date: '2026-10-10' });
+  assert.equal(selected.isStandbyOnly, true, 'the gap stays the headline');
+  assert.equal(selected.headline, 'Standby-only Oct 13 – Oct 22');
+  assert.equal(selected.detail, "Reserved on your check-in, Oct 10. Standard stays can't fit before the Oct 23 reservation, while it holds");
+
+  // Not the member's date: labeled as today, never presented as theirs.
+  const checkDate = at('2026-10-10', { status: 'none', date: null });
+  assert.match(checkDate.detail, /^Reserved today, Oct 10\. /);
 });
 
 test('an unspecified gap end is said to be unspecified, never open-ended', () => {

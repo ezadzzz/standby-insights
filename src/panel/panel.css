@@ -107,6 +107,7 @@ h2 {
   forced-color-adjust: none;
 }
 #standby-only-detail { color: var(--on-2); font: 12px/1.45 var(--mono); margin-top: 2px; text-wrap: pretty; }
+#standby-only-explainer { margin-top: 6px; text-wrap: pretty; }
 
 .weekdays, #calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
 .weekdays { margin-top: 14px; color: var(--on-2); font: 11px/1.5 var(--mono); text-align: center; }
