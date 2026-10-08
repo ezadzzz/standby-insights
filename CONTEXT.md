@@ -148,8 +148,9 @@ median of other homes), the **Flex offer** (whether any Flex term advertises a
 special offer) and the **minimum stay** (a shorter one lets short-term guests
 book too). The name states why the facts are grouped. Each row's value states a
 fact and never its meaning: no direction, verdict, score or ranking. Its tip may
-offer one hedged hint ("may draw more bookings"), as the member asked on
-2026-10-05. The member draws the conclusion.
+offer one hedged hint (the Flex offer's "may draw more Flex bookings"), as the
+member asked on 2026-10-05; the section and price tips state facts only. The
+member draws the conclusion.
 
 ## Terms deliberately not used
 
