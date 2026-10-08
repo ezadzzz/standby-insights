@@ -151,19 +151,21 @@ export function describeStandbyOnly(view) {
 }
 
 /**
- * The line a card and the panel both lead with. A standby-only gap leads; with
- * none, a reservation on the reference date is the fact that matters, so it
- * takes the headline and the standby-only negative drops to the detail. The
- * reference date is named as the member's check-in only when it is theirs
- * (ADR 1). No end date here: without its caveat it would read as a stay boundary.
+ * The line a card and the panel both lead with. A standby-only gap leads, and a
+ * reservation on the reference date opens its detail so it is never hidden;
+ * with no gap, that reservation takes the headline and the standby-only
+ * negative drops to the detail. The reference date is named as the member's
+ * check-in only when it is theirs (ADR 1). No end date here: without its
+ * caveat it would read as a stay boundary.
  */
 export function describeHeadline(view, summary, checkIn) {
   const statement = describeStandbyOnly(view);
   const reserved = summary?.intersectingReservation;
-  if (statement.isStandbyOnly || !reserved) return statement;
+  if (!reserved) return statement;
   const reference = summary.referenceDate;
   let on = `on ${short(reference)}`;
   if (checkIn?.status === 'selected') on = `on your check-in, ${short(reference)}`;
   else if (reference === view.days[0]?.date) on = `today, ${short(reference)}`;
+  if (statement.isStandbyOnly) return { ...statement, detail: `Reserved ${on}. ${statement.detail}` };
   return { isStandbyOnly: false, headline: `Reserved ${on}`, detail: statement.headline };
 }
