@@ -134,14 +134,15 @@ function failureCauseText(error) {
  * Names the unit as the page shows it and what kind of failure this was,
  * without saying the response was that unit: a mismatch is a response that
  * described a different unit, an ambiguous one lacked what confirming needed.
+ * The lead is the status sentence; the rest explains it in a quieter weight.
  */
-function identityNoteText(state) {
+function identityNoteParts(state) {
   const shown = state.displayedName;
-  if (!shown) return 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
+  if (!shown) return { lead: 'Evidence unavailable: could not confirm this is the exact displayed unit.', rest: 'Refresh to check again.' };
   const why = state.status === 'mismatch'
     ? "Landing's data for this listing did not match what this page shows."
     : "Landing's data did not include enough to confirm it.";
-  return `Evidence unavailable: could not confirm this is ${shown}. ${why} Refresh to check again.`;
+  return { lead: `Evidence unavailable: could not confirm this is ${shown}.`, rest: `${why} Refresh to check again.` };
 }
 
 // Said once, in the panel only, under the headline where the member decides.
@@ -335,6 +336,7 @@ export function describeState(state) {
     // page shows it; the notes below say it was not confirmed.
     headingText: state.unitName ?? state.displayedName ?? 'This listing',
     identityNote: '',
+    identityNoteLead: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
     calendarVisible: false,
@@ -362,7 +364,9 @@ export function describeState(state) {
   } else if (cause) {
     view.refreshNote = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${cause}. Refresh to try again.`;
   } else if (state.status === 'mismatch' || state.status === 'ambiguous') {
-    view.identityNote = identityNoteText(state);
+    const { lead, rest } = identityNoteParts(state);
+    view.identityNote = `${lead} ${rest}`;
+    view.identityNoteLead = lead;
   } else if (state.status === 'unavailable') {
     view.calendarStatusText = 'Calendar unavailable. Use Refresh to check again.';
   }
