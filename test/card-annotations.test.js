@@ -65,6 +65,10 @@ class FakeElement {
     this.listeners.get(type).push(fn);
   }
 
+  focus() { this.focused = true; }
+
+  fire(type, event) { for (const fn of this.listeners.get(type) ?? []) fn(event); }
+
   click() {
     for (const fn of this.listeners.get('click') ?? []) fn({ preventDefault() {}, stopPropagation() {} });
   }
@@ -361,6 +365,27 @@ test('the info mark toggles a note on what the card and its six-week strip mean,
   info.click();
   assert.equal(info.getAttribute('aria-expanded'), 'false');
   assert.deepEqual(h.viewed, []);
+});
+
+test('the info control names its unit, points at its tip, and Escape closes it and refocuses', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, unitName: 'Lantana Hills 2321' });
+
+  const note = h.annotations()[0];
+  const info = note.children.find((el) => el.className === 'standby-evidence-info');
+  const tip = note.children.find((el) => el.className === 'standby-evidence-tip');
+  assert.equal(info.getAttribute('aria-label'), 'About this card, Lantana Hills 2321');
+  assert.ok(tip.id);
+  assert.equal(info.getAttribute('aria-controls'), tip.id);
+  assert.equal(info.getAttribute('aria-describedby'), tip.id);
+
+  info.click();
+  assert.equal(info.getAttribute('aria-expanded'), 'true');
+  note.fire('keydown', { key: 'Escape' });
+  assert.equal(info.getAttribute('aria-expanded'), 'false');
+  assert.equal(info.focused, true);
 });
 
 test('each note is a labeled group whose attribution and View evidence name the unit', () => {

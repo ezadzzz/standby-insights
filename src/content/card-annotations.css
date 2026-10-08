@@ -69,6 +69,7 @@
 .standby-evidence-info:hover + .standby-evidence-tip,
 .standby-evidence-info[aria-expanded="true"] + .standby-evidence-tip { display: block; }
 @media (forced-colors: active) {
+  .standby-evidence-tab { border: 1px solid CanvasText; }
   .standby-evidence-info { border: 1px solid CanvasText; }
 }
 

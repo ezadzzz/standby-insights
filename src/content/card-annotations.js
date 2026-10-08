@@ -66,6 +66,7 @@ export function createCardAnnotator({
     return describeCard({ evidence, summary, referenceDate, today: getToday(), checkIn: getCheckIn?.() });
   }
 
+  let tipCount = 0;
   const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left.';
 
   function buildAnnotation(slug) {
@@ -90,10 +91,22 @@ export function createCardAnnotator({
       event.stopPropagation();
       info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true'));
     });
-    info.addEventListener('blur', () => info.setAttribute('aria-expanded', 'false'));
+    // Escape closes and keeps the member on the control.
+    container.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || info.getAttribute('aria-expanded') !== 'true') return;
+      info.setAttribute('aria-expanded', 'false');
+      info.focus();
+    });
+    // The tip stays open while focus is anywhere in this note, so it can be read.
+    container.addEventListener('focusout', (event) => {
+      if (!container.contains(event.relatedTarget)) info.setAttribute('aria-expanded', 'false');
+    });
     const tip = doc.createElement('p');
     tip.className = 'standby-evidence-tip';
     tip.textContent = CARD_TIP;
+    tip.id = `standby-card-tip-${++tipCount}`;
+    info.setAttribute('aria-controls', tip.id);
+    info.setAttribute('aria-describedby', tip.id);
 
     const status = doc.createElement('p');
     status.className = 'standby-evidence-status';
@@ -134,7 +147,7 @@ export function createCardAnnotator({
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
     container.append(tab, info, tip, status, headline, note, detail, strip, scale, key, button);
-    return { container, status, headline, detail, strip, scale, key, note, button, slug };
+    return { container, status, headline, detail, strip, scale, key, note, button, info, slug };
   }
 
   function paintStrip(parts, strip) {
@@ -201,6 +214,7 @@ export function createCardAnnotator({
       // Every card has a View evidence button; the unit tells them apart by ear.
       const unitName = store.get(slug)?.unitName;
       parts.container.setAttribute('aria-label', unitName ? `Standby Insights for ${unitName}` : 'Standby Insights');
+      parts.info.setAttribute('aria-label', unitName ? `About this card, ${unitName}` : 'About this card');
       parts.button.setAttribute('aria-label', unitName ? `View evidence for ${unitName}` : 'View evidence');
       parts.status.textContent = view.statusText;
       parts.headline.textContent = view.headlineText;
