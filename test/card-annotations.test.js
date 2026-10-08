@@ -345,7 +345,7 @@ test('View evidence reports the card’s own unit, and does not follow the card 
   assert.deepEqual(h.viewed, [CARD.response.slug]);
 });
 
-test('the ? toggles a note on what the card and its six-week strip mean, without following the card link', () => {
+test('the info mark toggles a note on what the card and its six-week strip mean, without following the card link', () => {
   const h = harness();
   addCard(h.doc, CARD);
   h.annotator.start();
@@ -399,9 +399,43 @@ test('a card without a gap is one quiet line over a keyed strip', () => {
   assert.equal(part('standby-evidence-line').textContent, '');
   assert.equal(part('standby-strip').hidden, false, 'the strip stays');
   assert.match(part('standby-strip').getAttribute('aria-label'), /^Six weeks from/, 'the strip still speaks every mark');
-  assert.equal(part('standby-strip-key').hidden, false, 'every strip keys its marks');
+  assert.equal(part('standby-strip-key').hidden, false, 'an Available mark needs the key');
   assert.equal(part('standby-strip-key').textContent, 'Available');
   assert.deepEqual(part('standby-strip-scale').children.map((el) => el.textContent), ['Today', '6 weeks'], 'a span, not an end date');
+});
+
+test('a strip drawing only Standby-only and Unavailable carries no key', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, {
+    ...READY,
+    ranges: [
+      { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+      { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
+    ],
+  });
+
+  const part = (className) => h.annotations()[0].children.find((el) => el.className === className);
+  assert.equal(part('standby-strip').hidden, false, 'the strip stays');
+  assert.equal(part('standby-strip-key').hidden, true, 'green and grey read without a key');
+});
+
+test('a strip that also draws a check-in mark keys every mark', () => {
+  const h = harness({ checkIn: { status: 'selected', date: '2026-09-15' } });
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, {
+    ...READY,
+    ranges: [
+      { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+      { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
+    ],
+  });
+
+  const key = h.annotations()[0].children.find((el) => el.className === 'standby-strip-key');
+  assert.equal(key.hidden, false);
+  assert.equal(key.textContent, 'Standby-onlyUnavailableYour check-in');
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {

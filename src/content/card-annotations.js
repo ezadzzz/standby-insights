@@ -10,6 +10,8 @@ const NOTICE_ATTRIBUTE = 'data-standby-notice';
 // Observed on the live Austin Standby search, 2026-09-14: one results grid
 // whose children are these wrappers, each holding a card link.
 const CARD_WRAPPER = '[data-testid="pdp-home-card-wrapper"]';
+// Marks a card strip draws without needing its key (decided 2026-10-07, #75).
+const SELF_EVIDENT = new Set(['standby-only', 'unavailable']);
 
 const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
 
@@ -80,7 +82,7 @@ export function createCardAnnotator({
     const info = doc.createElement('button');
     info.type = 'button';
     info.className = 'standby-evidence-info';
-    info.textContent = '?';
+    info.textContent = 'i';
     info.setAttribute('aria-label', 'About this card');
     info.setAttribute('aria-expanded', 'false');
     info.addEventListener('click', (event) => {
@@ -138,8 +140,9 @@ export function createCardAnnotator({
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    // Every drawn mark is keyed, so the strip reads at first glance.
-    parts.key.hidden = strip === null;
+    // Green beside a Standby-only headline and grey for the rest read without a
+    // key; any other mark (Available, no calendar data, check-in) brings it.
+    parts.key.hidden = strip === null || strip.key.every(({ kind }) => SELF_EVIDENT.has(kind));
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
