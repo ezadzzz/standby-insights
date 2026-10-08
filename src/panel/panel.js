@@ -67,7 +67,7 @@ function placeTile(item) {
   dd.textContent = item.value;
   // The tile's full sentence, for anyone who reads the value without its label.
   dd.title = item.text;
-  if (item.value === 'Unavailable') dd.className = 'muted';
+  if (item.value === 'Not supplied') dd.className = 'muted';
   row.append(icon, dt, dd);
   return row;
 }

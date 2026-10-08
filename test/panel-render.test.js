@@ -92,12 +92,14 @@ test('the price disclosure shows only beside shown prices, and names its scope',
   }
 });
 
-test('the price row value states only the gap; the tip carries the hedged hint', () => {
+test('the price row and its tip state facts only, under one name for the price', () => {
   const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: [], note: null } };
   for (const amount of [2144, 2520]) {
     const [row] = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: { ...comparison.subjectPrice, amount } } }).demandRows;
     assert.doesNotMatch(row.value, /demand|bookings/i);
-    assert.match(row.tip, /may draw more bookings/);
+    assert.equal(row.label, 'Flex price');
+    assert.equal(row.tip, 'This home’s Flex price against the median of similar homes in this market. Not a quote for your dates.');
+    assert.doesNotMatch(row.tip, /may draw|bookings|lower|demand|Listed Flex rate/i);
   }
 });
 
@@ -218,14 +220,14 @@ test('complete facts are stated in the specification order, after the calendar',
   assert.match(factText(view, 'Bike score'), /52/);
 });
 
-test('each absent fact is independently unavailable, and none reads as favorable', () => {
+test('each absent fact is independently not supplied, and none reads as favorable', () => {
   const view = describeState(factsState({
     minimumStay: null, flexOptions: null, rating: null,
     scores: { walk: null, transit: null, bike: null },
   }));
   assert.equal(view.factItems.length, 5);
   for (const item of [...view.factItems, { label: 'Flex', text: view.flex.text }]) {
-    assert.match(item.text, /unavailable/i, `${item.label} must say unavailable`);
+    assert.equal(item.text, 'Not supplied', `${item.label} must say not supplied`);
     assert.doesNotMatch(item.text, /\b(eligible|none|no minimum)\b/i);
   }
 });
@@ -237,8 +239,12 @@ test('one unreadable fact does not withhold its readable siblings', () => {
   }));
   assert.match(factText(view, 'Minimum stay'), /30 nights/);
   assert.match(factText(view, 'Walk score'), /41/);
-  assert.match(view.flex.text, /unavailable/i);
-  assert.match(factText(view, 'Rating'), /unavailable/i);
+  assert.equal(view.flex.text, 'Not supplied');
+  assert.equal(factText(view, 'Rating'), 'Not supplied');
+  // A tile never says "Unavailable", which the calendar uses for reserved or blocked days.
+  for (const label of ['Rating', 'Transit score', 'Bike score']) {
+    assert.equal(view.factItems.find((item) => item.label === label).value, 'Not supplied');
+  }
 });
 
 test('zero reviews reads as unrated rather than a rating of zero', () => {
@@ -430,4 +436,30 @@ test('a failed check names the unit the page shows', () => {
 test('a confirmed unit name still wins over the displayed one', () => {
   const view = describeState({ ...shown, status: 'mismatch', identity: 'mismatch', unitName: 'Lantana Hills 2321' });
   assert.equal(view.headingText, 'Lantana Hills 2321');
+});
+
+test('the summary drops the move-in line when the standby-only detail already names that reservation', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', unitName: 'Lantana Hills 2321', checkedAt: 1000, isChecking: false, isStale: false, error: null,
+    today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
+    ranges: [
+      { startDate: '2026-09-12', endDate: '2026-09-24', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+      { startDate: '2026-09-25', endDate: '2026-10-30', moveInAllowed: false, isReservation: true, unbookableReason: 'reserved' },
+    ],
+    summary: { intersectingReservation: null, nextReservation: { startDate: '2026-09-25', endDate: '2026-10-30' }, noStandardMoveInBeforeNext: true },
+  });
+  assert.match(view.standbyOnly.detail, /before the Sep 25 reservation/);
+  assert.deepEqual(view.summaryItems, []);
+});
+
+test('with no reservation after the gap, the explainer drops the sentence about one', () => {
+  const view = describeState({
+    status: 'ready', identity: 'confirmed', unitName: 'Lantana Hills 2321', checkedAt: 1000, isChecking: false, isStale: false, error: null,
+    today: '2026-09-12', referenceDate: '2026-09-12', checkIn: { status: 'none', date: null },
+    ranges: [
+      { startDate: '2026-09-12', endDate: null, moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+    ],
+  });
+  assert.equal(view.standbyOnly.detail, 'Too short for a standard stay');
+  assert.equal(view.standbyOnly.explainer, 'Only Standby can book these nights.');
 });

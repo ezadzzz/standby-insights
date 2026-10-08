@@ -51,7 +51,8 @@ function summaryItemsFor(summary, omitNext) {
   if (next && !omitNext) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
   }
-  if (summary.noStandardMoveInBeforeNext) {
+  // The standby-only detail line already says no standard stay fits before it.
+  if (summary.noStandardMoveInBeforeNext && !omitNext) {
     items.push('No standard move-in offered before that reservation.');
   }
   if (summary.noReservationsInCalendar) {
@@ -114,6 +115,9 @@ function calendarGrid(weeks, today, checkIn) {
 }
 
 const UNAVAILABLE = 'Unavailable';
+// A fact the response left out. Not "Unavailable", which the calendar uses for
+// reserved or blocked days.
+const NOT_SUPPLIED = 'Not supplied';
 
 /**
  * A failure's cause in member words, distinct from a calendar the response
@@ -142,7 +146,9 @@ function identityNoteText(state) {
 // Said once, in the panel only, under the headline where the member decides.
 // The last sentence is the part a member can't see on the calendar: the gap is
 // a consequence of the reservation after it.
-const STANDBY_ONLY_EXPLAINER = 'Only Standby can book these nights. If the reservation after them moves or is cancelled, a standard stay may fit.';
+// With no reservation after the gap, only the first sentence is true.
+const STANDBY_ONLY_EXPLAINER = 'Only Standby can book these nights.';
+const STANDBY_ONLY_EXPLAINER_NEXT = `${STANDBY_ONLY_EXPLAINER} If the reservation after them moves or is cancelled, a standard stay may fit.`;
 
 const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
@@ -163,7 +169,8 @@ function subjectPriceText(price) {
 
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
-const COMPARISON_DISCLOSURE = 'Listed Flex rate vs. similar homes in this market. A lower price may draw more bookings. Not a quote for your dates.';
+// States what the figures are and nothing about what they mean (No Verdict Rule).
+const COMPARISON_DISCLOSURE = 'This home’s Flex price against the median of similar homes in this market. Not a quote for your dates.';
 
 
 /**
@@ -215,23 +222,23 @@ function comparisonView(state) {
 }
 
 function scoreText(score) {
-  if (!score) return UNAVAILABLE;
+  if (!score) return NOT_SUPPLIED;
   return score.description ? `${score.value} (${score.description})` : String(score.value);
 }
 
 /** The same facts split for a location tile: a short figure, then what qualifies it. */
 function scoreTile(score) {
-  return score ? { value: String(score.value), note: score.description ?? '' } : { value: UNAVAILABLE, note: '' };
+  return score ? { value: String(score.value), note: score.description ?? '' } : { value: NOT_SUPPLIED, note: '' };
 }
 
 function ratingTile(rating) {
-  if (!rating) return { value: UNAVAILABLE, note: '' };
+  if (!rating) return { value: NOT_SUPPLIED, note: '' };
   if (rating.count === 0) return { value: 'Unrated', note: 'no reviews' };
   return { value: String(rating.average), note: `${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}` };
 }
 
 function ratingText(rating) {
-  if (!rating) return UNAVAILABLE;
+  if (!rating) return NOT_SUPPLIED;
   // A building nobody has reviewed is unrated. Stating its average would read
   // as a score the reviews never gave it.
   if (rating.count === 0) return 'Unrated (no reviews)';
@@ -251,7 +258,7 @@ function ratingText(rating) {
  * never collapsed into a unit-level deal.
  */
 function flexSignal(flexOptions) {
-  if (flexOptions === null) return { text: UNAVAILABLE, tip: OFFER_UNKNOWN_TIP };
+  if (flexOptions === null) return { text: NOT_SUPPLIED, tip: OFFER_UNKNOWN_TIP };
   if (flexOptions.length === 0) return { text: 'No Flex terms supplied', tip: OFFER_UNKNOWN_TIP };
 
   const stated = flexOptions.filter((option) => option.specialOffer !== null);
@@ -268,7 +275,7 @@ const MINIMUM_STAY_TIP = 'A shorter minimum stay lets short-term guests book too
 
 /**
  * The price signal in one row: the gap leads, the figures follow. The value
- * states no direction; only the tip offers a hedged hint.
+ * states no direction, and neither does the tip.
  */
 function priceRow(view, comparison) {
   const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false, tip: view.disclosure };
@@ -309,7 +316,7 @@ function demandRowsFor(view, state) {
  */
 function factItemsFor(facts) {
   return [
-    { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
+    { label: 'Minimum stay', text: facts.minimumStay === null ? NOT_SUPPLIED : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
     { label: 'Rating', text: ratingText(facts.rating), ...ratingTile(facts.rating) },
     { label: 'Walk score', text: scoreText(facts.scores.walk), ...scoreTile(facts.scores.walk) },
     { label: 'Transit score', text: scoreText(facts.scores.transit), ...scoreTile(facts.scores.transit) },
@@ -373,7 +380,8 @@ export function describeState(state) {
       // The standby-only detail line already names this reservation.
       omitNext = view.standbyOnly.isStandbyOnly
         && weeks.gap?.nextReservation?.startDate === state.summary?.nextReservation?.startDate;
-      view.standbyOnly.explainer = view.standbyOnly.isStandbyOnly ? STANDBY_ONLY_EXPLAINER : '';
+      if (!view.standbyOnly.isStandbyOnly) view.standbyOnly.explainer = '';
+      else view.standbyOnly.explainer = weeks.gap?.nextReservation ? STANDBY_ONLY_EXPLAINER_NEXT : STANDBY_ONLY_EXPLAINER;
       view.grid = calendarGrid(weeks, state.today, state.checkIn);
     }
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary, omitNext);

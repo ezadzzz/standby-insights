@@ -43,3 +43,15 @@ test('not-returned days are hatched and available days are open boxes, alike on 
     assert.match(declarationsFor(css, `${prefix}[data-kind="move-in"]`), /box-shadow:\s*inset 0 0 0 1px/, `${file}: an available day is an open box`);
   }
 });
+
+test('the bump-risk section tip states facts, not a verdict', async () => {
+  const html = await read('src/panel/panel.html');
+  const tip = html.match(/<div id="demand-tip"[^>]*>([^<]*)<\/div>/)[1];
+  assert.equal(tip, 'Standard and Flex bookings can bump you. These are facts about this home, not predictions.');
+  assert.doesNotMatch(tip, /less demand|fewer bumps|protect|safe until|guarantee/i);
+});
+
+test('a missing location fact is muted by its "Not supplied" value', async () => {
+  const js = await read('src/panel/panel.js');
+  assert.match(js, /item\.value === 'Not supplied'\) dd\.className = 'muted'/);
+});
