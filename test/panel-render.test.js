@@ -344,6 +344,10 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
     ],
   });
   assert.equal(view.standbyOnly.headline, 'Standby-only through Sep 24');
+  // The condition sits under the headline where the member decides, not behind "About these marks".
+  assert.equal(view.standbyOnly.detail, "Standard stays can't fit before the Sep 25 reservation, while it holds");
+  assert.equal(view.standbyOnly.explainer, 'Only Standby can book these nights. If the reservation after them moves or is cancelled, a standard stay may fit.');
+  assert.doesNotMatch(`${view.standbyOnly.detail} ${view.standbyOnly.explainer}`, /LOS|protect|safe until|guarantee|bump/i);
   assert.equal(view.grid.leadingBlanks, 6, 'Sep 12 is a Saturday');
   assert.equal(view.grid.cells.length, 42);
   assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only: too short for a standard stay' });

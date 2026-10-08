@@ -73,7 +73,7 @@ test('no readable selected date: facts are labeled against the check date, not a
   assert.match(view().referenceNote, /Sep 11/);
   // A standby-only gap later in the view still leads over today's reservation.
   assert.equal(view().standbyOnly.headline, 'Standby-only Sep 12 – Sep 24');
-  assert.match(view().standbyOnly.explainer, /only while the reservation after them holds/);
+  assert.match(view().standbyOnly.explainer, /If the reservation after them moves or is cancelled, a standard stay may fit/);
   assert.match(summaryText(view()), /reservation on this date is for Sep 11 only/);
   // The detail line already names the reservation after the gap, so the summary does not repeat it.
   assert.match(view().standbyOnly.detail, /before the Sep 26 reservation/);
