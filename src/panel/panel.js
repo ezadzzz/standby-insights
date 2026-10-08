@@ -60,14 +60,15 @@ function placeTile(item) {
   dt.textContent = item.label;
   if (item.note) {
     const note = document.createElement('span');
-    note.textContent = ` · ${item.note}`;
+    // A non-breaking hyphen keeps a descriptor like Car-Dependent on one line.
+    note.textContent = ` · ${item.note.replaceAll('-', '\u2011')}`;
     dt.append(note);
   }
   const dd = document.createElement('dd');
   dd.textContent = item.value;
   // The tile's full sentence, for anyone who reads the value without its label.
   dd.title = item.text;
-  if (item.value === 'Unavailable') dd.className = 'muted';
+  if (item.value === 'Not supplied') dd.className = 'muted';
   row.append(icon, dt, dd);
   return row;
 }

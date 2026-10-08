@@ -86,6 +86,18 @@ try {
       if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /doesn’t list a monthly price/);
       if (variant === 'missingPrice') assert.match(await page.locator('#signal-price .signal-value').innerText(), /unavailable/);
       if (variant === 'ready') {
+        // A closed "About these marks" leaves no empty ruled band before the next rule.
+        const gap = await page.evaluate(() => document.getElementById('all-ranges').getBoundingClientRect().top - document.getElementById('marks-disclosure').getBoundingClientRect().bottom);
+        assert(gap <= 0, `no empty band under closed marks ${width} (${gap}px)`);
+        // A descriptor never breaks at its hyphen.
+        const lines = await page.evaluate(() => {
+          const node = [...document.querySelectorAll('.places dt span')].find((el) => el.textContent.includes('Dependent')).firstChild;
+          const r = document.createRange();
+          r.setStart(node, node.data.indexOf('Car'));
+          r.setEnd(node, node.data.length);
+          return new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size;
+        });
+        assert.equal(lines, 1, `Car-Dependent stays on one line ${width}`);
         assert.equal(await page.locator('.signals dt').count(), 3);
         assert.equal(await page.locator('.places dt').count(), 4);
         assert.equal(await page.locator('.places svg[aria-hidden="true"]').count(), 4);
