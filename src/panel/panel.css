@@ -147,8 +147,9 @@ h2 {
 .grid-legend i { display: inline-block; width: 14px; height: 10px; forced-color-adjust: none; }
 .grid-legend i[data-kind="today"] { outline: 2px solid var(--on); outline-offset: -2px; }
 .grid-legend i[data-kind="check-in"] { width: 0; height: 0; border: 5px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
-/* The legend sits on Canvas, not on a day, so graphite marks would sink on a dark one. */
+/* The legend and today's outline sit on Canvas, not on a day, so graphite marks would sink on a dark one. */
 @media (forced-colors: active) {
+  #calendar-grid .today,
   .grid-legend i[data-kind="today"] { outline-color: CanvasText; }
   .grid-legend i[data-kind="check-in"] { border-top-color: CanvasText; border-right-color: CanvasText; }
 }
@@ -186,7 +187,7 @@ h2 {
 .signals .place-icon { grid-row: span 3; }
 .signals dt { grid-column: 2; display: flex; align-items: center; gap: 6px; margin-bottom: 1px; color: var(--on-2); font: 12px/1.5 var(--mono); }
 .signals dd { grid-column: 2; }
-.signal-value { font: 600 16px/1.35 var(--mono); }
+.signal-value { font: 600 16px/1.35 var(--mono); text-wrap: balance; }
 .signal-sub { color: var(--on-2); font: 12px/1.45 var(--mono); text-wrap: pretty; }
 .muted { color: var(--on-2); font-weight: 400; }
 

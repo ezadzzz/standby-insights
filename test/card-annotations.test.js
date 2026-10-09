@@ -548,13 +548,16 @@ test('with no check-in, a no-gap strip carries no key', () => {
   assert.equal(key.hidden, true);
 });
 
-test('the card tip says the triangle marks the member’s check-in', () => {
-  const h = harness();
-  addCard(h.doc, CARD);
-  h.annotator.start();
-  h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
-  const tip = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip');
-  assert.match(tip.textContent, /triangle marks Your check-in/);
+test('the card tip explains the triangle only when the strip draws one', () => {
+  const tipFor = (checkIn) => {
+    const h = harness({ checkIn });
+    addCard(h.doc, CARD);
+    h.annotator.start();
+    h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
+    return h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip').textContent;
+  };
+  assert.match(tipFor({ status: 'selected', date: '2026-09-15' }), /starting today on the left\. A triangle marks your check-in\.$/);
+  assert.doesNotMatch(tipFor({ status: 'none', date: null }), /triangle/);
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {
