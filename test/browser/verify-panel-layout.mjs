@@ -73,7 +73,7 @@ try {
       if (variant === 'notReturned') {
         const missing = page.locator('#calendar-grid [data-kind="not-returned"]');
         assert(await missing.count() > 0, 'uncovered days are not-returned');
-        assert.notEqual(await missing.first().evaluate(el => getComputedStyle(el).boxShadow), 'none', 'not-returned days are drawn');
+        assert.match(await missing.first().evaluate(el => getComputedStyle(el).backgroundImage), /repeating-linear-gradient/, 'not-returned days are drawn as a hatch');
         assert.match(await page.locator('.grid-legend').innerText(), /No calendar data/);
       }
       if (variant === 'disagreement') {
