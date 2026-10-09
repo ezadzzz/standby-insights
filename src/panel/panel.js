@@ -160,7 +160,10 @@ function render(state) {
   const view = describeState(state);
   heading.textContent = view.headingText;
   heading.title = view.headingText;
-  identityNote.textContent = view.identityNote;
+  // The status sentence leads at status weight; its explanation stays regular.
+  const lead = document.createElement('strong');
+  lead.textContent = view.identityNoteLead;
+  identityNote.replaceChildren(...(view.identityNote ? [lead, view.identityNote.slice(view.identityNoteLead.length)] : []));
   checkTime.textContent = view.checkTimeText;
   refreshStatus.textContent = view.refreshNote;
   calendarStatus.textContent = view.calendarStatusText;

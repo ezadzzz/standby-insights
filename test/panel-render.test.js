@@ -420,6 +420,9 @@ test('a mismatch names the unit the page shows and says the response did not mat
   assert.match(view.identityNote, /could not confirm this is Unit 1831/);
   assert.match(view.identityNote, /did not match what this page shows/);
   assert.equal(view.identityNote.split('Unit 1831').length - 1, 1, 'the unit name appears once');
+  // The status sentence leads; the explanation after it is set at regular weight.
+  assert.equal(view.identityNoteLead, 'Evidence unavailable: could not confirm this is Unit 1831.');
+  assert(view.identityNote.startsWith(view.identityNoteLead));
 });
 
 test('an ambiguous check names the unit and says what was missing, not that it mismatched', () => {

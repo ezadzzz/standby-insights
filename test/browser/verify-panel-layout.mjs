@@ -64,7 +64,16 @@ try {
       assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
       if (variant === 'unavailable') assert.match(await page.locator('#refresh-status').innerText(), /^Check failed: .*Refresh to try again\.$/);
       if (variant === 'loading') assert.match(await page.locator('#calendar-status').innerText(), /Checking the calendar/);
-      if (variant === 'mismatch') assert.match(await page.locator('#identity-note').innerText(), /could not confirm/);
+      if (variant === 'mismatch') {
+        assert.match(await page.locator('#identity-note').innerText(), /could not confirm/);
+        // Status weight for the lead sentence only; the explanation stays regular.
+        assert.deepEqual(await page.locator('#identity-note').evaluate(el => [getComputedStyle(el.querySelector('strong')).fontWeight, getComputedStyle(el).fontWeight]), ['600', '400']);
+      }
+      if (variant === 'reserved') {
+        // The summary closes 12px above the range list's rule rather than touching it.
+        const gap = await page.evaluate(() => document.getElementById('all-ranges').getBoundingClientRect().top - document.getElementById('summary-list').getBoundingClientRect().bottom);
+        assert(gap >= 12, `summary clears the next rule ${width} (${gap}px)`);
+      }
       assert.equal(await page.locator('#announcer').textContent(), '', `no announcement without a member Refresh ${width}/${variant}`);
       if (variant === 'long') {
         assert.match(await page.locator('#refresh-status').innerText(), /older check/);
