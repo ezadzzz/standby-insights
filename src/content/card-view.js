@@ -40,15 +40,14 @@ function cardSegments(segments) {
  * a standby-only gap is open from their date. Without one, the card drops to
  * a single quiet line, the reservation fact; the strip still shows the weeks.
  *
- * `readable` false means no unit-specific claim may be attached at all — the
- * card contributes to the single "Some listings couldn't be read" notice
- * instead of carrying a notice of its own.
+ * `readable` false means no unit-specific claim may be attached at all: the
+ * card says only that it was not read, and is counted in the page notice.
  */
 export function describeCard({ evidence, summary, referenceDate, today, checkIn }) {
   const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, quiet: false, detailText: '', strip: null, noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
-    return { ...view, readable: false };
+    return { ...view, readable: false, statusText: "Not read: couldn't confirm this listing" };
   }
 
   // Sits directly under the headline, so the words and the time of the check

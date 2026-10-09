@@ -1,6 +1,7 @@
 import { summarizeForReference } from '../lib/calendar.js';
 import { parseCardSlugFromHref } from './page-adapter.js';
 import { describeCard } from './card-view.js';
+import { displayedUnitName } from '../lib/identity.js';
 import { checkDate } from '../lib/reference-date.js';
 import { VIEW_DAYS } from '../lib/six-week-view.js';
 
@@ -71,7 +72,7 @@ export function createCardAnnotator({
 
   function buildAnnotation(slug) {
     const container = doc.createElement('div');
-    container.setAttribute(ANNOTATION_ATTRIBUTE, slug);
+    container.setAttribute(ANNOTATION_ATTRIBUTE, slug ?? '');
     container.className = 'standby-evidence';
     container.setAttribute('role', 'group');
     // Attribution is real text, so assistive technology hears the source too.
@@ -193,38 +194,47 @@ export function createCardAnnotator({
   function paint(slug) {
     const view = viewFor(slug);
     if (view === null) return;
-
-    for (const anchor of anchorsFor(slug)) {
-      let parts = annotations.get(anchor);
-      // An anchor Landing re-renders in place for a different unit must not
-      // keep the previous unit's annotation, even briefly.
-      if (parts && parts.slug !== slug) {
-        parts.container.remove();
-        annotations.delete(anchor);
-        parts = undefined;
-      }
-      if (!parts) {
-        parts = buildAnnotation(slug);
-        annotations.set(anchor, parts);
-        anchor.insertAdjacentElement('afterend', parts.container);
-      }
-      // An unreadable card carries no unit claim at all; it contributes to the
-      // single page notice instead of stating anything of its own.
-      parts.container.hidden = !view.readable;
-      // Every card has a View evidence button; the unit tells them apart by ear.
-      const unitName = store.get(slug)?.unitName;
-      parts.container.setAttribute('aria-label', unitName ? `Standby Insights for ${unitName}` : 'Standby Insights');
-      parts.info.setAttribute('aria-label', unitName ? `About this card, ${unitName}` : 'About this card');
-      parts.button.setAttribute('aria-label', unitName ? `View evidence for ${unitName}` : 'View evidence');
-      parts.status.textContent = view.statusText;
-      parts.headline.textContent = view.headlineText;
-      parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
-      parts.headline.setAttribute('data-quiet', String(view.quiet));
-      parts.detail.textContent = view.detailText;
-      paintStrip(parts, view.strip);
-      parts.note.textContent = view.noteText;
-    }
+    for (const anchor of anchorsFor(slug)) annotate(anchor, slug, view);
     refreshNotice();
+  }
+
+  function annotate(anchor, slug, view) {
+    let parts = annotations.get(anchor);
+    // An anchor Landing re-renders in place for a different unit must not
+    // keep the previous unit's annotation, even briefly.
+    if (parts && parts.slug !== slug) {
+      parts.container.remove();
+      annotations.delete(anchor);
+      parts = undefined;
+    }
+    if (!parts) {
+      parts = buildAnnotation(slug);
+      annotations.set(anchor, parts);
+      anchor.insertAdjacentElement('afterend', parts.container);
+    }
+    // An unreadable card keeps the source tab and its one "Not read" line, so
+    // it differs from a card not read yet, which has no note at all. It makes
+    // no unit claim: no strip to explain and no evidence to view.
+    const notRead = !view.readable;
+    parts.container.setAttribute('data-not-read', String(notRead));
+    parts.info.hidden = notRead;
+    parts.button.hidden = notRead;
+    // Every card has a View evidence button; the unit tells them apart by ear.
+    // An unconfirmed card is named only as the page shows it, never by the
+    // response that failed to match it.
+    const unitName = notRead
+      ? displayedUnitName({ cardText: anchor.textContent })
+      : store.get(slug)?.unitName;
+    parts.container.setAttribute('aria-label', unitName ? `Standby Insights for ${unitName}` : 'Standby Insights');
+    parts.info.setAttribute('aria-label', unitName ? `About this card, ${unitName}` : 'About this card');
+    parts.button.setAttribute('aria-label', unitName ? `View evidence for ${unitName}` : 'View evidence');
+    parts.status.textContent = view.statusText;
+    parts.headline.textContent = view.headlineText;
+    parts.headline.setAttribute('data-standby-only', String(view.isStandbyOnly));
+    parts.headline.setAttribute('data-quiet', String(view.quiet));
+    parts.detail.textContent = view.detailText;
+    paintStrip(parts, view.strip);
+    parts.note.textContent = view.noteText;
   }
 
   /** A card that could not be read at all, for whatever reason. */
@@ -295,7 +305,7 @@ export function createCardAnnotator({
         ? `${PAUSED_NOTICE} ${listings(notRead)} not read.`
         : PAUSED_NOTICE;
     } else {
-      notice.text.textContent = `${listings(unreadable)} couldn't be read. Look for cards with no Standby Insights note or marked "Calendar unavailable".`;
+      notice.text.textContent = `${listings(unreadable)} couldn't be read.`;
     }
     notice.resume.hidden = !paused;
   }
@@ -312,7 +322,13 @@ export function createCardAnnotator({
 
   function readCard(anchor) {
     const slug = slugOf(anchor);
-    if (slug === null) return; // an href this extension does not treat as a locator
+    if (slug === null) {
+      // An href this extension does not treat as a locator is never read, and
+      // is as unconfirmed as a card whose response didn't match it.
+      annotate(anchor, null, describeCard({ evidence: { identity: 'ambiguous' } }));
+      refreshNotice();
+      return;
+    }
     store.read(slug, {
       priority: 'background',
       visibleIdentity: { cardText: anchor.textContent },
