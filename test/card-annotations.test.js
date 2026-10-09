@@ -515,21 +515,46 @@ test('a strip drawing only Standby-only and Unavailable carries no key', () => {
   assert.equal(part('standby-strip-key').hidden, true, 'green and grey read without a key');
 });
 
-test('a strip that also draws a check-in mark keys every mark', () => {
-  const h = harness({ checkIn: { status: 'selected', date: '2026-09-15' } });
+const NO_GAP_RANGES = [
+  { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+  { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
+];
+
+function keyFor(checkIn, ranges) {
+  const h = harness({ checkIn });
   addCard(h.doc, CARD);
   h.annotator.start();
-  h.store.set(CARD.response.slug, {
-    ...READY,
-    ranges: [
-      { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
-      { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
-    ],
-  });
+  h.store.set(CARD.response.slug, { ...READY, ranges });
+  const note = h.annotations()[0];
+  return { note, key: note.children.find((el) => el.className === 'standby-strip-key') };
+}
 
-  const key = h.annotations()[0].children.find((el) => el.className === 'standby-strip-key');
+test('a check-in alone does not bring the key, though the triangle still draws', () => {
+  const { note, key } = keyFor({ status: 'selected', date: '2026-09-15' }, NO_GAP_RANGES);
+  assert.equal(key.hidden, true);
+  assert.ok(descendants(note).some((el) => el.className === 'standby-strip-check-in'), 'the triangle is drawn');
+});
+
+test('a check-in beside an Available mark keys every mark', () => {
+  const { key } = keyFor({ status: 'selected', date: '2026-09-15' }, [
+    { startDate: '2026-09-01', endDate: '2027-09-01', moveInAllowed: true, isReservation: false },
+  ]);
   assert.equal(key.hidden, false);
-  assert.equal(key.textContent, 'Standby-onlyUnavailableYour check-in');
+  assert.equal(key.textContent, 'AvailableYour check-in');
+});
+
+test('with no check-in, a no-gap strip carries no key', () => {
+  const { key } = keyFor({ status: 'none', date: null }, NO_GAP_RANGES);
+  assert.equal(key.hidden, true);
+});
+
+test('the card tip says the triangle marks the member’s check-in', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
+  const tip = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip');
+  assert.match(tip.textContent, /triangle marks Your check-in/);
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {

@@ -12,7 +12,8 @@ const NOTICE_ATTRIBUTE = 'data-standby-notice';
 // whose children are these wrappers, each holding a card link.
 const CARD_WRAPPER = '[data-testid="pdp-home-card-wrapper"]';
 // Marks a card strip draws without needing its key (decided 2026-10-07, #75).
-const SELF_EVIDENT = new Set(['standby-only', 'unavailable']);
+// A selected check-in is explained by the card tip, so it doesn't bring the key either (#90).
+const SELF_EVIDENT = new Set(['standby-only', 'unavailable', 'check-in']);
 
 const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
 
@@ -68,7 +69,7 @@ export function createCardAnnotator({
   }
 
   let tipCount = 0;
-  const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left.';
+  const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left. A triangle marks Your check-in.';
 
   function buildAnnotation(slug) {
     const container = doc.createElement('div');
@@ -155,7 +156,7 @@ export function createCardAnnotator({
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
     // Green beside a Standby-only headline and grey for the rest read without a
-    // key; any other mark (Available, no calendar data, check-in) brings it.
+    // key; Available and no calendar data bring it.
     parts.key.hidden = strip === null || strip.key.every(({ kind }) => SELF_EVIDENT.has(kind));
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
