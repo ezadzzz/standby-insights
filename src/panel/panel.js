@@ -185,7 +185,7 @@ function render(state) {
     marksExplainer.textContent = view.grid.marksExplainer;
     marksExplainer.hidden = !view.grid.marksExplainer;
     // Nothing to explain means no disclosure, not an empty one.
-    marksExplainer.parentElement.hidden = marksExplainer.hidden && standbyOnlyExplainer.hidden;
+    marksExplainer.parentElement.hidden = marksExplainer.hidden;
     calendarGrid.setAttribute('aria-label', view.grid.label);
     const blanks = Array.from({ length: view.grid.leadingBlanks }, () => document.createElement('span'));
     calendarGrid.replaceChildren(...blanks, ...view.grid.cells.map((cell) => {

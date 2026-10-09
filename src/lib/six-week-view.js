@@ -122,8 +122,9 @@ export function sixWeekView(ranges, today, referenceDate) {
 
 /**
  * The words a member scans for. A standby-only gap is stated from Landing's
- * reason with the reservation that shortens it; nothing here says the member
- * cannot be bumped, only that the minimum stay blocks a standard move-in.
+ * reason with the reservation that shortens it, and lasts only while that
+ * reservation holds; nothing here says the member cannot be bumped, only that a
+ * standard stay can't fit.
  */
 export function describeStandbyOnly(view) {
   const { gap } = view;
@@ -133,7 +134,7 @@ export function describeStandbyOnly(view) {
     else if (gap.inProgress) headline = `Standby-only through ${short(gap.endDate)}`;
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
-      ? `Minimum LOS blocks standard move-ins before the ${short(gap.nextReservation.startDate)} reservation`
+      ? `Standard stays can't fit before the ${short(gap.nextReservation.startDate)} reservation, while it holds`
       : 'Too short for a standard stay';
     return { isStandbyOnly: true, headline, detail };
   }
@@ -150,19 +151,21 @@ export function describeStandbyOnly(view) {
 }
 
 /**
- * The line a card and the panel both lead with. A standby-only gap leads; with
- * none, a reservation on the reference date is the fact that matters, so it
- * takes the headline and the standby-only negative drops to the detail. The
- * reference date is named as the member's check-in only when it is theirs
- * (ADR 1). No end date here: without its caveat it would read as a stay boundary.
+ * The line a card and the panel both lead with. A standby-only gap leads, and a
+ * reservation on the reference date opens its detail so it is never hidden;
+ * with no gap, that reservation takes the headline and the standby-only
+ * negative drops to the detail. The reference date is named as the member's
+ * check-in only when it is theirs (ADR 1). No end date here: without its
+ * caveat it would read as a stay boundary.
  */
 export function describeHeadline(view, summary, checkIn) {
   const statement = describeStandbyOnly(view);
   const reserved = summary?.intersectingReservation;
-  if (statement.isStandbyOnly || !reserved) return statement;
+  if (!reserved) return statement;
   const reference = summary.referenceDate;
   let on = `on ${short(reference)}`;
   if (checkIn?.status === 'selected') on = `on your check-in, ${short(reference)}`;
   else if (reference === view.days[0]?.date) on = `today, ${short(reference)}`;
+  if (statement.isStandbyOnly) return { ...statement, detail: `Reserved ${on}. ${statement.detail}` };
   return { isStandbyOnly: false, headline: `Reserved ${on}`, detail: statement.headline };
 }

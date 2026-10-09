@@ -139,9 +139,10 @@ function identityNoteText(state) {
   return `Evidence unavailable: could not confirm this is ${shown}. ${why} ${shown} as shown on this page. Refresh to check again.`;
 }
 
-// Said once, in the panel only. The last clause is the part a member can't
-// see on the calendar: the gap is a consequence of the reservation after it.
-const STANDBY_ONLY_EXPLAINER = 'Standby-only nights are too few for a standard stay, so only Standby can book them. That lasts only while the reservation after them holds: if it moves or is cancelled, standard stays may be able to book those nights.';
+// Said once, in the panel only, under the headline where the member decides.
+// The last sentence is the part a member can't see on the calendar: the gap is
+// a consequence of the reservation after it.
+const STANDBY_ONLY_EXPLAINER = 'Only Standby can book these nights. If the reservation after them moves or is cancelled, a standard stay may fit.';
 
 const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 

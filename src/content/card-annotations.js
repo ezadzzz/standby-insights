@@ -10,6 +10,8 @@ const NOTICE_ATTRIBUTE = 'data-standby-notice';
 // Observed on the live Austin Standby search, 2026-09-14: one results grid
 // whose children are these wrappers, each holding a card link.
 const CARD_WRAPPER = '[data-testid="pdp-home-card-wrapper"]';
+// Marks a card strip draws without needing its key (decided 2026-10-07, #75).
+const SELF_EVIDENT = new Set(['standby-only', 'unavailable']);
 
 const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
 
@@ -64,6 +66,7 @@ export function createCardAnnotator({
     return describeCard({ evidence, summary, referenceDate, today: getToday(), checkIn: getCheckIn?.() });
   }
 
+  let tipCount = 0;
   const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left.';
 
   function buildAnnotation(slug) {
@@ -80,7 +83,7 @@ export function createCardAnnotator({
     const info = doc.createElement('button');
     info.type = 'button';
     info.className = 'standby-evidence-info';
-    info.textContent = '?';
+    info.textContent = 'i';
     info.setAttribute('aria-label', 'About this card');
     info.setAttribute('aria-expanded', 'false');
     info.addEventListener('click', (event) => {
@@ -88,10 +91,22 @@ export function createCardAnnotator({
       event.stopPropagation();
       info.setAttribute('aria-expanded', String(info.getAttribute('aria-expanded') !== 'true'));
     });
-    info.addEventListener('blur', () => info.setAttribute('aria-expanded', 'false'));
+    // Escape closes and keeps the member on the control.
+    container.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || info.getAttribute('aria-expanded') !== 'true') return;
+      info.setAttribute('aria-expanded', 'false');
+      info.focus();
+    });
+    // The tip stays open while focus is anywhere in this note, so it can be read.
+    container.addEventListener('focusout', (event) => {
+      if (!container.contains(event.relatedTarget)) info.setAttribute('aria-expanded', 'false');
+    });
     const tip = doc.createElement('p');
     tip.className = 'standby-evidence-tip';
     tip.textContent = CARD_TIP;
+    tip.id = `standby-card-tip-${++tipCount}`;
+    info.setAttribute('aria-controls', tip.id);
+    info.setAttribute('aria-describedby', tip.id);
 
     const status = doc.createElement('p');
     status.className = 'standby-evidence-status';
@@ -132,14 +147,15 @@ export function createCardAnnotator({
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
     container.append(tab, info, tip, status, headline, note, detail, strip, scale, key, button);
-    return { container, status, headline, detail, strip, scale, key, note, button, slug };
+    return { container, status, headline, detail, strip, scale, key, note, button, info, slug };
   }
 
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    // Every drawn mark is keyed, so the strip reads at first glance.
-    parts.key.hidden = strip === null;
+    // Green beside a Standby-only headline and grey for the rest read without a
+    // key; any other mark (Available, no calendar data, check-in) brings it.
+    parts.key.hidden = strip === null || strip.key.every(({ kind }) => SELF_EVIDENT.has(kind));
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
@@ -198,6 +214,7 @@ export function createCardAnnotator({
       // Every card has a View evidence button; the unit tells them apart by ear.
       const unitName = store.get(slug)?.unitName;
       parts.container.setAttribute('aria-label', unitName ? `Standby Insights for ${unitName}` : 'Standby Insights');
+      parts.info.setAttribute('aria-label', unitName ? `About this card, ${unitName}` : 'About this card');
       parts.button.setAttribute('aria-label', unitName ? `View evidence for ${unitName}` : 'View evidence');
       parts.status.textContent = view.statusText;
       parts.headline.textContent = view.headlineText;

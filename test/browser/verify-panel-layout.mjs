@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import { readFile, mkdir } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { summarizeForReference } from '../../src/lib/calendar.js';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 const errors = [];
@@ -43,7 +44,8 @@ try {
     disagreement: {...state,checkIn:{status:'disagreement'}},
     insufficient: {...state,comparison:{...state.comparison,status:'insufficient',count:4}},
     missingPrice: {...state,comparison:{...state.comparison,subjectPrice:null}},
-    notReturned: {...state,ranges:state.ranges.slice(0,2)},
+    // The summary comes from the same ranges, as the controller derives it, so it never names a reservation the grid draws as no data.
+    notReturned: {...state,ranges:state.ranges.slice(0,2),summary:summarizeForReference(state.ranges.slice(0,2),state.referenceDate)},
     reserved: {...state,ranges:[{...state.ranges[0],isReservation:true,unbookableReason:'reserved'},...state.ranges.slice(1)],referenceDate:'2026-09-27',checkIn:{status:'selected',date:'2026-09-27'},summary:{referenceDate:'2026-09-27',intersectingReservation:{startDate:'2026-09-26',endDate:'2026-10-24'}}},
   };
   for (const width of [320,480,768,200]) {
@@ -75,6 +77,7 @@ try {
         assert(await missing.count() > 0, 'uncovered days are not-returned');
         assert.match(await missing.first().evaluate(el => getComputedStyle(el).backgroundImage), /repeating-linear-gradient/, 'not-returned days are drawn as a hatch');
         assert.match(await page.locator('.grid-legend').innerText(), /No calendar data/);
+        assert.doesNotMatch(await page.locator('#summary-list').innerText(), /Next reservation/, 'no reservation is named where the grid draws no data');
       }
       if (variant === 'disagreement') {
         assert.match(await page.locator('#reference-note').innerText(), /no date is treated as selected/);
