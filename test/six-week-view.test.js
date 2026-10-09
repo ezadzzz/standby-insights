@@ -71,7 +71,8 @@ test('an unspecified gap end is said to be unspecified, never open-ended', () =>
     { start_date: '2026-09-01', move_in_allowed: false, unbookable_reason: 'less_than_minimum_nightly_stay' },
   ]), TODAY, TODAY);
   assert.equal(describeStandbyOnly(view).headline, 'Standby-only from Sep 1, end unspecified');
-  assert.equal(describeStandbyOnly(view).detail, "Too short for a standard stay");
+  // Never "too short" beside an end that isn't supplied: the two read as a contradiction.
+  assert.equal(describeStandbyOnly(view).detail, "Standard stays can't fit");
 });
 
 test('no standby-only nights is stated only when every night through the view is covered', () => {
@@ -79,7 +80,9 @@ test('no standby-only nights is stated only when every night through the view is
   assert.equal(describeStandbyOnly(covered).headline, 'No standby-only nights in the next six weeks');
 
   const short = sixWeekView(ranges([{ start_date: '2026-09-01', end_date: '2026-09-30', move_in_allowed: true }]), TODAY, TODAY);
-  assert.equal(describeStandbyOnly(short).headline, "The returned calendar doesn't cover every night through Oct 23");
+  // Withheld, not softened: names what is missing and draws no conclusion from it.
+  assert.equal(describeStandbyOnly(short).headline, 'Some nights through Oct 23 have no calendar data');
+  assert.equal(describeStandbyOnly(short).noGap, false);
   assert.equal(short.days[41].kind, 'not-returned');
 });
 

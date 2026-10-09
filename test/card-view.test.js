@@ -103,7 +103,9 @@ test('a card says the check-in is reserved even when a standby-only gap follows 
 test('a card without a standby-only gap keeps its reservation fact and never implies one', () => {
   const view = cardFor([{ start_date: '2026-01-01', end_date: '2026-02-01', move_in_allowed: true }]);
   assert.equal(view.isStandbyOnly, false);
-  assert.match(view.headlineText, /doesn't cover every night/);
+  assert.equal(view.headlineText, 'Some nights through Oct 26 have no calendar data');
+  // Withheld, not found: as quiet as the no-gap line, so cards with a gap stand out.
+  assert.equal(view.quiet, true);
 });
 
 test('the check-in marker appears only for the member’s own selected date', () => {

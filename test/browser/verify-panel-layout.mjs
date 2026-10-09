@@ -93,7 +93,7 @@ try {
         assert(await page.evaluate(() => document.getElementById('reference-note').compareDocumentPosition(document.getElementById('six-weeks')) & Node.DOCUMENT_POSITION_FOLLOWING), 'reference note precedes the grid');
       }
       if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /doesn’t list a monthly price/);
-      if (variant === 'missingPrice') assert.match(await page.locator('#signal-price .signal-value').innerText(), /unavailable/);
+      if (variant === 'missingPrice') assert.equal(await page.locator('#signal-price .signal-value').innerText(), 'This home: not supplied');
       if (variant === 'ready') {
         // A closed "About these marks" leaves no empty ruled band before the next rule.
         const gap = await page.evaluate(() => document.getElementById('all-ranges').getBoundingClientRect().top - document.getElementById('marks-disclosure').getBoundingClientRect().bottom);
@@ -118,7 +118,9 @@ try {
         assert.equal(await page.locator('#calendar-grid [data-kind]').count(), 42);
         assert.equal(await page.locator('#calendar-grid .check-in').count(), 1);
         assert.match(await page.locator('#calendar-grid [data-kind]').first().getAttribute('title'), /Sep 12 – Sep 24: Standby-only/);
-        assert.match(await page.locator('#tip-price').textContent(), /similar homes in this market/);
+        assert.match(await page.locator('#tip-price').textContent(), /other homes in this market/);
+        // Today carries no month, so its cell stays one line at every width.
+        assert.equal(await page.locator('#calendar-grid .today').innerText(), '12');
         assert.match(await page.locator('#tip-price').textContent(), /Not a quote for your dates/);
         assert.equal(await page.locator('#signal-price .signal-value').innerText(), '$256 below the median');
         assert.equal(await page.locator('#tip-price').isVisible(), false, 'tips start closed');

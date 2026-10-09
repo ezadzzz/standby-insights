@@ -86,7 +86,7 @@ test('the price disclosure shows only beside shown prices, and names its scope',
   const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: { amount: 2144, label: 'per month', terms: ['6 months'], note: null } };
   const ready = describeState({ checkedAt: null, comparison }).comparison;
   assert.match(ready.disclosure, /Not a quote for your dates/);
-  assert.match(ready.disclosure, /similar homes in this market/);
+  assert.match(ready.disclosure, /other homes in this market with the same number of bedrooms/);
   for (const status of ['unavailable', 'insufficient']) {
     assert.equal(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.disclosure, '');
   }
@@ -98,7 +98,7 @@ test('the price row and its tip state facts only, under one name for the price',
     const [row] = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: { ...comparison.subjectPrice, amount } } }).demandRows;
     assert.doesNotMatch(row.value, /demand|bookings/i);
     assert.equal(row.label, 'Flex price');
-    assert.equal(row.tip, 'This home’s Flex price against the median of similar homes in this market. Not a quote for your dates.');
+    assert.equal(row.tip, 'This home’s Flex price against the median of other homes in this market with the same number of bedrooms. Not a quote for your dates.');
     assert.doesNotMatch(row.tip, /may draw|bookings|lower|demand|Listed Flex rate/i);
   }
 });
@@ -140,7 +140,8 @@ test('price columns retain source labels and never show a median from incomplete
     assert.deepEqual(describeState({ checkedAt: null, comparison: { ...comparison, status } }).comparison.prices, []);
   }
   const missing = describeState({ checkedAt: null, comparison: { ...comparison, subjectPrice: null } }).comparison;
-  assert.equal(missing.prices[0].amount, 'Unavailable');
+  // "Unavailable" is the calendar's word for reserved or blocked days.
+  assert.equal(missing.prices[0].amount, 'Not supplied');
   assert.match(missing.subjectText, /doesn’t list a monthly price/);
 });
 
@@ -335,9 +336,9 @@ test('demand signals use none of the forbidden vocabulary and call an offer adve
 test('a comparison that is not ready is a short muted value with its full reason in the tip', () => {
   const state = { checkedAt: null, comparison: { status: 'insufficient', count: 4, checkedAt: null } };
   const [row] = describeState(state).demandRows;
-  assert.equal(row.value, 'Too few other homes (4 of 5)');
+  assert.equal(row.value, 'Too few other homes (4 priced, 5 needed)');
   assert.equal(row.muted, true);
-  assert.match(row.tip, /Only 4 similar homes listed a price/);
+  assert.match(row.tip, /Only 4 other homes listed a price/);
 });
 
 test('ready calendar: leads with the standby-only headline and a six-week grid marking today and the selected check-in', () => {
@@ -356,7 +357,8 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   assert.doesNotMatch(`${view.standbyOnly.detail} ${view.standbyOnly.explainer}`, /LOS|protect|safe until|guarantee|bump/i);
   assert.equal(view.grid.leadingBlanks, 6, 'Sep 12 is a Saturday');
   assert.equal(view.grid.cells.length, 42);
-  assert.deepEqual(view.grid.cells[0], { dayText: 'Sep 12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only, too short for a standard stay' });
+  // No month on today: "Sep 12" wrapped at 320px; the month shows on the 1st.
+  assert.deepEqual(view.grid.cells[0], { dayText: '12', kind: 'standby-only', isToday: true, isCheckIn: false, title: 'Sep 12 – Sep 24: Standby-only, too short for a standard stay' });
   assert.equal(view.grid.cells[3].isCheckIn, true);
   assert.equal(view.grid.cells[19].dayText, 'Oct 1');
   assert.match(view.grid.label, /standby-only/);
@@ -465,7 +467,7 @@ test('with no reservation after the gap, the explainer drops the sentence about 
       { startDate: '2026-09-12', endDate: null, moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
     ],
   });
-  assert.equal(view.standbyOnly.detail, 'Too short for a standard stay');
+  assert.equal(view.standbyOnly.detail, "Standard stays can't fit");
   assert.equal(view.standbyOnly.explainer, 'Only Standby can book these nights.');
 });
 
@@ -474,4 +476,44 @@ test('a one-day checking state names the wait once, without the word Loading', (
   assert.equal(view.calendarStatusText, 'Checking the calendar…');
   assert.equal(view.demandRows[0].value, 'Checking…');
   assert.doesNotMatch(JSON.stringify(view), /Loading/);
+});
+
+test('panel fine print uses the member’s words (#88)', () => {
+  const ready = { status: 'ready', identity: 'confirmed', checkedAt: 1000, isChecking: false, isStale: false, error: null, today: '2026-09-12', referenceDate: '2026-09-12' };
+  const range = (startDate, endDate, extra = {}) => ({ startDate, endDate, moveInAllowed: false, isReservation: false, unbookableReason: null, ...extra });
+
+  assert.equal(describeState({ ...ready, ranges: [], checkIn: { status: 'none', date: null } }).referenceNote,
+    'No check-in date found on this page. Facts below are stated against today, Sep 12.');
+
+  const reserved = (endDate) => describeState({ ...ready, ranges: [], checkIn: { status: 'selected', date: '2026-09-12' },
+    summary: { referenceDate: '2026-09-12', intersectingReservation: { startDate: '2026-09-01', endDate } } }).summaryItems[0];
+  assert.equal(reserved('2026-10-10'), 'Reserved Sep 1 – Oct 10. Its end date doesn’t say when a stay could start or end.');
+  assert.equal(reserved(null), 'Reserved from Sep 1, end date not supplied.');
+
+  const covered = (coverageEnd) => describeState({ ...ready, ranges: [], checkIn: { status: 'none', date: null },
+    summary: { noReservationsInCalendar: true, noStandardMoveInInCalendar: true, coverageStart: '2026-09-01', coverageEnd } }).summaryItems;
+  assert.deepEqual(covered('2026-12-31'), ['No reservation Sep 1 – Dec 31.', 'No standard move-in Sep 1 – Dec 31.']);
+  assert.deepEqual(covered(null), [
+    'No reservation from Sep 1; the calendar’s last range has no end date.',
+    'No standard move-in from Sep 1; the calendar’s last range has no end date.',
+  ]);
+
+  const comparison = { status: 'ready', median: 2400, count: 12, checkedAt: 1000, subjectPrice: null };
+  const [row] = describeState({ checkedAt: null, comparison }).demandRows;
+  assert.equal(row.value, 'This home: not supplied');
+  for (const status of ['loading', 'unavailable', 'insufficient']) {
+    const text = JSON.stringify(describeState({ checkedAt: null, comparison: { ...comparison, status, count: 4 } }).comparison);
+    assert.doesNotMatch(text, /similar/, `one name for the other homes (${status})`);
+  }
+
+  // "Move-in blocked" is defined once, beside the legend, in words.
+  const explainer = describeState({ ...ready, checkIn: { status: 'none', date: null }, ranges: [range('2026-09-01', null)] }).grid.marksExplainer;
+  assert.match(explainer, /^Unavailable means reserved or move-in blocked\. Move-in blocked means Landing doesn't allow a move-in that night for a reason other than a reservation\./);
+
+  // After a rate limit, the next step is to wait, not to retry at once.
+  const limited = describeState({ status: 'unavailable', checkedAt: null, error: 'RateLimitedError' });
+  assert.equal(limited.refreshNote, 'Check failed: Landing asked this extension to slow down. Wait a few minutes, then Refresh.');
+  const limitedHeld = describeState({ status: 'unavailable', checkedAt: 1000, isStale: true, error: 'RateLimitedError' });
+  assert.match(limitedHeld.refreshNote, /Showing an older check\. Wait a few minutes, then Refresh\.$/);
+  assert.match(describeState({ status: 'unavailable', checkedAt: null, error: 'GateTimeoutError' }).refreshNote, /Refresh to try again\.$/);
 });
