@@ -98,7 +98,7 @@ cover.
 
 ## Brand Commitments
 
-- Name: **Standby Browsing Insights (personal use)**. No logo, wordmark, or
+- Name: **Standby Insights** (renamed 2026-10-08 from "Standby Browsing Insights (personal use)" for open-source release). No logo, wordmark, or
   palette exists.
 - **Annotations must read as clearly foreign to Landing** — visually distinct
   from Landing's own card content, so no statement of this extension's can be

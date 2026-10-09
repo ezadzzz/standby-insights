@@ -10,6 +10,8 @@ It's a personal project by a Standby member. It isn't made, endorsed or supporte
 
 **On each Standby search card**, as it scrolls into view:
 
+![Two Standby search cards with Standby Insights notes: one shows no reservation in the next six weeks, the other is standby-only through Oct 21 because of an Oct 23 reservation](docs/images/cards.png)
+
 - Whether the home has a standby-only gap from your date, and the reservation that creates it ("Standby-only through Oct 24. Standard stays can't fit before the Oct 26 reservation.")
 - A six-week strip starting today, with your check-in date marked
 - A **View evidence** button that opens the side panel
