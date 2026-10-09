@@ -135,7 +135,8 @@ export function describeStandbyOnly(view) {
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
       ? `Standard stays can't fit before the ${short(gap.nextReservation.startDate)} reservation, while it holds`
-      : 'Too short for a standard stay';
+      // Not "too short": beside an unspecified end that read as a contradiction.
+      : "Standard stays can't fit";
     return { isStandbyOnly: true, headline, detail };
   }
   if (!view.inView) return { isStandbyOnly: false, headline: 'Your check-in is past this six-week view', detail: '' };
@@ -145,7 +146,8 @@ export function describeStandbyOnly(view) {
     noGap: view.covered,
     headline: view.covered
       ? 'No standby-only nights in the next six weeks'
-      : `The returned calendar doesn't cover every night through ${short(view.lastDate)}`,
+      // Says what is missing and draws nothing from it (Principle 1).
+      : `Some nights through ${short(view.lastDate)} have no calendar data`,
     detail: '',
   };
 }
