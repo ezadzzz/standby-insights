@@ -162,6 +162,14 @@
   border-top-color: #2d3538;
   border-bottom-width: 0;
 }
+@media (forced-colors: active) {
+  /* The key's words follow the system palette; only its swatches keep their
+     drawn colors. The graphite triangle would sink into a dark Canvas. */
+  .standby-evidence .standby-strip-key { forced-color-adjust: auto; }
+  .standby-strip-key i { forced-color-adjust: none; }
+  .standby-strip-check-in,
+  .standby-strip-key i[data-kind="check-in"] { border-top-color: CanvasText; }
+}
 
 /* Pulled left by its own padding, so its words start on the note's text edge. */
 .standby-evidence-button {
