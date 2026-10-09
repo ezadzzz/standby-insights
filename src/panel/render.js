@@ -348,6 +348,8 @@ export function describeState(state) {
     identityNote: '',
     identityNoteLead: '',
     checkTimeText: 'Not checked yet',
+    noSubject: false,
+    nextStepText: '',
     calendarStatusText: '',
     calendarVisible: false,
     referenceNote: '',
@@ -415,6 +417,13 @@ export function describeState(state) {
 
   view.calendarVisible = Boolean(view.calendarStatusText || view.referenceNote || view.grid
     || view.summaryItems.length || view.allRanges.length);
+
+  // Opened from the toolbar with no home selected: nothing to check or
+  // refresh, so the panel says how to choose one instead.
+  if (!state.slug && state.status === 'idle' && !state.isChecking && state.checkedAt === null && !state.error) {
+    Object.assign(view, { noSubject: true, headingText: 'No home selected', checkTimeText: '',
+      nextStepText: 'Open a home’s Standby page, or press View evidence on a card.' });
+  }
 
   return view;
 }

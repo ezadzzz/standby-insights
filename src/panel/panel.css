@@ -63,7 +63,9 @@ h1 {
   overflow-wrap: break-word;
   padding-top: 10px;
 }
-#check-time, #refresh-status, #identity-note { grid-column: 1 / -1; }
+#check-time, #refresh-status, #identity-note, #next-step { grid-column: 1 / -1; }
+/* The empty panel's one next step: read at body weight, not as fine print. */
+#next-step { margin-top: 6px; text-wrap: pretty; }
 #check-time { color: var(--on-2); font: 12px/1.5 var(--mono); }
 #refresh-status:not(:empty), #identity-note:not(:empty) { margin-top: 8px; font: 600 13px/1.45 var(--mono); }
 /* The identity note's lead is its status sentence; the explanation after it is regular. */

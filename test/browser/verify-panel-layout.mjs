@@ -37,7 +37,7 @@ try {
   const variants = {
     ready: state,
     long: {...state, unitName:'LongUnitName'.repeat(12), isStale:true, error:'timeout'},
-    empty: {status:'idle', checkedAt:null},
+    noSubject: {status:'idle', slug:null, checkedAt:null},
     unavailable: {status:'unavailable',checkedAt:null,error:'GateTimeoutError'},
     mismatch: {status:'mismatch',checkedAt:null},
     loading: {status:'idle',checkedAt:null,isChecking:true,comparison:{status:'loading'}},
@@ -53,15 +53,22 @@ try {
     for (const [variant, current] of Object.entries(variants)) {
       await page.evaluate(s => window.deliver(s), current);
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow ${width}/${variant}`);
-      assert(await page.locator('#refresh-button').isVisible());
-      assert.equal(await page.locator('#refresh-button').getAttribute('aria-disabled'), current.isChecking ? 'true' : null, `refresh aria-disabled while checking ${width}/${variant}`);
-      assert.equal(await page.locator('#refresh-button').innerText(), 'Refresh', `refresh label ${width}/${variant}`);
+      // With no home selected there is nothing to refresh; the next step replaces it.
+      assert.equal(await page.locator('#refresh-button').isVisible(), variant !== 'noSubject', `refresh shown only with a subject ${width}/${variant}`);
+      assert.equal(await page.locator('#next-step').isVisible(), variant === 'noSubject', `next step only without a subject ${width}/${variant}`);
+      if (variant === 'noSubject') {
+        assert.equal(await page.locator('#unit-heading').innerText(), 'No home selected');
+        assert.equal(await page.locator('#next-step').innerText(), 'Open a home’s Standby page, or press View evidence on a card.');
+      } else {
+        assert.equal(await page.locator('#refresh-button').getAttribute('aria-disabled'), current.isChecking ? 'true' : null, `refresh aria-disabled while checking ${width}/${variant}`);
+        assert.equal(await page.locator('#refresh-button').innerText(), 'Refresh', `refresh label ${width}/${variant}`);
+      }
       const statusLines = await page.$$eval('#refresh-status, #identity-note, #calendar-status', els => els.filter(el => el.textContent && el.checkVisibility()).length);
       assert(statusLines <= 1, `at most one status sentence ${width}/${variant}`);
       assert.equal(await page.locator('#six-weeks').isVisible(), Boolean(current.status === 'ready' && current.today && current.ranges), `grid ${width}/${variant}`);
       assert.equal(await page.locator('#signal-price').isVisible(), Boolean(current.comparison), `price signal ${width}/${variant}`);
-      assert.equal(await page.locator('#calendar-section').isVisible(), !['empty','mismatch','unavailable'].includes(variant), `calendar section ${width}/${variant}`);
-      assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
+      assert.equal(await page.locator('#calendar-section').isVisible(), !['noSubject','mismatch','unavailable'].includes(variant), `calendar section ${width}/${variant}`);
+      assert.doesNotMatch(await page.locator('#check-time').innerText(), /Not checked yet/, `check time ${width}/${variant}`);
       if (variant === 'unavailable') assert.match(await page.locator('#refresh-status').innerText(), /^Check failed: .*Refresh to try again\.$/);
       if (variant === 'loading') assert.match(await page.locator('#calendar-status').innerText(), /Checking the calendar/);
       if (variant === 'mismatch') {
@@ -139,7 +146,7 @@ try {
         assert.equal(await page.locator('#all-ranges').evaluate(el => el.open), false, 'the range list starts collapsed');
         assert.equal(await page.locator('#all-ranges-list li').last().isVisible(), false);
       }
-      if (process.argv.includes('--screenshots') && ((variant === 'ready' && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement','reserved','loading','mismatch'].includes(variant)))) {
+      if (process.argv.includes('--screenshots') && ((['ready','noSubject'].includes(variant) && width !== 200) || (width === 320 && ['unavailable','long','notReturned','disagreement','reserved','loading','mismatch'].includes(variant)))) {
         await page.screenshot({path:`.impeccable/review/panel-note-build-${variant === 'ready' ? '' : variant + '-'}${width}.png`,fullPage:true});
       }
     }

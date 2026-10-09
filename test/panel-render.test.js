@@ -2,11 +2,27 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { describeState } from '../src/panel/render.js';
 
-test('idle state: prompts without asserting anything about a unit', () => {
-  const view = describeState({ status: 'idle', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null });
-  assert.equal(view.checkTimeText, 'Not checked yet');
+test('no subject: one sentence says how to choose a home, and nothing claims a unit or offers Refresh', () => {
+  const view = describeState({ status: 'idle', slug: null, identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null });
+  assert.equal(view.noSubject, true);
+  assert.equal(view.headingText, 'No home selected');
+  assert.equal(view.nextStepText, 'Open a home’s Standby page, or press View evidence on a card.');
+  assert.equal(view.checkTimeText, '');
   assert.equal(view.grid, null);
-  assert.equal(view.headingText, 'This listing');
+  assert.equal(view.calendarVisible, false);
+  assert.deepEqual(view.demandRows, []);
+});
+
+test('once there is a subject, the no-subject state never shows', () => {
+  const base = { slug: 'lantana-hills-2321', identity: null, unitName: null, ranges: null, checkedAt: null, isChecking: false, isStale: false, error: null };
+  const idle = describeState({ ...base, status: 'idle' });
+  assert.equal(idle.noSubject, false);
+  assert.equal(idle.nextStepText, '');
+  assert.equal(idle.checkTimeText, 'Not checked yet');
+  assert.equal(idle.headingText, 'This listing');
+  // A check started or failed without a slug yet is still not "no home selected".
+  assert.equal(describeState({ ...base, slug: null, status: 'idle', isChecking: true }).noSubject, false);
+  assert.equal(describeState({ ...base, slug: null, status: 'unavailable', error: 'GateTimeoutError' }).noSubject, false);
 });
 
 test('mismatched or ambiguous identity attaches no unit-specific claim, including in the heading', () => {
