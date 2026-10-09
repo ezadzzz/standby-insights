@@ -11,10 +11,11 @@ function formatDate(isoDate) {
 /** The whole returned range a grid day belongs to, shown on hover. */
 function rangeText(range) {
   const end = range.endDate ? formatDate(range.endDate) : 'unspecified end';
-  const dateText = `${formatDate(range.startDate)} – ${end}`;
+  const start = formatDate(range.startDate);
+  const dateText = end === start ? start : `${start} – ${end}`;
   const standbyOnly = range.unbookableReason === 'less_than_minimum_nightly_stay';
   let statusText = range.moveInAllowed ? 'Standard move-in allowed' : 'Move-in blocked';
-  if (standbyOnly) statusText = 'Standby-only: too short for a standard stay';
+  if (standbyOnly) statusText = 'Standby-only, too short for a standard stay';
   if (range.isReservation) statusText = 'Reserved';
   return `${dateText}: ${statusText}`;
 }
@@ -51,7 +52,8 @@ function summaryItemsFor(summary, omitNext) {
   if (next && !omitNext) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
   }
-  if (summary.noStandardMoveInBeforeNext) {
+  // The standby-only detail line already says no standard stay fits before it.
+  if (summary.noStandardMoveInBeforeNext && !omitNext) {
     items.push('No standard move-in offered before that reservation.');
   }
   if (summary.noReservationsInCalendar) {
@@ -114,6 +116,9 @@ function calendarGrid(weeks, today, checkIn) {
 }
 
 const UNAVAILABLE = 'Unavailable';
+// A fact the response left out. Not "Unavailable", which the calendar uses for
+// reserved or blocked days.
+const NOT_SUPPLIED = 'Not supplied';
 
 /**
  * A failure's cause in member words, distinct from a calendar the response
@@ -129,20 +134,23 @@ function failureCauseText(error) {
  * Names the unit as the page shows it and what kind of failure this was,
  * without saying the response was that unit: a mismatch is a response that
  * described a different unit, an ambiguous one lacked what confirming needed.
+ * The lead is the status sentence; the rest explains it in a quieter weight.
  */
-function identityNoteText(state) {
+function identityNoteParts(state) {
   const shown = state.displayedName;
-  if (!shown) return 'Evidence unavailable: could not confirm this is the exact displayed unit. Refresh to check again.';
+  if (!shown) return { lead: 'Evidence unavailable: could not confirm this is the exact displayed unit.', rest: 'Refresh to check again.' };
   const why = state.status === 'mismatch'
-    ? "Landing's data for this listing did not match"
-    : "Landing's data did not include enough to confirm";
-  return `Evidence unavailable: could not confirm this is ${shown}. ${why} ${shown} as shown on this page. Refresh to check again.`;
+    ? "Landing's data for this listing did not match what this page shows."
+    : "Landing's data did not include enough to confirm it.";
+  return { lead: `Evidence unavailable: could not confirm this is ${shown}.`, rest: `${why} Refresh to check again.` };
 }
 
 // Said once, in the panel only, under the headline where the member decides.
 // The last sentence is the part a member can't see on the calendar: the gap is
 // a consequence of the reservation after it.
-const STANDBY_ONLY_EXPLAINER = 'Only Standby can book these nights. If the reservation after them moves or is cancelled, a standard stay may fit.';
+// With no reservation after the gap, only the first sentence is true.
+const STANDBY_ONLY_EXPLAINER = 'Only Standby can book these nights.';
+const STANDBY_ONLY_EXPLAINER_NEXT = `${STANDBY_ONLY_EXPLAINER} If the reservation after them moves or is cancelled, a standard stay may fit.`;
 
 const moneyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 
@@ -163,7 +171,8 @@ function subjectPriceText(price) {
 
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
-const COMPARISON_DISCLOSURE = 'Listed Flex rate vs. similar homes in this market. A lower price may draw more bookings. Not a quote for your dates.';
+// States what the figures are and nothing about what they mean (No Verdict Rule).
+const COMPARISON_DISCLOSURE = 'This home’s Flex price against the median of similar homes in this market. Not a quote for your dates.';
 
 
 /**
@@ -215,23 +224,23 @@ function comparisonView(state) {
 }
 
 function scoreText(score) {
-  if (!score) return UNAVAILABLE;
+  if (!score) return NOT_SUPPLIED;
   return score.description ? `${score.value} (${score.description})` : String(score.value);
 }
 
 /** The same facts split for a location tile: a short figure, then what qualifies it. */
 function scoreTile(score) {
-  return score ? { value: String(score.value), note: score.description ?? '' } : { value: UNAVAILABLE, note: '' };
+  return score ? { value: String(score.value), note: score.description ?? '' } : { value: NOT_SUPPLIED, note: '' };
 }
 
 function ratingTile(rating) {
-  if (!rating) return { value: UNAVAILABLE, note: '' };
+  if (!rating) return { value: NOT_SUPPLIED, note: '' };
   if (rating.count === 0) return { value: 'Unrated', note: 'no reviews' };
   return { value: String(rating.average), note: `${rating.count} ${rating.count === 1 ? 'review' : 'reviews'}` };
 }
 
 function ratingText(rating) {
-  if (!rating) return UNAVAILABLE;
+  if (!rating) return NOT_SUPPLIED;
   // A building nobody has reviewed is unrated. Stating its average would read
   // as a score the reviews never gave it.
   if (rating.count === 0) return 'Unrated (no reviews)';
@@ -251,7 +260,7 @@ function ratingText(rating) {
  * never collapsed into a unit-level deal.
  */
 function flexSignal(flexOptions) {
-  if (flexOptions === null) return { text: UNAVAILABLE, tip: OFFER_UNKNOWN_TIP };
+  if (flexOptions === null) return { text: NOT_SUPPLIED, tip: OFFER_UNKNOWN_TIP };
   if (flexOptions.length === 0) return { text: 'No Flex terms supplied', tip: OFFER_UNKNOWN_TIP };
 
   const stated = flexOptions.filter((option) => option.specialOffer !== null);
@@ -268,11 +277,11 @@ const MINIMUM_STAY_TIP = 'A shorter minimum stay lets short-term guests book too
 
 /**
  * The price signal in one row: the gap leads, the figures follow. The value
- * states no direction; only the tip offers a hedged hint.
+ * states no direction, and neither does the tip.
  */
 function priceRow(view, comparison) {
   const row = { id: 'price', label: 'Flex price', value: '', sub: '', muted: false, tip: view.disclosure };
-  if (comparison.status === 'loading') return { ...row, value: 'Loading…', muted: true, tip: view.statusText };
+  if (comparison.status === 'loading') return { ...row, value: 'Checking…', muted: true, tip: view.statusText };
   if (comparison.status !== 'ready') {
     const short = comparison.status === 'insufficient'
       ? `Too few other homes (${comparison.count} of ${MINIMUM_PEERS})`
@@ -309,7 +318,7 @@ function demandRowsFor(view, state) {
  */
 function factItemsFor(facts) {
   return [
-    { label: 'Minimum stay', text: facts.minimumStay === null ? UNAVAILABLE : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
+    { label: 'Minimum stay', text: facts.minimumStay === null ? NOT_SUPPLIED : `${facts.minimumStay} ${facts.minimumStay === 1 ? 'night' : 'nights'}` },
     { label: 'Rating', text: ratingText(facts.rating), ...ratingTile(facts.rating) },
     { label: 'Walk score', text: scoreText(facts.scores.walk), ...scoreTile(facts.scores.walk) },
     { label: 'Transit score', text: scoreText(facts.scores.transit), ...scoreTile(facts.scores.transit) },
@@ -327,6 +336,7 @@ export function describeState(state) {
     // page shows it; the notes below say it was not confirmed.
     headingText: state.unitName ?? state.displayedName ?? 'This listing',
     identityNote: '',
+    identityNoteLead: '',
     checkTimeText: 'Not checked yet',
     calendarStatusText: '',
     calendarVisible: false,
@@ -354,7 +364,9 @@ export function describeState(state) {
   } else if (cause) {
     view.refreshNote = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${cause}. Refresh to try again.`;
   } else if (state.status === 'mismatch' || state.status === 'ambiguous') {
-    view.identityNote = identityNoteText(state);
+    const { lead, rest } = identityNoteParts(state);
+    view.identityNote = `${lead} ${rest}`;
+    view.identityNoteLead = lead;
   } else if (state.status === 'unavailable') {
     view.calendarStatusText = 'Calendar unavailable. Use Refresh to check again.';
   }
@@ -373,7 +385,8 @@ export function describeState(state) {
       // The standby-only detail line already names this reservation.
       omitNext = view.standbyOnly.isStandbyOnly
         && weeks.gap?.nextReservation?.startDate === state.summary?.nextReservation?.startDate;
-      view.standbyOnly.explainer = view.standbyOnly.isStandbyOnly ? STANDBY_ONLY_EXPLAINER : '';
+      if (!view.standbyOnly.isStandbyOnly) view.standbyOnly.explainer = '';
+      else view.standbyOnly.explainer = weeks.gap?.nextReservation ? STANDBY_ONLY_EXPLAINER_NEXT : STANDBY_ONLY_EXPLAINER;
       view.grid = calendarGrid(weeks, state.today, state.checkIn);
     }
     if (state.summary) view.summaryItems = summaryItemsFor(state.summary, omitNext);

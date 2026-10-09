@@ -66,6 +66,9 @@ h1 {
 #check-time, #refresh-status, #identity-note { grid-column: 1 / -1; }
 #check-time { color: var(--on-2); font: 12px/1.5 var(--mono); }
 #refresh-status:not(:empty), #identity-note:not(:empty) { margin-top: 8px; font: 600 13px/1.45 var(--mono); }
+/* The identity note's lead is its status sentence; the explanation after it is regular. */
+#identity-note:not(:empty) { font-weight: 400; }
+#identity-note strong { font-weight: 600; }
 #refresh-button {
   min-height: 44px;
   padding: 0 2px;
@@ -146,13 +149,16 @@ h2 {
 #marks-disclosure > p { margin: 0 0 4px; }
 .supporting { color: var(--on-2); font-size: 13px; }
 
-.summary { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--outline); }
+/* Each ruled block under the grid opens at the rule and closes 12px above the next. */
+.summary { padding: 12px 0; border-top: 1px dashed var(--outline); }
+/* Without "About these marks" the legend ends the grid; keep it off the next rule. */
+#six-weeks:has(> #marks-disclosure[hidden]) { padding-bottom: 12px; }
 /* Quieter than the headline it follows: the headline is the answer, these qualify it. */
 #summary-list { font-size: 13px; text-wrap: pretty; }
 #summary-list li + li { margin-top: 4px; color: var(--on-2); }
 
 /* Every returned range, past the grid's six weeks: a typed instruction that opens a ledger. */
-#all-ranges { margin-top: 12px; border-top: 1px dashed var(--outline); }
+#all-ranges { margin-top: 0; border-top: 1px dashed var(--outline); }
 #all-ranges summary, #marks-disclosure summary {
   display: flex;
   align-items: center;
@@ -174,7 +180,7 @@ h2 {
 .signals dt { grid-column: 2; display: flex; align-items: center; gap: 6px; margin-bottom: 1px; color: var(--on-2); font: 12px/1.5 var(--mono); }
 .signals dd { grid-column: 2; }
 .signal-value { font: 600 16px/1.35 var(--mono); }
-.signal-sub { color: var(--on-2); font: 12px/1.45 var(--mono); }
+.signal-sub { color: var(--on-2); font: 12px/1.45 var(--mono); text-wrap: pretty; }
 .muted { color: var(--on-2); font-weight: 400; }
 
 /* A typed footnote mark: square, outlined, the size of a label. */
@@ -215,8 +221,9 @@ h2 {
 }
 
 /* Location tiles: an icon square, the value, then its label. */
-.places { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(180px, calc(50% - 6px)), 1fr)); gap: 16px 12px; }
-.places > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; align-items: center; }
+/* Top-aligned, so values in a row stay level when one label wraps. */
+.places { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(180px, calc(50% - 6px)), 1fr)); align-items: start; gap: 16px 12px; }
+.places > div { display: grid; grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 10px; align-items: start; }
 .place-icon { grid-row: span 2; display: grid; place-items: center; width: 32px; height: 32px; background: #f1f3f3; color: var(--on); }
 .places dd { grid-column: 2; grid-row: 1; font: 600 18px/1.2 var(--mono); }
 .places dd.muted { font-size: 13px; font-weight: 400; }

@@ -60,14 +60,15 @@ function placeTile(item) {
   dt.textContent = item.label;
   if (item.note) {
     const note = document.createElement('span');
-    note.textContent = ` · ${item.note}`;
+    // A non-breaking hyphen keeps a descriptor like Car-Dependent on one line.
+    note.textContent = ` · ${item.note.replaceAll('-', '\u2011')}`;
     dt.append(note);
   }
   const dd = document.createElement('dd');
   dd.textContent = item.value;
   // The tile's full sentence, for anyone who reads the value without its label.
   dd.title = item.text;
-  if (item.value === 'Unavailable') dd.className = 'muted';
+  if (item.value === 'Not supplied') dd.className = 'muted';
   row.append(icon, dt, dd);
   return row;
 }
@@ -159,7 +160,10 @@ function render(state) {
   const view = describeState(state);
   heading.textContent = view.headingText;
   heading.title = view.headingText;
-  identityNote.textContent = view.identityNote;
+  // The status sentence leads at status weight; its explanation stays regular.
+  const lead = document.createElement('strong');
+  lead.textContent = view.identityNoteLead;
+  identityNote.replaceChildren(...(view.identityNote ? [lead, view.identityNote.slice(view.identityNoteLead.length)] : []));
   checkTime.textContent = view.checkTimeText;
   refreshStatus.textContent = view.refreshNote;
   calendarStatus.textContent = view.calendarStatusText;

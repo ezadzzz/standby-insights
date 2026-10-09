@@ -163,8 +163,9 @@
   border-bottom-width: 0;
 }
 
+/* Pulled left by its own padding, so its words start on the note's text edge. */
 .standby-evidence-button {
-  margin-top: 2px;
+  margin: 2px 0 0 -4px;
   min-height: 24px;
   padding: 6px 4px;
   border: 0;
@@ -195,7 +196,7 @@
   font-size: 13px;
 }
 .standby-evidence-notice p { flex: 1 1 28ch; }
-.standby-evidence-notice .standby-evidence-button { margin: 0; }
+.standby-evidence-notice .standby-evidence-button { margin: 0 0 0 -4px; }
 .standby-evidence-notice .standby-evidence-button[hidden] { display: none; }
 /* The arrow belongs to View evidence alone. */
 .standby-evidence-notice .standby-evidence-button::before { content: none; }

@@ -64,7 +64,16 @@ try {
       assert.doesNotMatch(await page.locator('#check-time').innerText(), variant === 'empty' ? /^$/ : /Not checked yet/, `check time ${width}/${variant}`);
       if (variant === 'unavailable') assert.match(await page.locator('#refresh-status').innerText(), /^Check failed: .*Refresh to try again\.$/);
       if (variant === 'loading') assert.match(await page.locator('#calendar-status').innerText(), /Checking the calendar/);
-      if (variant === 'mismatch') assert.match(await page.locator('#identity-note').innerText(), /could not confirm/);
+      if (variant === 'mismatch') {
+        assert.match(await page.locator('#identity-note').innerText(), /could not confirm/);
+        // Status weight for the lead sentence only; the explanation stays regular.
+        assert.deepEqual(await page.locator('#identity-note').evaluate(el => [getComputedStyle(el.querySelector('strong')).fontWeight, getComputedStyle(el).fontWeight]), ['600', '400']);
+      }
+      if (variant === 'reserved') {
+        // The summary closes 12px above the range list's rule rather than touching it.
+        const gap = await page.evaluate(() => document.getElementById('all-ranges').getBoundingClientRect().top - document.getElementById('summary-list').getBoundingClientRect().bottom);
+        assert(gap >= 12, `summary clears the next rule ${width} (${gap}px)`);
+      }
       assert.equal(await page.locator('#announcer').textContent(), '', `no announcement without a member Refresh ${width}/${variant}`);
       if (variant === 'long') {
         assert.match(await page.locator('#refresh-status').innerText(), /older check/);
@@ -86,6 +95,18 @@ try {
       if (variant === 'missingPrice') assert.match(await page.locator('#tip-price').textContent(), /doesn’t list a monthly price/);
       if (variant === 'missingPrice') assert.match(await page.locator('#signal-price .signal-value').innerText(), /unavailable/);
       if (variant === 'ready') {
+        // A closed "About these marks" leaves no empty ruled band before the next rule.
+        const gap = await page.evaluate(() => document.getElementById('all-ranges').getBoundingClientRect().top - document.getElementById('marks-disclosure').getBoundingClientRect().bottom);
+        assert(gap <= 0, `no empty band under closed marks ${width} (${gap}px)`);
+        // A descriptor never breaks at its hyphen.
+        const lines = await page.evaluate(() => {
+          const node = [...document.querySelectorAll('.places dt span')].find((el) => el.textContent.includes('Dependent')).firstChild;
+          const r = document.createRange();
+          r.setStart(node, node.data.indexOf('Car'));
+          r.setEnd(node, node.data.length);
+          return new Set([...r.getClientRects()].map((q) => Math.round(q.top))).size;
+        });
+        assert.equal(lines, 1, `Car-Dependent stays on one line ${width}`);
         assert.equal(await page.locator('.signals dt').count(), 3);
         assert.equal(await page.locator('.places dt').count(), 4);
         assert.equal(await page.locator('.places svg[aria-hidden="true"]').count(), 4);
