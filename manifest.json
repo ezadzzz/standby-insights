@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Standby Browsing Insights (personal use)",
+  "name": "Standby Insights",
   "version": "0.1.0",
-  "description": "Shows exact-unit calendar evidence for a Landing Standby detail page in a side panel.",
+  "description": "Shows standby-only nights, reservations and price context on Landing Standby search cards and in a side panel.",
   "permissions": ["sidePanel", "webNavigation"],
   "host_permissions": ["https://www.hellolanding.com/*"],
   "background": {

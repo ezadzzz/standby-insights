@@ -98,7 +98,7 @@ cover.
 
 ## Brand Commitments
 
-- Name: **Standby Browsing Insights (personal use)**. No logo, wordmark, or
+- Name: **Standby Insights** (renamed 2026-10-08 from "Standby Browsing Insights (personal use)" for open-source release). No logo, wordmark, or
   palette exists.
 - **Annotations must read as clearly foreign to Landing** — visually distinct
   from Landing's own card content, so no statement of this extension's can be
@@ -122,15 +122,15 @@ cover.
 
 ## Evidence on Hand
 
-- Live verified behavior in `README.md` and `test/browser/verify-unpacked.mjs`:
+- Live verified behavior in `docs/DEVELOPMENT.md` and `test/browser/verify-unpacked.mjs`:
   a 42-check unpacked-Chromium run against the live public site, plus
   signed-in desktop Chrome observations dated 2026-09-11.
 - 18 fixture test files under `test/`, including captured response fixtures in
   `test/fixtures/`.
-- Real example data recorded in `README.md`: unit `Lantana Hills 2321`, Austin
+- Real example data recorded in `docs/DEVELOPMENT.md`: unit `Lantana Hills 2321`, Austin
   two-bedroom, `$2,144 per month`, 9 calendar ranges, and a real annotation
   string.
-- Named open acceptance gaps are recorded in `README.md` and must not be
+- Named open acceptance gaps are recorded in `docs/DEVELOPMENT.md` and must not be
   presented as covered: the toolbar-icon path, a real 429, side-panel port
   disconnect on dismissal, service-worker eviction, and route/locale coverage.
 - Absent, and never to be invented: users other than the author, testimonials,
