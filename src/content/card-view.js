@@ -81,6 +81,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
     view.quiet = true;
   } else {
     view.headlineText = statement.headline;
+    view.quiet = statement.noGap === false; // withheld, not found: as quiet as the no-gap line
     view.detailText = statement.detail || reservationLine(summary, referenceDate);
   }
   // The marker is the member's own date and needs no sentence; without one the

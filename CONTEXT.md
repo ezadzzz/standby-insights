@@ -67,7 +67,9 @@ labels):
 
 - *Move-in blocked* — Landing's calendar marks the night unavailable for a
   reason other than a reservation or a standby-only gap. Explained once,
-  statically, beside the panel legend.
+  statically, beside the panel legend, in the member's words: "Landing doesn't
+  allow a move-in that night for a reason other than a reservation" (standby-only
+  nights are keyed apart, so the explainer doesn't name them).
 - *No calendar data* (spec: **not returned**) — Landing's calendar says
   nothing about that night; it is not evidence the night is open. Explained
   once, statically, beside the panel legend.

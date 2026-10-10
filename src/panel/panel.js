@@ -3,6 +3,7 @@ import { describeState } from './render.js';
 const heading = document.getElementById('unit-heading');
 const identityNote = document.getElementById('identity-note');
 const checkTime = document.getElementById('check-time');
+const nextStep = document.getElementById('next-step');
 const refreshStatus = document.getElementById('refresh-status');
 const calendarStatus = document.getElementById('calendar-status');
 const referenceNote = document.getElementById('reference-note');
@@ -165,6 +166,10 @@ function render(state) {
   lead.textContent = view.identityNoteLead;
   identityNote.replaceChildren(...(view.identityNote ? [lead, view.identityNote.slice(view.identityNoteLead.length)] : []));
   checkTime.textContent = view.checkTimeText;
+  nextStep.textContent = view.nextStepText;
+  nextStep.hidden = !view.nextStepText;
+  // With no home selected there is nothing for Refresh to check.
+  refreshButton.hidden = view.noSubject;
   refreshStatus.textContent = view.refreshNote;
   calendarStatus.textContent = view.calendarStatusText;
   // aria-disabled, not disabled, so a running check never drops keyboard focus.

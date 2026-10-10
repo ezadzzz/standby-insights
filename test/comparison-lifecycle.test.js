@@ -75,7 +75,7 @@ test('the comparison states the median of the five other homes and excludes the 
 
   const view = h.view();
   assert.deepEqual(view.comparison.prices[1], { label: 'Median of 5 other homes', amount: '$3,000', unit: 'per month' });
-  assert.match(view.comparison.disclosure, /similar homes in this market/);
+  assert.match(view.comparison.disclosure, /other homes in this market with the same number of bedrooms/);
   assert.match(view.comparison.subjectText, /This home: \$2,000 per month\./);
   assert.match(view.comparison.disclosure, /Not a quote for your dates/);
 });
@@ -281,7 +281,7 @@ test('a first comparison that cannot be completed says so, and the calendar stay
 
   const view = h.view();
   assert.equal(view.grid.cells.length, 42);
-  assert.match(view.comparison.statusText, /Couldn’t load all the similar homes/);
+  assert.match(view.comparison.statusText, /Couldn’t load all the other homes/);
 });
 
 test('too few eligible peers reads as not enough comparable prices, not as a failure', async () => {
@@ -295,7 +295,7 @@ test('too few eligible peers reads as not enough comparable prices, not as a fai
   assert.equal(comparison.status, 'insufficient');
   assert.equal(comparison.count, 4);
   assert.equal(comparison.median, null);
-  assert.match(h.view().comparison.statusText, /Only 4 similar homes listed a price\. At least 5 are needed/);
+  assert.match(h.view().comparison.statusText, /Only 4 other homes listed a price\. At least 5 are needed/);
 });
 
 test('a subject with no eligible monthly price still gets a peer median, and its own price is not invented', async () => {
@@ -323,7 +323,7 @@ test('the comparison shows while the calendar is unusable, and loading while it 
   await tick();
 
   assert.equal(h.controller.getState().comparison.status, 'loading');
-  assert.match(h.view().comparison.statusText, /Comparing with similar homes/);
+  assert.match(h.view().comparison.statusText, /Comparing with other homes/);
 
   release();
   await tick();

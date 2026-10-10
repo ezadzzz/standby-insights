@@ -34,7 +34,7 @@ function referenceNoteText(state) {
   }
   // Stated in words as well as marked, so the mark is never the only carrier.
   if (state.checkIn?.status === 'selected') return `Your check-in: ${formatDate(state.referenceDate)}.`;
-  return `No selected check-in date was read. ${against}`;
+  return `No check-in date found on this page. ${against}`;
 }
 
 /** Visible reservation and standard move-in statements for the reference date. */
@@ -43,11 +43,14 @@ function summaryItemsFor(summary, omitNext) {
   const { intersectingReservation: current, nextReservation: next } = summary;
 
   if (current) {
-    let runs = current.endDate
-      ? `runs ${formatDate(current.startDate)} to ${formatDate(current.endDate)}`
-      : `runs from ${formatDate(current.startDate)}, with no end date supplied`;
-    if (current.endDate === current.startDate) runs = `is for ${formatDate(current.startDate)} only`;
-    items.push(`The reservation on this date ${runs}. An end date shows only where it overlaps the calendar, not when a stay could start or end.`);
+    // The headline names this reservation without its end; here the end comes
+    // with the caveat that keeps it from reading as a stay boundary.
+    const start = formatDate(current.startDate);
+    if (!current.endDate) items.push(`Reserved from ${start}, end date not supplied.`);
+    else {
+      const dates = current.endDate === current.startDate ? `${start} only` : `${start} – ${formatDate(current.endDate)}`;
+      items.push(`Reserved ${dates}. Its end date doesn’t say when a stay could start or end.`);
+    }
   }
   if (next && !omitNext) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
@@ -56,23 +59,22 @@ function summaryItemsFor(summary, omitNext) {
   if (summary.noStandardMoveInBeforeNext && !omitNext) {
     items.push('No standard move-in offered before that reservation.');
   }
-  if (summary.noReservationsInCalendar) {
-    const through = summary.coverageEnd
-      ? `through ${formatDate(summary.coverageEnd)}`
-      : 'through a final range with an unspecified end';
-    items.push(`The returned calendar shows no reservation from ${formatDate(summary.coverageStart)} ${through}.`);
-  }
-  if (summary.noStandardMoveInInCalendar) {
-    const through = summary.coverageEnd
-      ? `through ${formatDate(summary.coverageEnd)}`
-      : 'through a final range with an unspecified end';
-    items.push(`The returned calendar shows no standard move-in range from ${formatDate(summary.coverageStart)} ${through}.`);
+  // Stated only under coverage, and only as far as the calendar goes.
+  if (summary.noReservationsInCalendar || summary.noStandardMoveInInCalendar) {
+    const { coverageStart: start, coverageEnd: end } = summary;
+    // A calendar often runs a year ahead, and "Sep 11 – Sep 10" needs its year.
+    const endText = end && (end.slice(0, 4) === start.slice(0, 4) ? formatDate(end) : `${formatDate(end)}, ${end.slice(0, 4)}`);
+    const span = end
+      ? `${formatDate(start)} – ${endText}.`
+      : `from ${formatDate(start)}; the calendar’s last range has no end date.`;
+    if (summary.noReservationsInCalendar) items.push(`No reservation ${span}`);
+    if (summary.noStandardMoveInInCalendar) items.push(`No standard move-in ${span}`);
   }
   return items;
 }
 
 const MARK_EXPLANATIONS = {
-  unavailable: 'Unavailable means a reservation or another block; hover a day or open All returned ranges for which.',
+  unavailable: 'Unavailable means reserved or move-in blocked. Move-in blocked means Landing doesn\'t allow a move-in that night for a reason other than a reservation. Hover a day or open All returned ranges to see which.',
   'not-returned': 'No calendar data means Landing\'s calendar doesn\'t say anything about that night — not that it\'s open.',
 };
 
@@ -105,7 +107,9 @@ function calendarGrid(weeks, today, checkIn) {
     cells: weeks.days.map((day, index) => {
       const date = new Date(`${day.date}T00:00:00Z`);
       return {
-        dayText: index === 0 || date.getUTCDate() === 1 ? monthDay.format(date) : String(date.getUTCDate()),
+        // The month only on the 1st, which six weeks always include: "Sep 12"
+        // on today wrapped at 320px, and the Today outline already finds it.
+        dayText: date.getUTCDate() === 1 ? monthDay.format(date) : String(date.getUTCDate()),
         kind: drawnKind(day.kind),
         isToday: index === 0,
         isCheckIn: index === checkInIndex,
@@ -115,7 +119,6 @@ function calendarGrid(weeks, today, checkIn) {
   };
 }
 
-const UNAVAILABLE = 'Unavailable';
 // A fact the response left out. Not "Unavailable", which the calendar uses for
 // reserved or blocked days.
 const NOT_SUPPLIED = 'Not supplied';
@@ -128,6 +131,12 @@ const NOT_SUPPLIED = 'Not supplied';
 function failureCauseText(error) {
   if (error === 'RateLimitedError') return 'Landing asked this extension to slow down';
   return 'the network request did not complete';
+}
+
+// After a rate limit an immediate retry would be refused again, so the next
+// step says to wait first.
+function retryText(error) {
+  return error === 'RateLimitedError' ? 'Wait a few minutes, then Refresh.' : 'Refresh to try again.';
 }
 
 /**
@@ -172,7 +181,8 @@ function subjectPriceText(price) {
 const plural = (count, singular) => (count === 1 ? singular : `${singular}s`);
 
 // States what the figures are and nothing about what they mean (No Verdict Rule).
-const COMPARISON_DISCLOSURE = 'This home’s Flex price against the median of similar homes in this market. Not a quote for your dates.';
+// "Other homes" in every surface (CONTEXT.md); the tip says what makes them comparable.
+const COMPARISON_DISCLOSURE = 'This home’s Flex price against the median of other homes in this market with the same number of bedrooms. Not a quote for your dates.';
 
 
 /**
@@ -187,7 +197,7 @@ function comparisonView(state) {
 
   view.visible = true;
   if (comparison.status === 'loading') {
-    view.statusText = 'Comparing with similar homes in this market…';
+    view.statusText = 'Comparing with other homes in this market…';
     return view;
   }
 
@@ -197,14 +207,14 @@ function comparisonView(state) {
   }
 
   if (comparison.status === 'unavailable') {
-    view.statusText = 'Couldn’t load all the similar homes, so no median is shown.';
+    view.statusText = 'Couldn’t load all the other homes, so no median is shown.';
   } else if (comparison.status === 'insufficient') {
-    const listed = comparison.count === 0 ? 'No similar homes listed a price.'
-      : `Only ${comparison.count} similar ${plural(comparison.count, 'home')} listed a price.`;
+    const listed = comparison.count === 0 ? 'No other homes listed a price.'
+      : `Only ${comparison.count} other ${plural(comparison.count, 'home')} listed a price.`;
     view.statusText = `${listed} At least ${MINIMUM_PEERS} are needed for a fair median.`;
   } else if (comparison.status === 'ready') {
     view.prices = [
-      { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : UNAVAILABLE,
+      { label: 'This home', amount: comparison.subjectPrice ? money(comparison.subjectPrice.amount) : NOT_SUPPLIED,
         unit: comparison.subjectPrice ? (comparison.subjectPrice.label ?? 'per month (label not supplied)') : '' },
       { label: `Median of ${comparison.count} other ${plural(comparison.count, 'home')}`, amount: money(comparison.median), unit: 'per month' },
     ];
@@ -284,14 +294,14 @@ function priceRow(view, comparison) {
   if (comparison.status === 'loading') return { ...row, value: 'Checking…', muted: true, tip: view.statusText };
   if (comparison.status !== 'ready') {
     const short = comparison.status === 'insufficient'
-      ? `Too few other homes (${comparison.count} of ${MINIMUM_PEERS})`
+      ? `Too few other homes (${comparison.count} priced, ${MINIMUM_PEERS} needed)`
       : 'Comparison unavailable';
     return { ...row, value: short, muted: true, tip: view.statusText };
   }
   const [subject, median] = view.prices;
   const homes = `${comparison.count} other ${plural(comparison.count, 'home')}`;
   if (!comparison.subjectPrice) {
-    return { ...row, value: 'This home: unavailable', sub: `Median ${median.amount} · ${homes}`, tip: view.subjectText };
+    return { ...row, value: 'This home: not supplied', sub: `Median ${median.amount} · ${homes}`, tip: view.subjectText };
   }
   const older = comparison.isStale ? ' · older check' : '';
   return { ...row, value: view.differenceText, sub: `${subject.amount} vs. ${median.amount} median · ${homes}${older}` };
@@ -338,6 +348,8 @@ export function describeState(state) {
     identityNote: '',
     identityNoteLead: '',
     checkTimeText: 'Not checked yet',
+    noSubject: false,
+    nextStepText: '',
     calendarStatusText: '',
     calendarVisible: false,
     referenceNote: '',
@@ -360,9 +372,9 @@ export function describeState(state) {
   } else if (state.isChecking) {
     view.calendarStatusText = state.status === 'unavailable' ? 'Calendar unavailable. Checking again…' : 'Checking the calendar…';
   } else if (cause && held) {
-    view.refreshNote = `The last refresh failed: ${cause}. Showing an older check; Refresh to try again.`;
+    view.refreshNote = `The last refresh failed: ${cause}. Showing an older check. ${retryText(state.error)}`;
   } else if (cause) {
-    view.refreshNote = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${cause}. Refresh to try again.`;
+    view.refreshNote = `Check failed${state.displayedName ? ` for ${state.displayedName}` : ''}: ${cause}. ${retryText(state.error)}`;
   } else if (state.status === 'mismatch' || state.status === 'ambiguous') {
     const { lead, rest } = identityNoteParts(state);
     view.identityNote = `${lead} ${rest}`;
@@ -405,6 +417,13 @@ export function describeState(state) {
 
   view.calendarVisible = Boolean(view.calendarStatusText || view.referenceNote || view.grid
     || view.summaryItems.length || view.allRanges.length);
+
+  // Opened from the toolbar with no home selected: nothing to check or
+  // refresh, so the panel says how to choose one instead.
+  if (!state.slug && state.status === 'idle' && !state.isChecking && state.checkedAt === null && !state.error) {
+    Object.assign(view, { noSubject: true, headingText: 'No home selected', checkTimeText: '',
+      nextStepText: 'Open a home’s Standby page, or press View evidence on a card.' });
+  }
 
   return view;
 }
