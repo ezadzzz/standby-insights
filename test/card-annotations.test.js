@@ -250,19 +250,88 @@ test('changing the selected check-in re-states every annotation against the new 
   assert.notEqual(marker(), before, 'the check-in marker moves with the new date');
 });
 
-test('an unconfirmed card makes no claim and contributes to one page notice', () => {
+const NOT_READ = "Not read: couldn't confirm this listing";
+
+test('an unconfirmed card says "not read" in one quiet line and makes no claim', () => {
+  const h = harness();
+  const mismatched = addCard(h.doc, CARD);
+  addCard(h.doc, observedCards[1]);
+  h.annotator.start();
+
+  // The response's own name is never trusted for a card it doesn't match.
+  h.store.set(CARD.response.slug, { ...READY, identity: 'mismatch', status: 'mismatch', ranges: null, unitName: 'Somewhere Else 9999' });
+  h.store.set(observedCards[1].response.slug, { ...READY, identity: 'ambiguous', status: 'ambiguous', ranges: null });
+
+  assert.equal(h.annotations().length, 2);
+  for (const note of h.annotations()) {
+    const part = (className) => note.children.find((el) => el.className === className);
+    assert.equal(note.hidden, false, 'the card says it was not read rather than staying blank');
+    assert.equal(note.getAttribute('data-not-read'), 'true');
+    assert.equal(note.children[0].textContent, 'Standby Insights', 'the source tab still names the source');
+    assert.equal(part('standby-evidence-status').textContent, NOT_READ);
+    assert.equal(part('standby-evidence-headline').textContent, '', 'no headline');
+    assert.equal(part('standby-evidence-line').textContent, '');
+    assert.equal(part('standby-evidence-note').textContent, '');
+    assert.equal(part('standby-strip').hidden, true, 'no strip');
+    assert.equal(part('standby-strip-key').hidden, true, 'no key');
+    assert.equal(part('standby-evidence-info').hidden, true, 'nothing about a strip to explain');
+    assert.equal(part('standby-evidence-button').hidden, true, 'no evidence to view for an unconfirmed unit');
+  }
+  // Named for the unit the page shows, not for whatever the response described.
+  assert.deepEqual(h.annotations().map((el) => el.getAttribute('aria-label')),
+    ['Standby Insights for Unit 1831', 'Standby Insights for Unit 2309']);
+  // Still a guest: the note sits directly after Landing's own link.
+  assert.equal(h.doc.root.children[h.doc.root.children.indexOf(mismatched) + 1], h.annotations()[0]);
+
+  assert.equal(h.notices().length, 1, 'two unreadable cards still produce one notice');
+  assert.equal(h.notices()[0].textContent, "Standby Insights2 listings couldn't be read.Resume reading listings",
+    'a count, not a hunt for cards with no note');
+});
+
+test('a card not yet read still shows nothing, so it differs from one that could not be read', () => {
   const h = harness();
   addCard(h.doc, CARD);
   addCard(h.doc, observedCards[1]);
   h.annotator.start();
+  assert.equal(h.annotations().length, 0);
+  assert.equal(h.notices().length, 0, 'an unread card is not counted as unreadable');
 
   h.store.set(CARD.response.slug, { ...READY, identity: 'mismatch', status: 'mismatch', ranges: null });
-  h.store.set(observedCards[1].response.slug, { ...READY, identity: 'ambiguous', status: 'ambiguous', ranges: null });
 
-  assert.ok(h.annotations().every((el) => el.hidden), 'no unit claim is attached');
-  assert.equal(h.notices().length, 1, 'two unreadable cards still produce one notice');
-  assert.match(h.notices()[0].textContent, /^Standby Insights2 listings couldn't be read\./);
-  assert.match(h.notices()[0].textContent, /no Standby Insights note or marked "Calendar unavailable"/, 'says which cards to look at');
+  assert.deepEqual(h.annotations().map((el) => el.getAttribute('data-standby-evidence')), [CARD.response.slug],
+    'only the unreadable card is marked');
+  assert.match(h.notices()[0].textContent, /1 listing couldn't be read\./);
+});
+
+test('a ready card keeps its full note and is not marked as not read', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, unitName: 'Cortland Southpark Terraces 1831' });
+
+  const note = h.annotations()[0];
+  const part = (className) => note.children.find((el) => el.className === className);
+  assert.equal(note.getAttribute('data-not-read'), 'false');
+  assert.notEqual(part('standby-evidence-status').textContent, NOT_READ);
+  assert.notEqual(part('standby-evidence-headline').textContent, '');
+  assert.equal(part('standby-strip').hidden, false);
+  assert.equal(part('standby-evidence-info').hidden, false);
+  assert.equal(part('standby-evidence-button').hidden, false);
+  assert.equal(note.getAttribute('aria-label'), 'Standby Insights for Cortland Southpark Terraces 1831');
+  assert.equal(h.notices().length, 0);
+});
+
+test('a card read again after a mismatch drops its "not read" line once confirmed', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, identity: 'mismatch', status: 'mismatch', ranges: null });
+  h.store.set(CARD.response.slug, READY);
+
+  const note = h.annotations()[0];
+  assert.equal(note.getAttribute('data-not-read'), 'false');
+  assert.equal(note.children.find((el) => el.className === 'standby-evidence-button').hidden, false);
+  assert.equal(h.notices().length, 0);
 });
 
 test('the page notice sits before Landing’s results grid, never inside a card', () => {
@@ -446,21 +515,46 @@ test('a strip drawing only Standby-only and Unavailable carries no key', () => {
   assert.equal(part('standby-strip-key').hidden, true, 'green and grey read without a key');
 });
 
-test('a strip that also draws a check-in mark keys every mark', () => {
-  const h = harness({ checkIn: { status: 'selected', date: '2026-09-15' } });
+const NO_GAP_RANGES = [
+  { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
+  { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
+];
+
+function keyFor(checkIn, ranges) {
+  const h = harness({ checkIn });
   addCard(h.doc, CARD);
   h.annotator.start();
-  h.store.set(CARD.response.slug, {
-    ...READY,
-    ranges: [
-      { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
-      { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
-    ],
-  });
+  h.store.set(CARD.response.slug, { ...READY, ranges });
+  const note = h.annotations()[0];
+  return { note, key: note.children.find((el) => el.className === 'standby-strip-key') };
+}
 
-  const key = h.annotations()[0].children.find((el) => el.className === 'standby-strip-key');
+test('a check-in alone does not bring the key, though the triangle still draws', () => {
+  const { note, key } = keyFor({ status: 'selected', date: '2026-09-15' }, NO_GAP_RANGES);
+  assert.equal(key.hidden, true);
+  assert.ok(descendants(note).some((el) => el.className === 'standby-strip-check-in'), 'the triangle is drawn');
+});
+
+test('a check-in beside an Available mark keys every mark', () => {
+  const { key } = keyFor({ status: 'selected', date: '2026-09-15' }, [
+    { startDate: '2026-09-01', endDate: '2027-09-01', moveInAllowed: true, isReservation: false },
+  ]);
   assert.equal(key.hidden, false);
-  assert.equal(key.textContent, 'Standby-onlyUnavailableYour check-in');
+  assert.equal(key.textContent, 'AvailableYour check-in');
+});
+
+test('with no check-in, a no-gap strip carries no key', () => {
+  const { key } = keyFor({ status: 'none', date: null }, NO_GAP_RANGES);
+  assert.equal(key.hidden, true);
+});
+
+test('the card tip says the triangle marks the member’s check-in', () => {
+  const h = harness();
+  addCard(h.doc, CARD);
+  h.annotator.start();
+  h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
+  const tip = h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip');
+  assert.match(tip.textContent, /triangle marks Your check-in/);
 });
 
 test('a card is read only once it enters the viewport, and only ever in the background lane', () => {
@@ -489,6 +583,10 @@ test('an href this extension will not treat as a locator is read as unreadable, 
 
   assert.deepEqual(h.store.reads, [], 'a general listing href triggers no request');
   assert.equal(h.notices().length, 1, 'it contributes to the one notice instead');
+  const note = h.annotations()[0];
+  assert.ok(note, 'and says on the card itself that it was not read');
+  assert.equal(note.children.find((el) => el.className === 'standby-evidence-status').textContent, NOT_READ);
+  assert.equal(note.getAttribute('aria-label'), 'Standby Insights', 'no unit is shown, so none is named');
 });
 
 test('an older check keeps its note directly under the headline it qualifies', () => {

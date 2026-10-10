@@ -92,6 +92,11 @@
   forced-color-adjust: none;
 }
 .standby-evidence-line { color: #5d686b; margin-top: 1px; text-wrap: pretty; }
+/* A card that couldn't be read: the tab and one quiet line, nothing to act on.
+   The display rules on the mark would otherwise override the hidden attribute. */
+.standby-evidence[data-not-read="true"] .standby-evidence-status { margin: 0; color: #5d686b; }
+.standby-evidence-info[hidden],
+.standby-evidence-button[hidden] { display: none; }
 .standby-evidence-note { color: #5d686b; font-style: italic; margin-top: 1px; }
 
 .standby-strip {
