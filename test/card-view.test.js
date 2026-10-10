@@ -85,7 +85,7 @@ test('a standby-only gap leads the card in words, with the reservation that shor
   assert.equal(view.isStandbyOnly, true);
   assert.equal(view.quiet, false, 'a gap stays as loud as ever');
   assert.equal(view.headlineText, 'Standby-only through Sep 24');
-  assert.match(view.detailText, /before the Sep 25 reservation/);
+  assert.match(view.detailText, /Next reservation blocks/);
   assert.doesNotMatch(`${view.headlineText} ${view.detailText}`, /protect|guarantee|safe|bump/i);
 });
 
@@ -97,7 +97,8 @@ test('a card says the check-in is reserved even when a standby-only gap follows 
     { start_date: '2026-09-25', end_date: '2026-10-30', move_in_allowed: false, unbookable_reason: 'reserved' },
   ], { checkIn: { status: 'selected', date: REFERENCE } });
   assert.equal(view.headlineText, 'Standby-only Sep 18 – Sep 24');
-  assert.equal(view.detailText, "Reserved on your check-in, Sep 15. Standard stays can't fit before the Sep 25 reservation, while it holds");
+  assert.equal(view.detailText, "Reserved on your check-in, Sep 15. Next reservation blocks standard stays*");
+  assert.equal(view.footnoteText, "* Reservation dates can change.");
 });
 
 test('a card without a standby-only gap keeps its reservation fact and never implies one', () => {

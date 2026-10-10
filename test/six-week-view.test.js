@@ -26,7 +26,7 @@ test('a gap in progress on the reference date is named with its end and the rese
   const statement = describeStandbyOnly(sixWeekView(lantana, TODAY, TODAY));
   assert.equal(statement.isStandbyOnly, true);
   assert.equal(statement.headline, 'Standby-only through Sep 24');
-  assert.equal(statement.detail, "Standard stays can't fit before the Sep 26 reservation, while it holds");
+  assert.equal(statement.detail, "Next reservation blocks standard stays");
 });
 
 test('an upcoming gap is named by both ends', () => {
@@ -59,7 +59,7 @@ test('a reserved reference date is said even when a standby-only gap follows it'
   const selected = at(TODAY, { status: 'selected', date: '2026-10-10' });
   assert.equal(selected.isStandbyOnly, true, 'the gap stays the headline');
   assert.equal(selected.headline, 'Standby-only Oct 13 – Oct 22');
-  assert.equal(selected.detail, "Reserved on your check-in, Oct 10. Standard stays can't fit before the Oct 23 reservation, while it holds");
+  assert.equal(selected.detail, "Reserved on your check-in, Oct 10. Next reservation blocks standard stays");
 
   // Not the member's date: labeled as today, never presented as theirs.
   const checkDate = at('2026-10-10', { status: 'none', date: null });

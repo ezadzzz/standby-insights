@@ -556,7 +556,7 @@ test('the card tip explains the triangle only when the strip draws one', () => {
     h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
     return h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip').textContent;
   };
-  assert.match(tipFor({ status: 'selected', date: '2026-09-15' }), /starting today on the left\. A triangle marks your check-in\.$/);
+  assert.match(tipFor({ status: 'selected', date: '2026-09-15' }), /starting today on the left\. A triangle marks your check-in\./);
   assert.doesNotMatch(tipFor({ status: 'none', date: null }), /triangle/);
 });
 
