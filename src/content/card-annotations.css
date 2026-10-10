@@ -123,12 +123,12 @@
 .standby-strip-segment { flex-basis: 0; min-width: 0; }
 /* One mark per thing a member asks of a day, each at least 3:1 on paper.
    Segments and key swatches share them, so the key can't drift. Available is
-   an open box; unavailable a solid gray; no calendar data a diagonal hatch,
+   light gray, so the white cuts show each day; unavailable a solid gray; no calendar data a diagonal hatch,
    drawn as missing rather than as an open day or a filled one. */
 .standby-strip [data-kind="standby-only"],
 .standby-strip-key [data-kind="standby-only"] { background: #1d9e75; }
 .standby-strip [data-kind="move-in"],
-.standby-strip-key [data-kind="move-in"] { box-shadow: inset 0 0 0 1px #8a9598; }
+.standby-strip-key [data-kind="move-in"] { background: #d3d8d9; }
 .standby-strip [data-kind="unavailable"],
 .standby-strip-key [data-kind="unavailable"] { background: #6b7679; }
 .standby-strip [data-kind="not-returned"],
@@ -148,6 +148,69 @@
   justify-content: space-between;
   color: #5d686b;
   font-size: 11px;
+}
+/* A taller hover target than the 10px bar, drawn as nothing. */
+.standby-strip::before { content: ""; position: absolute; inset: -6px 0 -4px; }
+/* The hovered day, framed in graphite like the panel's today outline, so it
+   reads on green, gray and hatch alike and ticks out onto paper above and below. */
+.standby-strip-cursor {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: calc(100% / 42 + 2px);
+  margin-left: -1px;
+  box-sizing: border-box;
+  border: 1px solid #2d3538;
+  pointer-events: none;
+  z-index: 2;
+}
+.standby-strip-cursor[hidden] { display: none; }
+/* Its date floats above the bar in a small callout, clear of the pointer and
+   over the line above only while the pointer is there. The readout itself is a
+   zero-width anchor on the day's center, placed like the check-in triangle, so
+   the callout's point and that triangle share one position. */
+.standby-strip-readout {
+  position: absolute;
+  top: 0;
+  z-index: 3;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+.standby-strip[data-hover] > .standby-strip-readout { visibility: visible; }
+.standby-strip-readout > span {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  padding: 2px 4px;
+  border: 1px solid #2d3538;
+  background: #fff;
+  transform: translateX(-50%);
+  color: #2d3538;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1;
+}
+/* Held inside the note at either end, 4px past the day's outer edge. */
+.standby-strip-readout[data-align="start"] > span { left: calc(-4px - var(--half-day, 3px)); transform: none; }
+.standby-strip-readout[data-align="end"] > span { left: auto; right: calc(-4px - var(--half-day, 3px)); transform: none; }
+/* The point, one shape with the box: a paper gap opens the box's bottom edge
+   and two graphite sides run down to the day's frame. Its inside is clear, so
+   the check-in triangle, which sits exactly inside it, shows through. */
+.standby-strip-readout::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: -6px;
+  width: 12px;
+  height: 6px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 6'%3E%3Cpath fill='%23fff' d='M1.41 0h9.18v1H1.41z'/%3E%3Cpath fill='%232d3538' fill-rule='evenodd' d='M0 0h12L6 6zM1.41 0h9.18L6 4.59z'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+@media (forced-colors: active) {
+  .standby-strip-readout { forced-color-adjust: none; }
 }
 .standby-evidence .standby-strip-key {
   display: flex;

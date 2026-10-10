@@ -8,6 +8,12 @@ function formatDate(isoDate) {
   return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`));
 }
 
+/** The strip's hover readout: "10/14", no year, so it fits under one day. */
+export function numericDate(isoDate) {
+  const [, month, day] = isoDate.split('-');
+  return `${Number(month)}/${Number(day)}`;
+}
+
 /**
  * The reservation line under a headline that doesn't already carry one. An
  * absence says only "not shown", never "none", and names its date, because the
@@ -93,6 +99,6 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
   const extras = checkInIndex === null ? [] : [{ kind: 'check-in', text: 'Your check-in' }];
   const segments = cardSegments(weeks.segments);
   const key = drawnKey(segments.map((s) => s.kind), extras);
-  view.strip = { segments, label, checkInIndex, key };
+  view.strip = { segments, label, checkInIndex, key, startDate: today };
   return view;
 }
