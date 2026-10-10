@@ -29,9 +29,9 @@ test('a failed refresh gets its own announced status line, separate from the che
   assert(html.indexOf('id="check-time"') < html.indexOf('id="refresh-status"'));
 });
 
-test('not-returned days are hatched and available days are open boxes, alike on both surfaces', async () => {
-  // An open box is a day a stay can start; a missing day must not look like
-  // one, nor like a solid fill the calendar stated.
+test('not-returned days are hatched and available days are light gray, alike on both surfaces', async () => {
+  // A missing day must not look like an available one, nor like a solid fill
+  // the calendar stated.
   for (const [file, prefix] of [
     ['src/panel/panel.css', ''],
     ['src/content/card-annotations.css', '.standby-strip '],
@@ -40,7 +40,7 @@ test('not-returned days are hatched and available days are open boxes, alike on 
     const missing = declarationsFor(css, `${prefix}[data-kind="not-returned"]`);
     assert.match(missing, /background:\s*repeating-linear-gradient\(/, `${file}: a missing day is hatched`);
     assert.doesNotMatch(missing, /box-shadow/, `${file}: an outline would read as an open day`);
-    assert.match(declarationsFor(css, `${prefix}[data-kind="move-in"]`), /box-shadow:\s*inset 0 0 0 1px/, `${file}: an available day is an open box`);
+    assert.match(declarationsFor(css, `${prefix}[data-kind="move-in"]`), /background:\s*#d3d8d9/, `${file}: an available day is light gray`);
   }
 });
 

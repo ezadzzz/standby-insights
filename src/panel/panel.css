@@ -130,10 +130,10 @@ h2 {
 }
 [data-kind="standby-only"] { background: var(--standby-only); color: #04261b; }
 #calendar-grid [data-kind="standby-only"] { font-weight: 700; }
-/* The card strip's marks, so both surfaces draw a day alike: an open box for
+/* The card strip's marks, so both surfaces draw a day alike: light gray for
    available, solid gray under white numerals for unavailable, and a hatch with
    dimmed numerals for no calendar data, so missing never reads as open. */
-[data-kind="move-in"] { box-shadow: inset 0 0 0 1px var(--mark); }
+[data-kind="move-in"] { background: #d3d8d9; }
 [data-kind="unavailable"] { background: #6b7679; color: #fff; }
 [data-kind="not-returned"] { background: repeating-linear-gradient(-45deg, var(--mark) 0 1px, transparent 1px 4px); color: var(--on-2); }
 /* A paper band keeps the numeral off the hatch, so the date stays readable. */

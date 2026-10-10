@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deriveCalendarEvidence, summarizeForReference } from '../src/lib/calendar.js';
-import { describeCard } from '../src/content/card-view.js';
+import { describeCard, numericDate } from '../src/content/card-view.js';
 import { parseCardSlugFromHref, isStandbySearchPath } from '../src/content/page-adapter.js';
 import { observedCards, validClosedCalendarHome } from './fixtures/home-responses.js';
 
@@ -222,4 +222,10 @@ test('an older check leaves the headline plain and names its check time in the n
   assert.equal(stale.headlineText, fresh.headlineText);
   assert.equal(fresh.noteText, '');
   assert.match(stale.noteText, /^Older check · checked [A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2}\s[AP]M$/);
+});
+
+test('the strip hover names a day by month and day only, counted from the strip start', () => {
+  assert.equal(cardFor([{ start_date: REFERENCE, end_date: null, move_in_allowed: true }]).strip.startDate, REFERENCE);
+  assert.equal(numericDate('2026-09-05'), '9/5');
+  assert.equal(numericDate('2026-10-14'), '10/14');
 });

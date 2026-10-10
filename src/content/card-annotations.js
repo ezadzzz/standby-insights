@@ -1,9 +1,10 @@
 import { summarizeForReference } from '../lib/calendar.js';
 import { parseCardSlugFromHref } from './page-adapter.js';
-import { describeCard } from './card-view.js';
+import { describeCard, numericDate } from './card-view.js';
 import { displayedUnitName } from '../lib/identity.js';
 import { checkDate } from '../lib/reference-date.js';
 import { VIEW_DAYS } from '../lib/six-week-view.js';
+import { addDays } from '../lib/calendar.js';
 
 const CARD_LINK = 'a[data-testid="pdp-home-card-link"]';
 const ANNOTATION_ATTRIBUTE = 'data-standby-evidence';
@@ -124,6 +125,38 @@ export function createCardAnnotator({
     strip.setAttribute('role', 'img');
     const scale = doc.createElement('p');
     scale.className = 'standby-strip-scale';
+    // Hovering the strip frames one day and names its date just above it, clear
+    // of the pointer. A pointer convenience only: the strip's label already says
+    // every stretch.
+    const cursor = doc.createElement('span');
+    cursor.className = 'standby-strip-cursor';
+    cursor.hidden = true;
+    // Inside the strip, so its role="img" keeps the readout out of the spoken
+    // label. The readout is a point on the day's center, placed exactly like the
+    // check-in triangle so the two line up; the date box hangs from it.
+    const readout = doc.createElement('span');
+    readout.className = 'standby-strip-readout';
+    const readoutDate = doc.createElement('span');
+    readout.append(readoutDate);
+    strip.addEventListener('pointermove', (event) => {
+      const box = strip.getBoundingClientRect();
+      const start = strip.getAttribute('data-start');
+      if (!start || box.width === 0) return;
+      const index = Math.min(VIEW_DAYS - 1, Math.max(0, Math.floor(((event.clientX - box.left) / box.width) * VIEW_DAYS)));
+      cursor.style.left = `${(index / VIEW_DAYS) * 100}%`;
+      readoutDate.textContent = numericDate(addDays(start, index));
+      // Centered under its day, but held inside the note at either end.
+      const edge = index < 3 ? 'start' : index > VIEW_DAYS - 4 ? 'end' : 'center';
+      readout.setAttribute('data-align', edge);
+      readout.style.setProperty('--half-day', `${box.width / VIEW_DAYS / 2}px`);
+      readout.style.left = `${((index + 0.5) / VIEW_DAYS) * 100}%`;
+      cursor.hidden = false;
+      strip.setAttribute('data-hover', '');
+    });
+    strip.addEventListener('pointerleave', () => {
+      cursor.hidden = true;
+      strip.removeAttribute('data-hover');
+    });
     // The strip's label already speaks every mark; the key is for sighted readers.
     const key = doc.createElement('p');
     key.className = 'standby-strip-key';
@@ -150,7 +183,7 @@ export function createCardAnnotator({
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
     container.append(tab, info, tip, status, headline, note, detail, strip, scale, key, button);
-    return { container, status, headline, detail, strip, scale, key, note, button, info, tip, slug };
+    return { container, status, headline, detail, strip, scale, cursor, readout, key, note, button, info, tip, slug };
   }
 
   function paintStrip(parts, strip) {
@@ -162,6 +195,7 @@ export function createCardAnnotator({
     parts.tip.textContent = CARD_TIP + (strip?.checkInIndex == null ? '' : CHECK_IN_TIP);
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
+    parts.strip.setAttribute('data-start', strip.startDate);
     const pieces = strip.segments.map((segment) => {
       const piece = doc.createElement('span');
       piece.className = 'standby-strip-segment';
@@ -175,7 +209,7 @@ export function createCardAnnotator({
       marker.setAttribute('style', `left: ${((strip.checkInIndex + 0.5) / VIEW_DAYS) * 100}%`);
       pieces.push(marker);
     }
-    parts.strip.replaceChildren(...pieces);
+    parts.strip.replaceChildren(...pieces, parts.cursor, parts.readout);
     // A span, not an end date: the date read as an event on the unit.
     const start = doc.createElement('span');
     start.textContent = 'Today';
