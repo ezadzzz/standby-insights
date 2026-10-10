@@ -123,8 +123,8 @@ export function sixWeekView(ranges, today, referenceDate) {
 /**
  * The words a member scans for. A standby-only gap is stated from Landing's
  * reason with the reservation that shortens it, and lasts only while that
- * reservation holds; nothing here says the member cannot be bumped, only that a
- * standard stay can't fit.
+ * reservation holds, so each surface carries that caveat beside it; nothing
+ * here says the member cannot be bumped, only that a standard stay can't fit.
  */
 export function describeStandbyOnly(view) {
   const { gap } = view;
@@ -134,7 +134,7 @@ export function describeStandbyOnly(view) {
     else if (gap.inProgress) headline = `Standby-only through ${short(gap.endDate)}`;
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
-      ? `Standard stays can't fit before the ${short(gap.nextReservation.startDate)} reservation, while it holds`
+      ? 'Next reservation blocks standard stays'
       // Not "too short": beside an unspecified end that read as a contradiction.
       : "Standard stays can't fit";
     return { isStandbyOnly: true, headline, detail };

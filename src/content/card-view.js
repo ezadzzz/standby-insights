@@ -44,7 +44,7 @@ function cardSegments(segments) {
  * card says only that it was not read, and is counted in the page notice.
  */
 export function describeCard({ evidence, summary, referenceDate, today, checkIn }) {
-  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, quiet: false, detailText: '', strip: null, noteText: '' };
+  const view = { readable: true, statusText: '', headlineText: '', isStandbyOnly: false, quiet: false, detailText: '', footnoteText: '', strip: null, noteText: '' };
 
   if (evidence.identity === 'mismatch' || evidence.identity === 'ambiguous') {
     return { ...view, readable: false, statusText: "Not read: couldn't confirm this listing" };
@@ -83,6 +83,11 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
     view.headlineText = statement.headline;
     view.quiet = statement.noGap === false; // withheld, not found: as quiet as the no-gap line
     view.detailText = statement.detail || reservationLine(summary, referenceDate);
+    // The gap lasts only while the next reservation holds; the caveat sits in the tip.
+    if (statement.isStandbyOnly && weeks.gap?.nextReservation) {
+      view.detailText += '*';
+      view.footnoteText = '* Reservation dates can change.';
+    }
   }
   // The marker is the member's own date and needs no sentence; without one the
   // strip's statements run from its labeled Today edge (ADR 1).

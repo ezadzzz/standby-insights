@@ -237,6 +237,7 @@ export function createCardAnnotator({
     parts.headline.setAttribute('data-quiet', String(view.quiet));
     parts.detail.textContent = view.detailText;
     paintStrip(parts, view.strip);
+    if (view.footnoteText) parts.tip.textContent += `\n${view.footnoteText}`;
     parts.note.textContent = view.noteText;
   }
 

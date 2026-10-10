@@ -368,7 +368,7 @@ test('ready calendar: leads with the standby-only headline and a six-week grid m
   });
   assert.equal(view.standbyOnly.headline, 'Standby-only through Sep 24');
   // The condition sits under the headline where the member decides, not behind "About these marks".
-  assert.equal(view.standbyOnly.detail, "Standard stays can't fit before the Sep 25 reservation, while it holds");
+  assert.equal(view.standbyOnly.detail, "Next reservation blocks standard stays");
   assert.equal(view.standbyOnly.explainer, 'Only Standby can book these nights. If the reservation after them moves or is cancelled, a standard stay may fit.');
   assert.doesNotMatch(`${view.standbyOnly.detail} ${view.standbyOnly.explainer}`, /LOS|protect|safe until|guarantee|bump/i);
   assert.equal(view.grid.leadingBlanks, 6, 'Sep 12 is a Saturday');
@@ -471,7 +471,7 @@ test('the summary drops the move-in line when the standby-only detail already na
     ],
     summary: { intersectingReservation: null, nextReservation: { startDate: '2026-09-25', endDate: '2026-10-30' }, noStandardMoveInBeforeNext: true },
   });
-  assert.match(view.standbyOnly.detail, /before the Sep 25 reservation/);
+  assert.match(view.standbyOnly.detail, /Next reservation blocks/);
   assert.deepEqual(view.summaryItems, []);
 });
 
