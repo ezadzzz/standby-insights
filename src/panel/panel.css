@@ -142,9 +142,14 @@ h2 {
 #calendar-grid [data-kind="unavailable"].check-in::after { border-top-color: var(--paper); border-right-color: var(--paper); }
 .grid-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 10px; color: var(--on-2); font: 12px/1.5 var(--mono); }
 .grid-legend li { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-.grid-legend i { display: inline-block; width: 14px; height: 10px; }
+.grid-legend i { display: inline-block; width: 14px; height: 10px; forced-color-adjust: none; }
 .grid-legend i[data-kind="today"] { outline: 2px solid var(--on); outline-offset: -2px; }
 .grid-legend i[data-kind="check-in"] { width: 0; height: 0; border: 5px solid transparent; border-top-color: var(--on); border-right-color: var(--on); }
+/* The legend sits on Canvas, not on a day, so graphite marks would sink on a dark one. */
+@media (forced-colors: active) {
+  .grid-legend i[data-kind="today"] { outline-color: CanvasText; }
+  .grid-legend i[data-kind="check-in"] { border-top-color: CanvasText; border-right-color: CanvasText; }
+}
 #marks-disclosure { margin-top: 4px; }
 #marks-disclosure > p { margin: 0 0 4px; }
 .supporting { color: var(--on-2); font-size: 13px; }
