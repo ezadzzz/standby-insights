@@ -210,6 +210,5 @@
 }
 .standby-evidence-notice p { flex: 1 1 28ch; }
 .standby-evidence-notice .standby-evidence-button { margin: 0 0 0 -4px; }
-.standby-evidence-notice .standby-evidence-button[hidden] { display: none; }
 /* The arrow belongs to View evidence alone. */
 .standby-evidence-notice .standby-evidence-button::before { content: none; }

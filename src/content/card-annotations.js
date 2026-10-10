@@ -69,7 +69,9 @@ export function createCardAnnotator({
   }
 
   let tipCount = 0;
-  const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left. A triangle marks Your check-in.';
+  const CARD_TIP = 'Next six weeks of this home’s booking calendar. Each slice is one day, starting today on the left.';
+  // Said only when the strip draws the triangle, since it then carries no key (#90).
+  const CHECK_IN_TIP = ' A triangle marks your check-in.';
 
   function buildAnnotation(slug) {
     const container = doc.createElement('div');
@@ -105,7 +107,6 @@ export function createCardAnnotator({
     });
     const tip = doc.createElement('p');
     tip.className = 'standby-evidence-tip';
-    tip.textContent = CARD_TIP;
     tip.id = `standby-card-tip-${++tipCount}`;
     info.setAttribute('aria-controls', tip.id);
     info.setAttribute('aria-describedby', tip.id);
@@ -149,7 +150,7 @@ export function createCardAnnotator({
     // the six-week strip, then View evidence. An older-check note sits directly
     // under the headline it qualifies.
     container.append(tab, info, tip, status, headline, note, detail, strip, scale, key, button);
-    return { container, status, headline, detail, strip, scale, key, note, button, info, slug };
+    return { container, status, headline, detail, strip, scale, key, note, button, info, tip, slug };
   }
 
   function paintStrip(parts, strip) {
@@ -158,6 +159,7 @@ export function createCardAnnotator({
     // Green beside a Standby-only headline and grey for the rest read without a
     // key; Available and no calendar data bring it.
     parts.key.hidden = strip === null || strip.key.every(({ kind }) => SELF_EVIDENT.has(kind));
+    parts.tip.textContent = CARD_TIP + (strip?.checkInIndex == null ? '' : CHECK_IN_TIP);
     if (strip === null) return;
     parts.strip.setAttribute('aria-label', strip.label);
     const pieces = strip.segments.map((segment) => {
