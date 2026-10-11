@@ -498,7 +498,7 @@ test('a card without a gap is one quiet line over a keyed strip', () => {
   assert.deepEqual(part('standby-strip-scale').children.map((el) => el.textContent), ['Today', '6 weeks'], 'a span, not an end date');
 });
 
-test('a strip drawing only Standby-only and Unavailable carries no key', () => {
+test('a strip drawing Unavailable keys its marks', () => {
   const h = harness();
   addCard(h.doc, CARD);
   h.annotator.start();
@@ -512,12 +512,12 @@ test('a strip drawing only Standby-only and Unavailable carries no key', () => {
 
   const part = (className) => h.annotations()[0].children.find((el) => el.className === className);
   assert.equal(part('standby-strip').hidden, false, 'the strip stays');
-  assert.equal(part('standby-strip-key').hidden, true, 'green and grey read without a key');
+  assert.equal(part('standby-strip-key').hidden, false, 'grey needs the key');
+  assert.equal(part('standby-strip-key').textContent, 'Standby-onlyUnavailable');
 });
 
-const NO_GAP_RANGES = [
-  { startDate: '2026-09-01', endDate: '2026-09-20', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
-  { startDate: '2026-09-21', endDate: '2027-01-01', moveInAllowed: false, isReservation: true },
+const STANDBY_ONLY_RANGES = [
+  { startDate: '2026-09-01', endDate: '2027-01-01', moveInAllowed: false, isReservation: false, unbookableReason: 'less_than_minimum_nightly_stay' },
 ];
 
 function keyFor(checkIn, ranges) {
@@ -530,7 +530,7 @@ function keyFor(checkIn, ranges) {
 }
 
 test('a check-in alone does not bring the key, though the triangle still draws', () => {
-  const { note, key } = keyFor({ status: 'selected', date: '2026-09-15' }, NO_GAP_RANGES);
+  const { note, key } = keyFor({ status: 'selected', date: '2026-09-15' }, STANDBY_ONLY_RANGES);
   assert.equal(key.hidden, true);
   assert.ok(descendants(note).some((el) => el.className === 'standby-strip-check-in'), 'the triangle is drawn');
 });
@@ -543,8 +543,8 @@ test('a check-in beside an Available mark keys every mark', () => {
   assert.equal(key.textContent, 'AvailableYour check-in');
 });
 
-test('with no check-in, a no-gap strip carries no key', () => {
-  const { key } = keyFor({ status: 'none', date: null }, NO_GAP_RANGES);
+test('with no check-in, an all Standby-only strip carries no key', () => {
+  const { key } = keyFor({ status: 'none', date: null }, STANDBY_ONLY_RANGES);
   assert.equal(key.hidden, true);
 });
 
@@ -553,7 +553,7 @@ test('the card tip explains the triangle only when the strip draws one', () => {
     const h = harness({ checkIn });
     addCard(h.doc, CARD);
     h.annotator.start();
-    h.store.set(CARD.response.slug, { ...READY, ranges: NO_GAP_RANGES });
+    h.store.set(CARD.response.slug, { ...READY, ranges: STANDBY_ONLY_RANGES });
     return h.annotations()[0].children.find((el) => el.className === 'standby-evidence-tip').textContent;
   };
   assert.match(tipFor({ status: 'selected', date: '2026-09-15' }), /starting today on the left\. A triangle marks your check-in\./);

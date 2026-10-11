@@ -14,7 +14,8 @@ const NOTICE_ATTRIBUTE = 'data-standby-notice';
 const CARD_WRAPPER = '[data-testid="pdp-home-card-wrapper"]';
 // Marks a card strip draws without needing its key (decided 2026-10-07, #75).
 // A selected check-in is explained by the card tip, so it doesn't bring the key either (#90).
-const SELF_EVIDENT = new Set(['standby-only', 'unavailable', 'check-in']);
+// Unavailable gray brings the key, since nothing else on the card names it (2026-10-10).
+const SELF_EVIDENT = new Set(['standby-only', 'check-in']);
 
 const PAUSED_NOTICE = 'Landing asked this extension to slow down, so reading further listings is paused.';
 
@@ -189,8 +190,8 @@ export function createCardAnnotator({
   function paintStrip(parts, strip) {
     parts.strip.hidden = strip === null;
     parts.scale.hidden = strip === null;
-    // Green beside a Standby-only headline and grey for the rest read without a
-    // key; Available and no calendar data bring it.
+    // Green beside a Standby-only headline reads without a key; Unavailable,
+    // Available and no calendar data bring it.
     parts.key.hidden = strip === null || strip.key.every(({ kind }) => SELF_EVIDENT.has(kind));
     parts.tip.textContent = CARD_TIP + (strip?.checkInIndex == null ? '' : CHECK_IN_TIP);
     if (strip === null) return;
