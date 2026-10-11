@@ -178,3 +178,7 @@ recording it as a defect.
 
 If any of these turn out to differ from the design's assumptions, revise the
 design before changing the request location or broadening permissions.
+
+## Releasing
+
+Bump `version` in `manifest.json`, merge, then push a matching tag (`git tag v0.1.1 && git push origin v0.1.1`). `.github/workflows/release.yml` runs the tests and attaches `standby-insights-v0.1.1.zip` (`manifest.json`, `src/`, `LICENSE`) to a GitHub Release, which the README's install steps link to.

@@ -46,15 +46,15 @@ The code is all here, so you can check any of this yourself.
 
 Chrome doesn't list it in the Web Store yet, so you load it yourself. It takes about two minutes.
 
-1. On this page, click the green **Code** button, then **Download ZIP**. Unzip it.
+1. Download `standby-insights-vX.Y.Z.zip` from the [latest release](https://github.com/ezadzzz/standby-insights/releases/latest). Unzip it.
 2. In Chrome, go to `chrome://extensions` and turn on **Developer mode** (top right).
-3. Click **Load unpacked** and choose the unzipped folder (the one containing `manifest.json`).
+3. Click **Load unpacked** and choose the unzipped `standby-insights` folder (the one containing `manifest.json`).
 4. Open a Landing Standby search, such as `https://www.hellolanding.com/s/austin-tx/apartments/standby`. Cards are annotated as they scroll into view.
 5. Click a card's **View evidence**, or the extension's toolbar icon, to open the side panel.
 
 Chrome shows a reminder about Developer-mode extensions. That's expected for anything loaded this way.
 
-**To update:** download the ZIP again, replace the old folder, click the reload arrow on the extension's card in `chrome://extensions`, then reload any open Landing tabs.
+**To update:** download the latest release's ZIP, replace the old folder, click the reload arrow on the extension's card in `chrome://extensions`, then reload any open Landing tabs.
 
 ## Limits
 
