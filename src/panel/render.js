@@ -55,7 +55,7 @@ function summaryItemsFor(summary, omitNext) {
   if (next && !omitNext) {
     items.push(`Next reservation starts ${formatDate(next.startDate)}.`);
   }
-  // The standby-only detail line already says no standard stay fits before it.
+  // The standby-only detail and explainer already say no standard stay fits before it.
   if (summary.noStandardMoveInBeforeNext && !omitNext) {
     items.push('No standard move-in offered before that reservation.');
   }
@@ -394,7 +394,7 @@ export function describeState(state) {
     if (state.today && state.referenceDate) {
       const weeks = sixWeekView(state.ranges, state.today, state.referenceDate);
       view.standbyOnly = describeHeadline(weeks, state.summary, state.checkIn);
-      // The standby-only detail line already names this reservation.
+      // The standby-only explainer already names this reservation, and the headline ends the night before it.
       omitNext = view.standbyOnly.isStandbyOnly
         && weeks.gap?.nextReservation?.startDate === state.summary?.nextReservation?.startDate;
       if (!view.standbyOnly.isStandbyOnly) view.standbyOnly.explainer = '';

@@ -92,7 +92,7 @@ export function describeCard({ evidence, summary, referenceDate, today, checkIn 
     // The gap lasts only while the next reservation holds; the caveat sits in the tip.
     if (statement.isStandbyOnly && weeks.gap?.nextReservation) {
       view.detailText += '*';
-      view.footnoteText = '* Reservation dates can change.';
+      view.footnoteText = '* A reservation follows; its dates can change.';
     }
   }
   // The marker is the member's own date and needs no sentence; without one the

@@ -134,7 +134,7 @@ export function describeStandbyOnly(view) {
     else if (gap.inProgress) headline = `Standby-only through ${short(gap.endDate)}`;
     else headline = `Standby-only ${short(gap.startDate)} – ${short(gap.endDate)}`;
     const detail = gap.nextReservation
-      ? 'Next reservation blocks standard stays'
+      ? 'Too few nights for a standard stay'
       // Not "too short": beside an unspecified end that read as a contradiction.
       : "Standard stays can't fit";
     return { isStandbyOnly: true, headline, detail };

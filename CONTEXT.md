@@ -41,8 +41,8 @@ duration.
 **Standby-only** — a range whose unbookable reason is
 `less_than_minimum_nightly_stay`: too few nights for a standard stay, so only
 Standby can book them. Contiguous standby-only ranges read as one **standby-only
-gap**, named with its end ("Standby-only through Sep 24") and the reservation that
-shortens it ("Standard stays can't fit before the Sep 26 reservation"). This is
+gap**, named with its end ("Standby-only through Sep 24") and the reason it is
+standby-only ("Too few nights for a standard stay"). This is
 what a Standby member scans for, and the extension states it from their side.
 It is Landing's published reason, never inferred from neighbouring ranges, and
 it says only that a standard stay cannot fit — not that the member cannot be

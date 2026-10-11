@@ -75,7 +75,7 @@ test('no readable selected date: facts are labeled against the check date, not a
   assert.match(view().standbyOnly.explainer, /If the reservation after them moves or is cancelled, a standard stay may fit/);
   assert.match(summaryText(view()), /Reserved Sep 11 only\./);
   // The detail line already names the reservation after the gap, so the summary does not repeat it.
-  assert.match(view().standbyOnly.detail, /Next reservation blocks/);
+  assert.match(view().standbyOnly.detail, /Too few nights for a standard stay/);
   // Today's reservation is still said, labeled as today, not as the member's date.
   assert.match(view().standbyOnly.detail, /^Reserved today, Sep 11\. /);
   assert.doesNotMatch(summaryText(view()), /Next reservation starts/);
