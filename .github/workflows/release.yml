@@ -1,0 +1,33 @@
+name: Release
+
+# Push a tag like v0.1.0 (matching manifest.json "version") to publish a
+# GitHub Release with a slim ZIP that members can load unpacked.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check tag matches manifest version
+        run: |
+          v=$(node -p "require('./manifest.json').version")
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME != manifest v$v"; exit 1; }
+      - run: npm test
+      - name: Build ZIP
+        run: |
+          mkdir -p out/standby-insights
+          cp -r manifest.json src LICENSE out/standby-insights/
+          cd out && zip -r "standby-insights-$GITHUB_REF_NAME.zip" standby-insights
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "out/standby-insights-$GITHUB_REF_NAME.zip" --generate-notes
